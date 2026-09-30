@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Breach Protocol — Helix Compound</title>
+  <meta name="description" content="An original open-source tactical browser FPS. Plant, defend, and master the recoil at Helix Compound.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2315191a'/%3E%3Cpath d='M9 5h13v8H9v14M9 18h13v9' fill='none' stroke='%23c7b58e' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+<canvas id="world" aria-label="First-person game view"></canvas>
+<div id="vignette"></div><div id="damage"></div><div id="flash"></div>
+<main id="menu" class="overlay">
+  <div class="mast"><span class="emblem">BP</span><span>BREACH PROTOCOL <small>TACTICAL FPS / 0.1</small></span><span class="build">OFFLINE OPERATIONS</span></div>
+  <section class="briefing">
+    <div class="eyebrow">28° 24′ N / 34° 48′ E &nbsp; · &nbsp; HELIX COMPOUND</div>
+    <h1>HOLD YOUR<br>GROUND.</h1>
+    <p class="intro">A quiet facility. Two sites. No second chances.<br>Stop, aim, and make the first shot count.</p>
+    <div class="setup">
+      <label>OPERATION<select id="side"><option value="attack">Breach · plant the core</option><option value="defend">Contain · defend the sites</option></select></label>
+      <label>BOT DIFFICULTY<select id="difficulty"><option value="easy">Easy · learn the angles</option><option value="normal" selected>Normal · stay sharp</option><option value="hard">Hard · no easy fights</option></select></label>
+    </div>
+    <p id="difficultyInfo" class="muted">Balanced reaction time and controlled bursts. Three opponents.</p>
+    <button id="start" class="primary" disabled>LOADING COMPOUND…</button>
+    <div class="spec"><span>01 MAP</span><span>1 vs 3 BOTS</span><span>FIRST TO 4</span></div>
+  </section>
+  <aside class="fieldnote"><span>FIELD NOTES / 001</span><h2>Precision beats speed.</h2><p>Movement opens your spread. Release the keys, settle your aim, then fire. A rifle headshot defeats full armor.</p><div class="rule"></div><p>WASD move · Mouse aim / fire<br>R reload · Shift walk · Ctrl crouch<br>Space jump · E plant / defuse<br>1 / 2 weapons · G smoke · F flash<br>B buy · Tab scoreboard · Esc pause</p></aside>
+  <footer>ORIGINAL MAP & CODE · CC0 WEAPON ASSETS <span>DESKTOP / KEYBOARD + MOUSE</span></footer>
+</main>
+<div id="hud" hidden>
+  <div id="radarWrap"><canvas id="radar" width="180" height="180"></canvas><span id="location">ATTACKER APPROACH</span></div>
+  <div class="roundbar"><span class="team">YOU <b id="scoreYou">0</b></span><div><small id="phase">BUY PHASE</small><strong id="timer">0:12</strong></div><span class="team"><b id="scoreBot">0</b> HELIX</span></div>
+  <div id="feed"></div><div id="crosshair"><i></i><i></i><i></i><i></i></div><div id="hitmarker">×</div>
+  <div id="objective"></div><div id="progress"><span></span></div><div id="toast" role="status"></div>
+  <div class="bottom"><div class="vitals"><strong id="health">100</strong><span>HEALTH</span><b id="armor">0 ARMOR</b></div><div class="equipment"><span id="cash">$3,400</span><small id="utility">G SMOKE · F FLASH</small></div><div class="weapon"><small id="weaponName">M-17 CARBINE</small><strong id="ammo">30 <em>/ 90</em></strong></div></div>
+  <div id="hints">WASD MOVE &nbsp; R RELOAD &nbsp; E OBJECTIVE &nbsp; B BUY &nbsp; ESC PAUSE</div>
+</div>
+<div id="buy" class="panel" hidden><span class="eyebrow">FIELD SUPPLY</span><h2>Choose your equipment.</h2><p>Buy near your spawn during the buy phase. Keys 1 / 2 switch weapons.</p><div class="shop"><button data-buy="rifle">M-17 CARBINE <span>$2,700 · 30 rounds · lethal headshots</span></button><button data-buy="armor">BODY ARMOR <span>$650 · reduces body damage</span></button><button data-buy="smoke">SMOKE GRENADE <span>$300 · blocks bot and player sight</span></button><button data-buy="flash">FLASH GRENADE <span>$200 · blinds exposed targets</span></button></div><button id="closeBuy" class="primary">RETURN TO GAME</button></div>
+<div id="pause" class="panel" hidden><span class="eyebrow">OPERATION PAUSED</span><h2>Take a breath.</h2><label>Mouse sensitivity <input id="sensitivity" type="range" min="0.4" max="2.4" value="1" step="0.1"></label><label>Sound <input id="volume" type="range" min="0" max="1" value="0.45" step="0.05"></label><button id="resume" class="primary">RESUME</button><button id="quit" class="secondary">RETURN TO BRIEFING</button></div>
+<div id="scoreboard" class="panel" hidden><span class="eyebrow">OPERATION REPORT</span><h2 id="scoreTitle">Helix Compound</h2><div id="scoreRows"></div></div>
+<div id="result" class="panel" hidden><span id="resultLabel" class="eyebrow">ROUND COMPLETE</span><h2 id="resultTitle"></h2><p id="resultDetail"></p><button id="next" class="primary">NEXT ROUND</button><button id="resultQuit" class="secondary">RETURN TO BRIEFING</button></div>
+<div id="unsupported" class="panel" hidden><h2>A desktop is required.</h2><p>Use a keyboard, mouse, and WebGL-capable browser for this first release.</p></div>
+<script type="module" src="game.js"></script>
+</body></html>
