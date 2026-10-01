@@ -2,13 +2,21 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## BlackSite — Helix Compound / v0.3.0
+## BlackSite — Helix Compound / v0.3.1
 
 An original, open-source tactical FPS for a desktop browser. A muted desert research compound, two objective sites, and offline matches against three bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
 
 This is a **playable prototype**. M4A1, SV98, and M82 models are modified assets by chasieboy317 from Free3D, optimized into four meshes each with original PBR materials and animated magazines. The pistol and crates use Kenney's CC0 Blaster Kit, with a desaturated palette. Map geometry, articulated bot characters, and first-person gloves are original. See `ATTRIBUTION.md` for the separate asset licenses.
 
 Version 0.3.0 redesigns deployment, the armory, field manual, settings, HUD, buy menu, pause screen, scoreboard, and round results in a muted charcoal/olive style. Model-derived vector previews show the actual weapons. Choose an opening primary in the armory; it is issued at deployment. Snipers have scoped aiming, distinct recoil, heavier movement, and lethal torso hits. M4A1 recoil and objective/bot rules retain the previous behavior. Sidearm and sniper fire is now trigger-based; hold left mouse for automatic M4A1 fire.
+
+Version 0.3.1 replaces all weapon audio with 32 new CC0 recordings. Every gun has
+separate shots, reload stages, equip sounds, and empty-trigger clicks; SV98 has a
+bolt cycle and bots have separate distant rifle shots. No clip or source excerpt
+is shared between guns/actions. In **Armory**, use **Shot** or **Reload** to hear
+the chosen weapon, even if WebGL is unavailable. Previews use saved Master volume.
+All sounds are bundled locally; no audio account or subscription is needed.
+See `assets/audio/LICENSE.md` for credits and the adapted source weapons.
 
 ## Play locally
 
@@ -108,8 +116,9 @@ style.css         Interface styling
 app.js            Game startup and explicit UI preview mode
 ui.js             Menus, armory, settings storage, shop and reports
 weapons.js        Shared weapon balance, model paths and equipment metadata
+audio.js          Cached weapon recordings, playback, timing and cancellation
 game.js           World, gunplay, bots, match rules, controls
-assets/           GLB models, vector UI previews, map plan, and licenses
+assets/           GLB models, vector UI previews, map plan, local WAVs and licenses
 tools/            Reproducible converters, vector previews and validation
 vendor/           Three.js 0.170.0, loader, utility, MIT license
 LICENSE           MIT license for original code
@@ -125,6 +134,10 @@ An explicit `?preview=deploy` (or `armory`, `manual`, `settings`, `hud`, `buy`, 
 ## License and identity
 
 Original project source is MIT licensed. Kenney assets are CC0; Three.js and its addons retain their MIT notice. The Free3D weapons and their derived previews retain chasieboy317's credit and permission for modified reuploads; **they are not covered by the project's MIT license**. See `assets/M4A1-LICENSE.md` and `assets/FREE3D-WEAPONS-LICENSE.md`. No assets are extracted from Counter-Strike, Valorant, or their publishers. The working project name has not been trademark-cleared.
+
+Weapon WAV files are separately licensed CC0 1.0; source credits, modifications,
+and MLA references are in `assets/audio/LICENSE.md`. Run audio checks with
+`node tools/validate-audio.mjs` and gameplay checks with `node tools/validate.mjs`.
 
 ## Current limits
 

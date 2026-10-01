@@ -2,6 +2,10 @@
 
 ## Completed
 
+- v0.3.1 audio checks: all 32 actual WAVs have valid mono 44.1 kHz / 16-bit PCM data, audible content, immediate attacks, and normalized peaks with headroom. File hashes and source ranges are distinct; no file or source excerpt is shared between actions/guns. Total WAV size: 1,598,662 bytes.
+- Audio scheduling regression checks use real local PCM bytes and the real `WeaponAudio` class, with Web Audio nodes stubbed: per-gun shot variants, staged reloads within actual gameplay durations, pause/switch cancellation, remaining-stage resume, separate bot rifle recordings, pan/distance attenuation, volume/mute, single-download caching, missing-file behavior, sustained automatic fire, and ended-node cleanup.
+- Integrated game logic dispatches each gun to its own bank and reload duration; exhausted guns click at most once per fire interval, without consuming ammunition; ending a round cancels handling audio.
+
 - JavaScript syntax check.
 - Direct game-logic execution with the real Three.js scene graph and raycaster. Rendering and DOM were stubbed for these tests.
 - Player spawn, three enemy spawns, magazine initialization.
@@ -31,7 +35,7 @@
 - Combat interfaces reviewed through explicit preview mode: HUD, buy screen, round report, pause, and scoreboard. Preview values are samples, not a recorded match.
 - The cloud review browser cannot create a WebGL context. Menus still work and compatibility feedback appears; 3D rendering/input/performance require a real desktop playtest.
 
-Run the checks with `node tools/validate.mjs`. Rendering and DOM are stubbed, but the three Free3D model loaders, scene graph, geometry, materials, raycaster, and gameplay logic are real. No network or installed npm packages are required.
+Run the checks with `node tools/validate.mjs` and `node tools/validate-audio.mjs`. Rendering, DOM, and Web Audio nodes are stubbed, but the three Free3D model loaders, scene graph, geometry, materials, raycaster, gameplay logic, weapon-audio class, and local PCM data are real. No network or installed npm packages are required.
 
 ## Not completed in this environment
 
@@ -52,5 +56,7 @@ GPU rendering, mouse capture, sound playback, frame rate, and cross-browser beha
 11. Compare stationary scoped sniper shots against moving/unscoped shots; test right-click scope, scope reset, torso kills, bolt/trigger behavior, and each reload.
 12. Save settings, reload the page, and confirm preferences remain. Compare standard/performance graphics and crosshair/FOV settings.
 13. Compare round-report eliminations, headshot eliminations, accuracy, and credits with the shots you actually fired.
+14. In Armory, preview Shot and Reload for all four guns. Compare all unique reports and handling sounds; test Master volume at zero, midway, and full.
+15. In a match, hold M4A1 fire and compare with single-click pistol/snipers. Confirm the SV98 bolt cycle and directional distant bot fire. Interrupt a reload by switching, pause/resume midway, and end a round while reloading; no canceled cue should play later.
 
 Prototype difficulty values are not competitively balanced. No online multiplayer or synchronization is present.

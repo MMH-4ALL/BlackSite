@@ -1,4 +1,5 @@
 import { WEAPONS, PRIMARY_KEYS } from './weapons.js?v=0.3.0';
+import { weaponAudio } from './audio.js?v=0.3.1';
 const $=id=>document.getElementById(id), defaults={sensitivity:1,volume:.45,fov:78,crosshair:6,quality:'standard',primary:'rifle'};
 export const settings={...defaults};
 try {
@@ -7,22 +8,26 @@ try {
   if(['standard','low'].includes(saved.quality))settings.quality=saved.quality;
   if(PRIMARY_KEYS.includes(saved.primary))settings.primary=saved.primary;
 }catch{/* Browsing and play also work when storage is unavailable. */}
-let inspected=settings.primary;
+let inspected=settings.primary, soundRequest=0;
+weaponAudio.preload();
 const money=value=>'$'+value.toLocaleString('en-US');
 function saveSettings(){try{localStorage.setItem('blacksite.settings.v1',JSON.stringify(settings));$('settingsSaved').textContent='Preferences saved on this browser.';}catch{$('settingsSaved').textContent='Preferences apply for this session.';}}
 function syncSettings(){
+  weaponAudio.setVolume(settings.volume);
   document.querySelectorAll('[data-setting]').forEach(input=>input.value=settings[input.dataset.setting]);
   document.querySelectorAll('[data-output]').forEach(output=>{const k=output.dataset.output;output.textContent=k==='volume'?Math.round(settings[k]*100)+'%':k==='sensitivity'?settings[k].toFixed(1):settings[k]+(k==='fov'?'°':' px');});
   document.documentElement.style.setProperty('--crosshair',settings.crosshair+'px');
   const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ P-9</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.3.0';
 }
 export function showView(view){
+  soundRequest++;weaponAudio.stopAll();
   if(!['deploy','armory','manual','settings'].includes(view))view='deploy';
   document.querySelectorAll('.menu-view').forEach(section=>section.hidden=section.id!=='view-'+view);
   document.querySelectorAll('.nav-link').forEach(button=>{const selected=button.dataset.view===view;button.classList.toggle('active',selected);if(selected)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
   document.querySelector('.menu-body').scrollTop=0;
 }
 function inspectWeapon(key){
+  soundRequest++;weaponAudio.stopAll();$('soundStatus').textContent='Listen to this weapon’s shots and reload.';
   inspected=key;const w=WEAPONS[key];
   document.querySelectorAll('.armory-item').forEach(button=>{button.classList.toggle('selected',button.dataset.weapon===key);button.setAttribute('aria-pressed',String(button.dataset.weapon===key));});
   $('inspectCategory').textContent=w.category;$('inspectLabel').textContent=w.label;$('inspectName').textContent=w.name;$('inspectDescription').textContent=w.description;$('inspectStrength').textContent=w.strength;
@@ -37,6 +42,17 @@ document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>show
 document.querySelector('.brand').onclick=e=>{e.preventDefault();showView('deploy');};
 document.querySelectorAll('[data-weapon]').forEach(button=>button.onclick=()=>inspectWeapon(button.dataset.weapon));
 $('useWeapon').onclick=()=>{if(WEAPONS[inspected].slot!=='primary')return;settings.primary=inspected;saveSettings();syncSettings();inspectWeapon(inspected);};
+async function previewSound(kind){
+  const request=++soundRequest,key=inspected;weaponAudio.stopAll();
+  if(settings.volume===0){$('soundStatus').textContent='Sound is muted. Raise Master volume in Settings.';return;}
+  $('soundStatus').textContent='Loading weapon sound…';
+  try{
+    await weaponAudio.unlock();if(request!==soundRequest)return;
+    const played=kind==='shot'?weaponAudio.shot(key,{preview:true}):weaponAudio.reload(key,WEAPONS[key].reload,0,true);
+    $('soundStatus').textContent=played?WEAPONS[key].name+' / '+(kind==='shot'?'SHOT':'RELOAD')+' PREVIEW':'This sound could not load. Refresh and try again.';
+  }catch{if(request===soundRequest)$('soundStatus').textContent='Audio could not start. Try another desktop browser.';}
+}
+$('previewShot').onclick=()=>previewSound('shot');$('previewReload').onclick=()=>previewSound('reload');
 document.querySelectorAll('[data-setting]').forEach(input=>input.addEventListener('input',()=>{const key=input.dataset.setting;settings[key]=key==='quality'?input.value:Number(input.value);syncSettings();saveSettings();window.dispatchEvent(new CustomEvent('blacksite:settings'));}));
 $('resetSettings').onclick=()=>{Object.assign(settings,defaults);syncSettings();saveSettings();inspectWeapon(settings.primary);window.dispatchEvent(new CustomEvent('blacksite:settings'));};
 $('difficulty').onchange=()=>{$('difficultyInfo').textContent={easy:'Slower reactions and wider shots. Learn the angles.',normal:'Balanced reactions and controlled bursts. Stay sharp.',hard:'Fast reactions, tight shots, and longer pursuit. No easy fights.'}[$('difficulty').value];};

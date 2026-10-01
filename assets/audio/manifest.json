@@ -1,0 +1,475 @@
+{
+  "version": "0.3.1",
+  "license": "CC0-1.0",
+  "sampleRate": 44100,
+  "channels": 1,
+  "format": "PCM 16-bit WAV",
+  "sources": {
+    "ar15": {
+      "file": "extracted/Prepared SFX Library/AR-15/D_32P.wav",
+      "sha256": "acee9d2106b68fe5956225a19d7aedf943d97793817f9bda9d486a2b74b0a812",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "ar15_distant": {
+      "file": "extracted/Prepared SFX Library/AR-15/D_24P.wav",
+      "sha256": "4c6a54ca0583150bbb32b7f658bc64da9ad9ba42fd3aca769c6120b44af8d3f0",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "tikka": {
+      "file": "extracted/Prepared SFX Library/Tikka/W_29P.wav",
+      "sha256": "b1ffe3c104391bf8ceb8337aa4d5a2ca47938fb88ccbd051cdd2b2e205d9e72b",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "mosin": {
+      "file": "extracted/Prepared SFX Library/Mosin Nagant/M_21P.wav",
+      "sha256": "970ed2322ba61579dc8afaefb4f25e6ae791a3acb1e6e23372ea948cfe2a97b3",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "ppq": {
+      "file": "extracted/Prepared SFX Library/Walther PPQ/X_39P.wav",
+      "sha256": "d679a3cd87eae2898d984159f83544392932e6b77526045b672e3aaa9c2dda9f",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "rifle_reload": {
+      "file": "assaultriflereload1.wav",
+      "sha256": "efb2d724d634eabe6ba8d3065686abca848bb7497d4d43a5e4aed5e5ea23016f",
+      "page": "https://opengameart.org/content/gun-reload-sounds",
+      "license": "CC0-1.0"
+    },
+    "pistol_reload": {
+      "file": "gunreload1.wav",
+      "sha256": "685cac6a184e3cc3ec09a25b6ddb1d6feffd86d469778f339aa423d384035c50",
+      "page": "https://opengameart.org/content/gun-reload-sounds",
+      "license": "CC0-1.0"
+    },
+    "mechanics": {
+      "file": "equipment_clicks3.wav",
+      "sha256": "1cd2612f226886a7c0badbe26e9732e097a448e97cbea72a3e3cd2c8aa91ace8",
+      "page": "https://opengameart.org/content/equipment-clicks-iii",
+      "license": "CC0-1.0"
+    }
+  },
+  "clips": [
+    {
+      "file": "m4a1-shot-01.wav",
+      "source": "ar15",
+      "sourceRangeSeconds": [
+        0.64,
+        1.19
+      ],
+      "speed": 1,
+      "lowPassHz": 5400,
+      "sha256": "db680ab72da33897e8f36e9ebcc339a135421ac45857dac83b2f1f4f6eb63213",
+      "duration": 0.489229,
+      "bytes": 43194
+    },
+    {
+      "file": "m4a1-shot-02.wav",
+      "source": "ar15",
+      "sourceRangeSeconds": [
+        5.58,
+        6.13
+      ],
+      "speed": 1,
+      "lowPassHz": 5400,
+      "sha256": "fe7316c77299a00a949ec5823b01728d058a18e3a637faaed87c097dd2176eaa",
+      "duration": 0.485556,
+      "bytes": 42870
+    },
+    {
+      "file": "m4a1-distant-01.wav",
+      "source": "ar15_distant",
+      "sourceRangeSeconds": [
+        0.49,
+        1.3
+      ],
+      "speed": 1,
+      "lowPassHz": 4700,
+      "sha256": "ccd5c91e0f3d34722a799b88c05b3e3d0c41ebed6275293591eeee4d09d817eb",
+      "duration": 0.754082,
+      "bytes": 66554
+    },
+    {
+      "file": "m4a1-distant-02.wav",
+      "source": "ar15_distant",
+      "sourceRangeSeconds": [
+        3.85,
+        4.66
+      ],
+      "speed": 1,
+      "lowPassHz": 4700,
+      "sha256": "a323bf68a3e5a5cd141a6cd5a38d1a34b6f8403788a67c0ee6bdc4b235519e00",
+      "duration": 0.752971,
+      "bytes": 66456
+    },
+    {
+      "file": "sv98-shot-01.wav",
+      "source": "tikka",
+      "sourceRangeSeconds": [
+        0.52,
+        1.82
+      ],
+      "speed": 1,
+      "lowPassHz": 13000,
+      "sha256": "d50c182e5b834ab11307206db7150a79c71cb2b47f061822e8d084434b675082",
+      "duration": 1.245624,
+      "bytes": 109908
+    },
+    {
+      "file": "sv98-shot-02.wav",
+      "source": "tikka",
+      "sourceRangeSeconds": [
+        5.61,
+        6.91
+      ],
+      "speed": 1,
+      "lowPassHz": 13000,
+      "sha256": "5738936d42b647aecddf4cfae2749345c3dd50f1e15d240d09fbcc0e0035e129",
+      "duration": 1.248095,
+      "bytes": 110126
+    },
+    {
+      "file": "m82-shot-01.wav",
+      "source": "mosin",
+      "sourceRangeSeconds": [
+        0.98,
+        2.28
+      ],
+      "speed": 0.82,
+      "lowPassHz": 11000,
+      "sha256": "4d91d3de1838edb11e3af762c61a10adeeec8602f0662eeca258bf76854ccfe1",
+      "duration": 1.522744,
+      "bytes": 134350
+    },
+    {
+      "file": "m82-shot-02.wav",
+      "source": "mosin",
+      "sourceRangeSeconds": [
+        4.96,
+        6.26
+      ],
+      "speed": 0.82,
+      "lowPassHz": 11000,
+      "sha256": "e9f71846ae49dde59bed6a561557a40743a353d90c7dfa4ec7966f46eaf2bd78",
+      "duration": 1.515465,
+      "bytes": 133708
+    },
+    {
+      "file": "p9-shot-01.wav",
+      "source": "ppq",
+      "sourceRangeSeconds": [
+        1.35,
+        1.94
+      ],
+      "speed": 1,
+      "lowPassHz": 15000,
+      "sha256": "5a6228a05a5f4ccfbe04932fec3a9a2ad7b4ccdc224571b1057e21a816b273f9",
+      "duration": 0.536054,
+      "bytes": 47324
+    },
+    {
+      "file": "p9-shot-02.wav",
+      "source": "ppq",
+      "sourceRangeSeconds": [
+        6.39,
+        6.98
+      ],
+      "speed": 1,
+      "lowPassHz": 15000,
+      "sha256": "25f7eac79ddf283e71a6ddbb21bf6133ecd5626e96e7120daf45d21722930b24",
+      "duration": 0.538685,
+      "bytes": 47556
+    },
+    {
+      "file": "m4a1-mag-out.wav",
+      "source": "rifle_reload",
+      "sourceRangeSeconds": [
+        0.16,
+        0.6
+      ],
+      "speed": 1,
+      "lowPassHz": 13000,
+      "sha256": "3735de7dee72f6b7cd6c3425f48a5ee037a56cede85635fa6ef56f257e50670a",
+      "duration": 0.432925,
+      "bytes": 38228
+    },
+    {
+      "file": "m4a1-mag-in.wav",
+      "source": "rifle_reload",
+      "sourceRangeSeconds": [
+        1.0,
+        1.21
+      ],
+      "speed": 1,
+      "lowPassHz": 13000,
+      "sha256": "7faf8d8637c66d1b1206433d15c87f27192af175665269aad7996994dad4393d",
+      "duration": 0.167755,
+      "bytes": 14840
+    },
+    {
+      "file": "m4a1-charge.wav",
+      "source": "rifle_reload",
+      "sourceRangeSeconds": [
+        1.22,
+        1.55
+      ],
+      "speed": 1,
+      "lowPassHz": 13000,
+      "sha256": "43075fb5ba998d93402c8bdd4d8ea3ca2da2df6b568e47006d07c39337c83d63",
+      "duration": 0.33,
+      "bytes": 29150
+    },
+    {
+      "file": "p9-mag-out.wav",
+      "source": "pistol_reload",
+      "sourceRangeSeconds": [
+        0.07,
+        0.51
+      ],
+      "speed": 1,
+      "lowPassHz": 15000,
+      "sha256": "d8357f41875b28af272bf574d0bb82e0aa76d03e03fda2c950b8678cbf7f8b2b",
+      "duration": 0.439093,
+      "bytes": 38772
+    },
+    {
+      "file": "p9-mag-in.wav",
+      "source": "pistol_reload",
+      "sourceRangeSeconds": [
+        0.69,
+        0.99
+      ],
+      "speed": 1,
+      "lowPassHz": 15000,
+      "sha256": "484f10f0a55172fadbc8b7a1dd0607714bc87e203f98621928a2e8337bfe7e5d",
+      "duration": 0.3,
+      "bytes": 26504
+    },
+    {
+      "file": "p9-charge.wav",
+      "source": "pistol_reload",
+      "sourceRangeSeconds": [
+        1.2,
+        1.57
+      ],
+      "speed": 1,
+      "lowPassHz": 15000,
+      "sha256": "1c23e45e1404aafee62eb9f70521f50e825ba299ce05ea559f510fab9164ca51",
+      "duration": 0.296485,
+      "bytes": 26194
+    },
+    {
+      "file": "sv98-mag-out.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        0.13,
+        0.55
+      ],
+      "speed": 1,
+      "lowPassHz": 11500,
+      "sha256": "e57334b37ae65b605fbc15ad0e4bffca9ca1e905f9781bd120e3a66e9bf0b40b",
+      "duration": 0.356961,
+      "bytes": 31528
+    },
+    {
+      "file": "sv98-mag-in.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        0.79,
+        1.15
+      ],
+      "speed": 1,
+      "lowPassHz": 11500,
+      "sha256": "10413a6bafb25290f9e4e1b7e878b13fb8c4b0c8d8c4c9be6cc81862042d98d3",
+      "duration": 0.287937,
+      "bytes": 25440
+    },
+    {
+      "file": "sv98-charge.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        1.39,
+        1.96
+      ],
+      "speed": 1,
+      "lowPassHz": 11500,
+      "sha256": "003eccf068a03dc5b5cb69ba49138d48606c31e6a3a4bcc593c750f112784c28",
+      "duration": 0.493356,
+      "bytes": 43558
+    },
+    {
+      "file": "sv98-bolt-open.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        2.09,
+        2.6
+      ],
+      "speed": 1,
+      "lowPassHz": 12000,
+      "sha256": "d17e0228f5e62cac7f88d8da323c5ab3cc61cddfaa731994ab9f9890e55207a0",
+      "duration": 0.441701,
+      "bytes": 39002
+    },
+    {
+      "file": "sv98-bolt-close.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        2.72,
+        3.1
+      ],
+      "speed": 1,
+      "lowPassHz": 12000,
+      "sha256": "c3a575342fb66a08c0527d27fb193c5fd2396544e88920aa37c5e945a1df8ab2",
+      "duration": 0.316349,
+      "bytes": 27946
+    },
+    {
+      "file": "m82-mag-out.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        12.45,
+        12.96
+      ],
+      "speed": 0.91,
+      "lowPassHz": 9500,
+      "sha256": "aba1d1f73556f8b31ae79e2d6dda25d42562ed2189ccc4105d590a8d72bf0638",
+      "duration": 0.457392,
+      "bytes": 40386
+    },
+    {
+      "file": "m82-mag-in.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        13.03,
+        13.73
+      ],
+      "speed": 0.91,
+      "lowPassHz": 9500,
+      "sha256": "2a32b11ed05ad51dba8e0fa8dd3cd05496b51a61d67b76024f768a1da0ef6417",
+      "duration": 0.671361,
+      "bytes": 59258
+    },
+    {
+      "file": "m82-charge.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        14.52,
+        15.28
+      ],
+      "speed": 0.91,
+      "lowPassHz": 9500,
+      "sha256": "ecac04d813a4f6e3894f8cb531588aeed3b2c49df31cdaeb82c27609937eb7b2",
+      "duration": 0.704014,
+      "bytes": 62138
+    },
+    {
+      "file": "m4a1-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        6.31,
+        6.86
+      ],
+      "speed": 1,
+      "lowPassHz": 13000,
+      "sha256": "51e0b34e6560c3f67804f95ec75596442690a5c9d6b677149e07b3dc5abbb7cc",
+      "duration": 0.473855,
+      "bytes": 41838
+    },
+    {
+      "file": "sv98-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        7.15,
+        7.59
+      ],
+      "speed": 1,
+      "lowPassHz": 11000,
+      "sha256": "2a45aa8951ea75dcb44f2a616db7972999745a193a18234ab0b9f972dc91be3f",
+      "duration": 0.358549,
+      "bytes": 31668
+    },
+    {
+      "file": "m82-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        16.13,
+        16.7
+      ],
+      "speed": 0.92,
+      "lowPassHz": 9000,
+      "sha256": "1ab156ba545546a5991258b0b01f7dc528b34e99ba38317e96ea99a8543bbf1f",
+      "duration": 0.562336,
+      "bytes": 49642
+    },
+    {
+      "file": "p9-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        7.91,
+        8.33
+      ],
+      "speed": 1,
+      "lowPassHz": 15000,
+      "sha256": "f7a748c86d155b3729bdf2d948c037d119e66205d860fb0bce5fe7d2feef0466",
+      "duration": 0.360499,
+      "bytes": 31840
+    },
+    {
+      "file": "m4a1-empty.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        8.53,
+        8.86
+      ],
+      "speed": 1,
+      "lowPassHz": 13000,
+      "sha256": "f93d34175ebfb803f8d511ba16bedd608db70fac191b2efc6ce41dcbb5f71d80",
+      "duration": 0.244921,
+      "bytes": 21646
+    },
+    {
+      "file": "sv98-empty.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        9.53,
+        9.95
+      ],
+      "speed": 1,
+      "lowPassHz": 11000,
+      "sha256": "bf9fcffd4c8704b23f49a6974f2e5bbbea712beb69db58a1b3adb95cf4b0364e",
+      "duration": 0.338435,
+      "bytes": 29894
+    },
+    {
+      "file": "m82-empty.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        11.31,
+        11.93
+      ],
+      "speed": 0.92,
+      "lowPassHz": 9000,
+      "sha256": "68fd36d7d46a5a56fb8a6307e87baaec18dbf1368e9edbb6382a3fad13fceaad",
+      "duration": 0.564626,
+      "bytes": 49844
+    },
+    {
+      "file": "p9-empty.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        10.45,
+        10.88
+      ],
+      "speed": 1,
+      "lowPassHz": 15000,
+      "sha256": "afd4cab0ad48fcf36f4730e4b3805ba500436f8f7a1b22aab6429eef6885e07f",
+      "duration": 0.422404,
+      "bytes": 37300
+    }
+  ]
+}

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1 — Weapon Audio / 1 October 2026
+
+- Replaced every generated weapon report with distinct, freely licensed firearm recordings; two different recorded shots per gun, with no shared files or source excerpts between guns/actions.
+- Added unique magazine-out, magazine-in, charging, equip, and empty-trigger recordings for each weapon. SV98 has its own two-stage bolt cycle.
+- Reload sounds follow each gun's existing reload timing and stop when switching, pausing, or ending a round; resuming only schedules remaining stages.
+- Bot rifle fire uses separate distant recordings, directional stereo, and distance attenuation.
+- Cached local WAV loading, overlapping automatic-fire playback, a peak limiter, node cleanup, and live master-volume/mute handling.
+- Armory Shot/Reload preview buttons work without WebGL and respect saved volume.
+- CC0 audio notices, exact provenance/hashes, reproducible conversion, and audio regression checks.
+
 ## 0.3.0 — Interface & Armory / 1 October 2026
 
 - Redesigned deployment, armory, field manual, settings, HUD, buy screen, pause, scoreboard, and round results.

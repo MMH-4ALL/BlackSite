@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 import { WEAPONS } from './weapons.js?v=0.3.0';
-import { settings, refreshShop, showReport, showView } from './ui.js?v=0.3.0';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.3.1';
+import { weaponAudio } from './audio.js?v=0.3.1';
 
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
@@ -189,25 +190,26 @@ function updateBotPresentation(dt){
 }
 
 function tone(freq,duration=.08,type='triangle',gain=.08){if(!audio||settings.volume===0)return;const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.setValueAtTime(freq,audio.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(freq*.35,30),audio.currentTime+duration);g.gain.setValueAtTime(gain*settings.volume,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+duration);}
-function shotSound(enemy=false){if(!audio)return;tone(enemy?105:state.weapon==='rifle'?145:95,.1,'sawtooth',enemy?.10:.20);const len=audio.sampleRate*.10,buffer=audio.createBuffer(1,len,audio.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<len;i++)data[i]=(Math.random()*2-1)*(1-i/len)**3;const s=audio.createBufferSource(),g=audio.createGain();s.buffer=buffer;g.gain.value=settings.volume*(enemy?.08:.25);s.connect(g);g.connect(audio.destination);s.start();}
+function shotSound(enemy=false,position){const offset=position?.clone().sub(camera.position),distance=offset?.length()||0;const pan=offset?Math.cos(player.yaw)*offset.x/distance-Math.sin(player.yaw)*offset.z/distance:0;weaponAudio.shot(enemy?'rifle':state.weapon,{enemy,distance,pan:Number.isFinite(pan)?pan:0});}
 function toast(text){$('toast').textContent=text;state.notice=2.6;}
 function feed(text){const node=document.createElement('div');node.textContent=text;$('feed').prepend(node);while($('feed').children.length>4)$('feed').lastChild.remove();}
 function lock(){if(!state.active)return;try{const p=$('world').requestPointerLock();if(p?.catch)p.catch(()=>{state.paused=true;$('pause').hidden=false;toast('Click Resume to capture your mouse.');});}catch(e){state.paused=true;$('pause').hidden=false;toast('Mouse capture requires a desktop browser.');}}
-function startMatch(){try{audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume();}catch(e){console.warn('Audio unavailable',e);}Object.assign(state,{active:true,paused:false,side:$('side').value,difficulty:$('difficulty').value,round:0,wins:0,losses:0,kills:0,deaths:0,headshots:0,hits:0,shotsFired:0,money:3400,primary:settings.primary,owned:true});$('menu').hidden=true;$('hud').hidden=false;$('result').hidden=true;nextRound();lock();}
+function startMatch(){try{weaponAudio.setVolume(settings.volume);weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));audio=weaponAudio.context;}catch(e){console.warn('Audio unavailable',e);}Object.assign(state,{active:true,paused:false,side:$('side').value,difficulty:$('difficulty').value,round:0,wins:0,losses:0,kills:0,deaths:0,headshots:0,hits:0,shotsFired:0,money:3400,primary:settings.primary,owned:true});$('menu').hidden=true;$('hud').hidden=false;$('result').hidden=true;nextRound();lock();}
 function nextRound(){
+  weaponAudio.stopAll();
   clearBots();for(const s of smokes)scene.remove(s.mesh);smokes.length=0;for(const e of effects){scene.remove(e.mesh);e.mesh.geometry?.dispose();}effects.length=0;
   if(coreMesh){scene.remove(coreMesh);coreMesh=null;}
-  Object.assign(state,{round:state.round+1,phase:'buy',time:12,plant:null,interact:0,paused:false,reload:0,cooldown:0,shots:0,smoke:1,flash:1,flashTime:0,damages:0,hit:0,weapon:state.owned?state.primary:'pistol',roundBaseline:{kills:state.kills,headshots:state.headshots,shotsFired:state.shotsFired,hits:state.hits}});setScoped(false);
+  Object.assign(state,{round:state.round+1,phase:'buy',time:12,plant:null,interact:0,paused:false,reload:0,cooldown:0,shots:0,lastShot:-10,lastShotWeapon:null,smoke:1,flash:1,flashTime:0,damages:0,hit:0,weapon:state.owned?state.primary:'pistol',roundBaseline:{kills:state.kills,headshots:state.headshots,shotsFired:state.shotsFired,hits:state.hits}});setScoped(false);
   for(const [k,w] of Object.entries(WEAPONS))state.ammo[k]={mag:w.capacity,reserve:w.reserve};
   Object.assign(player,{health:100,armor:0,yaw:state.side==='attack'?0:Math.PI,pitch:0,vy:0,grounded:true,height:1.68});player.vel.set(0,0,0);player.pos.set(state.side==='attack'?0:-3,0,state.side==='attack'?26:-26);
   const spawns=state.side==='attack'?[[-14,-24],[14,-24],[0,-16]]:[[-15,25],[0,25],[15,25]];
   state.bots=spawns.map(([x,z],i)=>makeBot(i,V(x,0,z)));for(const id of ['result','buy','pause','scoreboard'])$(id).hidden=true;$('feed').innerHTML='';loadGun(state.weapon);toast('Buy phase · B opens equipment · first to four wins');refreshShop(state,player,'Survive to keep your primary. P-9 is always carried.');updateHUD();
 }
-function returnMenu(){state.active=false;state.phase='menu';state.paused=true;setScoped(false);document.exitPointerLock();for(const id of ['hud','pause','buy','result','scoreboard'])$(id).hidden=true;$('menu').hidden=false;showView('deploy');keys.clear();firing=false;}
-function endRound(win,reason){if(state.phase==='ended')return;state.phase='ended';state.paused=true;firing=false;state.reload=0;state.interact=0;win?state.wins++:state.losses++;state.money=Math.min(16000,state.money+(win?3000:1900));if(player.health<=0)state.owned=false;
+function returnMenu(){weaponAudio.stopAll();state.active=false;state.phase='menu';state.paused=true;setScoped(false);document.exitPointerLock();for(const id of ['hud','pause','buy','result','scoreboard'])$(id).hidden=true;$('menu').hidden=false;showView('deploy');keys.clear();firing=false;}
+function endRound(win,reason){if(state.phase==='ended')return;weaponAudio.stopHandling();state.phase='ended';state.paused=true;firing=false;state.reload=0;state.interact=0;win?state.wins++:state.losses++;state.money=Math.min(16000,state.money+(win?3000:1900));if(player.health<=0)state.owned=false;
   setScoped(false);showReport(state,win,reason);$('result').hidden=false;$('buy').hidden=true;$('pause').hidden=true;$('scoreboard').hidden=true;document.exitPointerLock();tone(win?550:160,.3,'triangle',.18);updateHUD();}
-function reload(){const a=state.ammo[state.weapon],w=WEAPONS[state.weapon];if(state.reload||a.mag===w.capacity||a.reserve===0||state.phase==='ended')return;setScoped(false);state.reload=w.reload;firing=false;tone(280,.1,'square',.03);toast('Reloading…');}
-function equip(k){if(!WEAPONS[k]||(WEAPONS[k].slot==='primary'&&(!state.owned||state.primary!==k)))return;state.weapon=k;state.reload=0;state.shots=0;firing=false;setScoped(false);loadGun(k);}
+function reload(){const a=state.ammo[state.weapon],w=WEAPONS[state.weapon];if(state.reload||a.mag===w.capacity||a.reserve===0||state.phase==='ended')return;setScoped(false);state.reload=w.reload;firing=false;weaponAudio.reload(state.weapon,w.reload);toast('Reloading…');}
+function equip(k){if(!WEAPONS[k]||(WEAPONS[k].slot==='primary'&&(!state.owned||state.primary!==k)))return;state.weapon=k;state.lastShotWeapon=null;state.reload=0;state.shots=0;firing=false;setScoped(false);loadGun(k);weaponAudio.equip(k);}
 function buyItem(item){
   const spawn=state.side==='attack'?V(0,0,26):V(-3,0,-26),w=WEAPONS[item],cost=w?.price??{armor:650,smoke:300,flash:200}[item];
   if(state.phase!=='buy'||!Number.isFinite(cost)||player.pos.distanceTo(spawn)>=8)return false;
@@ -221,8 +223,8 @@ function buyItem(item){
 function tracer(a,b,color=0xc8be96){const geo=new THREE.BufferGeometry().setFromPoints([a,b]);const m=new THREE.Line(geo,new THREE.LineBasicMaterial({color,transparent:true,opacity:.65}));scene.add(m);effects.push({mesh:m,life:.07,max:.07});}
 function shoot(){
   if(state.phase!=='live'||state.reload||state.cooldown>0)return;
-  const w=WEAPONS[state.weapon],a=state.ammo[state.weapon];if(a.mag===0){reload();return;}
-  a.mag--;state.shotsFired++;state.cooldown=w.interval;if(!w.automatic)firing=false;if(state.t-state.lastShot>.28)state.shots=0;state.shots++;state.lastShot=state.t;weaponMotion.kick=Math.min(1.8,weaponMotion.kick+1);
+  const w=WEAPONS[state.weapon],a=state.ammo[state.weapon];if(a.mag===0){if(a.reserve>0)reload();else{weaponAudio.empty(state.weapon);state.cooldown=.24;}return;}
+  a.mag--;state.shotsFired++;state.cooldown=w.interval;if(!w.automatic)firing=false;if(state.t-state.lastShot>.28)state.shots=0;state.shots++;state.lastShot=state.t;state.lastShotWeapon=state.weapon;weaponMotion.kick=Math.min(1.8,weaponMotion.kick+1);
   const spread=(state.scoped?.00045:w.spread)+player.moving*w.movement+(player.grounded?0:.09)+Math.min(state.shots-1,12)*w.bloom;
   const dir=V(0,0,-1).applyQuaternion(camera.quaternion);dir.x+=(Math.random()-.5)*spread;dir.y+=(Math.random()-.5)*spread;dir.z+=(Math.random()-.5)*spread;dir.normalize();
   ray.set(camera.position,dir);ray.far=85;scene.updateMatrixWorld(true);const hit=ray.intersectObjects([...hitWalls,...botParts.filter(p=>p.userData.bot.alive)],false)[0];const end=hit?hit.point:camera.position.clone().addScaledVector(dir,80);
@@ -265,7 +267,7 @@ function updateBots(dt){
     const eye=b.pos.clone().add(V(0,1.55,0)),distance=eye.distanceTo(camera.position),canSee=distance<37&&b.blind===0&&!blocked(eye,camera.position);
     let goal=null;
     if(canSee){b.seen+=dt;b.lastKnown=player.pos.clone();b.memory=cfg.memory;b.group.rotation.y=Math.atan2(b.pos.x-player.pos.x,b.pos.z-player.pos.z);
-      if(b.seen>=cfg.reaction&&b.nextFire<=0){b.nextFire=cfg.interval;const dir=camera.position.clone().sub(eye).normalize();const spread=cfg.spread*(distance<6?.65:1);dir.x+=(Math.random()-.5)*spread;dir.y+=(Math.random()-.5)*spread;dir.z+=(Math.random()-.5)*spread;dir.normalize();ray.set(eye,dir);ray.far=distance+1;const block=ray.intersectObjects(hitWalls,false)[0];const along=camera.position.clone().sub(eye).dot(dir),near=eye.clone().addScaledVector(dir,along),hit=near.distanceTo(camera.position)<.32&&(!block||block.distance>along);tracer(eye,block?block.point:eye.clone().addScaledVector(dir,distance),0xaa9872);shotSound(true);if(hit)hurt(18+Math.random()*7);if(state.phase==='ended')return;}
+      if(b.seen>=cfg.reaction&&b.nextFire<=0){b.nextFire=cfg.interval;const dir=camera.position.clone().sub(eye).normalize();const spread=cfg.spread*(distance<6?.65:1);dir.x+=(Math.random()-.5)*spread;dir.y+=(Math.random()-.5)*spread;dir.z+=(Math.random()-.5)*spread;dir.normalize();ray.set(eye,dir);ray.far=distance+1;const block=ray.intersectObjects(hitWalls,false)[0];const along=camera.position.clone().sub(eye).dot(dir),near=eye.clone().addScaledVector(dir,along),hit=near.distanceTo(camera.position)<.32&&(!block||block.distance>along);tracer(eye,block?block.point:eye.clone().addScaledVector(dir,distance),0xaa9872);shotSound(true,eye);if(hit)hurt(18+Math.random()*7);if(state.phase==='ended')return;}
       // Hard bots make small strafes between bursts; easy bots hold still to shoot.
       if(state.difficulty!=='easy'&&distance<20){const side=Math.sin(state.t*1.7+b.phase);move(b.pos,Math.cos(b.group.rotation.y)*side*dt*.8,-Math.sin(b.group.rotation.y)*side*dt*.8);}
     }else{
@@ -304,7 +306,7 @@ $('start').onclick=startMatch;$('resume').onclick=()=>{ $('pause').hidden=true;l
 $('next').onclick=()=>{if(state.wins===4||state.losses===4)startMatch();else{nextRound();lock();}};
 $('closeBuy').onclick=()=>{$('buy').hidden=true;lock();};
 document.querySelectorAll('[data-buy]').forEach(button=>button.onclick=()=>buyItem(button.dataset.buy));
-document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===$('world');state.paused=!locked;keys.clear();firing=false;if(locked){$('pause').hidden=true;$('buy').hidden=true;}else{setScoped(false);$('scoreboard').hidden=true;if(state.active&&state.phase!=='ended'&&$('buy').hidden){$('pause').hidden=false;$('resume').focus();}}});
+document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===$('world');state.paused=!locked;keys.clear();firing=false;if(locked){try{weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));}catch{}if(state.reload>0)weaponAudio.reload(state.weapon,WEAPONS[state.weapon].reload,WEAPONS[state.weapon].reload-state.reload);else if(state.weapon==='sv98'&&state.lastShotWeapon==='sv98'&&state.t-state.lastShot<1.35)weaponAudio.bolt('sv98',state.t-state.lastShot);$('pause').hidden=true;$('buy').hidden=true;}else{weaponAudio.stopHandling();setScoped(false);$('scoreboard').hidden=true;if(state.active&&state.phase!=='ended'&&$('buy').hidden){$('pause').hidden=false;$('resume').focus();}}});
 document.addEventListener('mousemove',e=>{if(document.pointerLockElement!==$('world')||state.paused)return;const sensitivity=settings.sensitivity*(state.scoped?WEAPONS[state.weapon].scope/settings.fov:1);player.yaw-=e.movementX*.002*sensitivity;player.pitch=clamp(player.pitch-e.movementY*.002*sensitivity,-1.45,1.45);weaponMotion.swayX=clamp(weaponMotion.swayX+e.movementX*.00045*sensitivity,-.045,.045);weaponMotion.swayY=clamp(weaponMotion.swayY+e.movementY*.00045*sensitivity,-.035,.035);});
 document.addEventListener('mousedown',e=>{if(state.paused||!state.active)return;if(e.button===0){if(WEAPONS[state.weapon].automatic)firing=true;else shoot();}if(e.button===2)setScoped(!state.scoped);});document.addEventListener('mouseup',()=>firing=false);
 document.addEventListener('contextmenu',e=>{if(state.active)e.preventDefault();});
@@ -324,7 +326,7 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/10
   if(!state.active){menuT+=dt;camera.position.set(19+Math.sin(menuT*.07)*2,10,24);camera.lookAt(-2,1,-10);}
   else if(!state.paused&&state.phase!=='ended'){
     state.t+=dt;state.cooldown=Math.max(0,state.cooldown-dt);state.notice=Math.max(0,state.notice-dt);state.damages=Math.max(0,state.damages-dt);state.hit=Math.max(0,state.hit-dt);state.flashTime=Math.max(0,state.flashTime-dt);if(state.t-state.lastShot>.25)state.shots=Math.max(0,state.shots-dt*24);
-    if(state.reload>0){state.reload-=dt;if(state.reload<=0){const a=state.ammo[state.weapon],take=Math.min(WEAPONS[state.weapon].capacity-a.mag,a.reserve);a.mag+=take;a.reserve-=take;tone(380,.05,'square',.04);}}
+    if(state.reload>0){state.reload-=dt;if(state.reload<=0){state.reload=0;const a=state.ammo[state.weapon],take=Math.min(WEAPONS[state.weapon].capacity-a.mag,a.reserve);a.mag+=take;a.reserve-=take;}}
     updatePlayer(dt);state.time-=dt;
     if(state.phase==='buy'&&state.time<=0){state.phase='live';state.time=90;toast('Operation live. Watch your angles.');}
     if(state.phase==='live'){

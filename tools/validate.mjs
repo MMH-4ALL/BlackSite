@@ -4,6 +4,7 @@ import {fileURLToPath} from 'node:url';
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 import * as RealThree from '../vendor/three.module.js';
 import {WEAPONS} from '../weapons.js';
+import {WeaponAudio} from '../audio.js';
 // Exercise the bundled loader against the actual new asset, without a GPU.
 const engineURL=new URL('../vendor/three.module.js',import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
@@ -50,7 +51,9 @@ const THREE={...RealThree,WebGLRenderer:FakeRenderer};
 class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');return actualAssets[name]?{scene:actualAssets[name].scene.clone(true)}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial())};}}
 const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
 const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle'};
-new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop);
+const soundEvents=[],weaponAudio=new WeaponAudio();
+for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
+new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio);
 await new Promise(r=>setTimeout(r,0));
 console.log('Checking integrated gameplay...');
 const g=window.__game,{state,player}=g;
@@ -128,6 +131,14 @@ for(const key of ['pistol','sv98','m82']){
  inputHandlers.get('mousedown')({button:0});assert.equal(state.ammo[key].mag,before-2,key+' fresh click fires');inputHandlers.get('mouseup')();
 }
 // Validate bundled binary models and every relative import.
+for(const key of Object.keys(WEAPONS))assert.ok(soundEvents.some(e=>e.action==='shot'&&e.args[0]===key),'game dispatches '+key+' to its own sound bank');
+assert.ok(soundEvents.some(e=>e.action==='reload'&&e.args[0]==='sv98'&&e.args[1]===WEAPONS.sv98.reload),'reload uses the actual duration');
+// Exhausted weapons click once per fire interval without consuming ammunition.
+state.primary='m82';state.owned=true;g.nextRound();state.phase='live';state.paused=false;g.equip('m82');state.ammo.m82={mag:0,reserve:0};state.cooldown=0;
+const dryCount=soundEvents.filter(e=>e.action==='empty').length,shotCount=state.shotsFired;
+g.shoot();g.shoot();assert.equal(soundEvents.filter(e=>e.action==='empty').length,dryCount+1);assert.equal(state.shotsFired,shotCount);assert.equal(state.reload,0);
+// Scope/reload/switch cancellation removes stale handling audio on a round end.
+const cancelCount=soundEvents.filter(e=>e.action==='stopHandling').length;g.endRound(false,'Audio regression check');assert.equal(soundEvents.filter(e=>e.action==='stopHandling').length,cancelCount+1);
 for(const name of ['m4a1','sv98','m82','blaster-b','crate-medium']){const data=fs.readFileSync('./assets/'+name+'.glb');assert.equal(data.toString('ascii',0,4),'glTF');assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);const json=JSON.parse(data.toString('utf8',20,20+data.readUInt32LE(12)));assert.ok(json.meshes.length);for(const image of json.images??[])if(image.uri)assert.ok(fs.existsSync('./assets/'+image.uri),'external model texture exists');console.log(name+': '+json.meshes.length+' meshes');}
 for(const w of Object.values(WEAPONS))assert.ok(fs.existsSync('./assets/ui/'+w.image+'.svg'));
 console.log('PASS: three actual Free3D assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.');

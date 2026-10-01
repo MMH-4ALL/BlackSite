@@ -38,9 +38,23 @@
 - Included: `three.module.min.js` (stored as `three.module.js`), `GLTFLoader.js`, and `BufferGeometryUtils.js`.
 - Files are bundled unchanged, aside from the engine filename.
 
+## Weapon recordings — CC0 1.0
+
+32 newly added WAV files supply distinct M4A1, SV98, M82, and P-9 gunshots,
+reload stages, equip sounds, empty-trigger clicks, SV98 bolt cycling, and separate
+distant M4A1 shots for bots. No file or source excerpt is shared between guns or
+actions. All sources are CC0: The Free Firearm Sound Library by Ben Jaszczak,
+Brian Nelson, Kevin Heras, and Matthew Nanney; gun reload recordings by
+SpringySpringo; and equipment clicks III by LFA.
+
+See `assets/audio/LICENSE.md` for source links and MLA references;
+`assets/audio/manifest.json` records exact source ranges, edits, and file hashes.
+Some shots are sound-design adaptations of other rifles rather than exact
+recordings of the named model. Runtime audio is entirely bundled.
+
 ## Original work
 
-Map layout, articulated bot geometry, first-person gloves, animations, match logic, interface, procedural sound, and game code were created for this project. The code is covered by the root MIT license. There are no external fonts, trackers, or remote runtime asset requests.
+Map layout, articulated bot geometry, first-person gloves, animations, match logic, interface, objective/hit/round tones, and game code were created for this project. The code is covered by the root MIT license. There are no external fonts, trackers, or remote runtime asset requests.
 
 ## Source references (MLA)
 
