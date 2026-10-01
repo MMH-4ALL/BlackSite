@@ -21,8 +21,14 @@
 - Binary integrity and mesh data for the active GLB assets; all external texture references resolve to bundled files.
 - Weapon framing inspected in a CPU projection of the actual loaded geometry and game transforms. This verifies orientation and screen coverage, not browser lighting or frame rate.
 - Static asset and module imports are local and use relative paths.
+- Actual bundled GLTFLoader also parses both new Free3D assets: four meshes each, scope and magazine present, repaired unit normals, reasonable dimensions, and model budgets below 650 KB / 30,000 triangles each.
+- Scoped SV98 and M82 shots perform real scene raycasts and kill a full-health armored bot with a torso hit. Fire interval consumes no extra ammunition during cooldown.
+- Buying checks actual costs, insufficient funds, repeated purchases, armor/grenade capacities, spawn proximity, and buy-phase timing.
+- Replaced or lost primaries cannot be equipped; surviving primaries persist; death leaves the sidearm.
+- Scope changes camera FOV and resets on reload/switch; a pistol cannot scope.
+- Shot, hit, and headshot counters match actual rifle raycast results.
 
-Run the checks with `node tools/validate.mjs`. Rendering and DOM are stubbed, but the rifle loader, scene graph, geometry, materials, raycaster, and gameplay logic are real. No network or installed npm packages are required.
+Run the checks with `node tools/validate.mjs`. Rendering and DOM are stubbed, but the three Free3D model loaders, scene graph, geometry, materials, raycaster, and gameplay logic are real. No network or installed npm packages are required.
 
 ## Not completed in this environment
 
@@ -39,5 +45,9 @@ GPU rendering, mouse capture, sound playback, frame rate, and cross-browser beha
 7. Play Contain, let bots plant, eliminate them, then defuse. The planted core must still require defusing after the final enemy dies.
 8. Test smoke, flash, all three difficulties, round restart, and full-match restart.
 9. Repeat after GitHub Pages publishing, especially under the repository subpath.
+10. Inspect all four armory entries, choose an opening primary, and verify it is carried after deployment. Buy a different primary and use keys 1/2.
+11. Compare stationary scoped sniper shots against moving/unscoped shots; test right-click scope, scope reset, torso kills, bolt/trigger behavior, and each reload.
+12. Save settings, reload the page, and confirm preferences remain. Compare standard/performance graphics and crosshair/FOV settings.
+13. Compare round-report eliminations, headshot eliminations, accuracy, and credits with the shots you actually fired.
 
 Prototype difficulty values are not competitively balanced. No online multiplayer or synchronization is present.

@@ -2,13 +2,13 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## Breach Protocol — Helix Compound
+## BlackSite — Helix Compound / v0.3.0
 
 An original, open-source tactical FPS for a desktop browser. A muted desert research compound, two objective sites, and offline matches against three bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
 
-This is a **playable prototype**. The rifle is a modified realistic M4A1 by chasieboy317 from Free3D, with separate steel, polymer, and sight materials and an animated magazine. The pistol and crates use Kenney's CC0 Blaster Kit, with a desaturated palette. Map geometry, articulated bot characters, and first-person gloves are original. See `ATTRIBUTION.md` for the separate asset licenses.
+This is a **playable prototype**. M4A1, SV98, and M82 models are modified assets by chasieboy317 from Free3D, optimized into four meshes each with original PBR materials and animated magazines. The pistol and crates use Kenney's CC0 Blaster Kit, with a desaturated palette. Map geometry, articulated bot characters, and first-person gloves are original. See `ATTRIBUTION.md` for the separate asset licenses.
 
-The visual update adds smooth weapon sway and recoil recovery, a progressive reload pose, jointed bot legs and aiming poses, smoother bot turns, settling corpses, and procedural concrete grain. Aim, damage, difficulty, and objective rules are unchanged. The pistol is still stylized; this release is not a complete realistic character or environment asset pack.
+Version 0.3.0 redesigns deployment, the armory, field manual, settings, HUD, buy menu, pause screen, scoreboard, and round results in a muted charcoal/olive style. Model-derived vector previews show the actual weapons. Choose an opening primary in the armory; it is issued at deployment. Snipers have scoped aiming, distinct recoil, heavier movement, and lethal torso hits. M4A1 recoil and objective/bot rules retain the previous behavior. Sidearm and sniper fire is now trigger-based; hold left mouse for automatic M4A1 fire.
 
 ## Play locally
 
@@ -40,11 +40,12 @@ Choose your side and difficulty, then click **Deploy to compound**. Your mouse i
 | --- | --- |
 | WASD / mouse | Move / aim |
 | Left mouse | Fire |
+| Right mouse | Toggle sniper scope |
 | R | Reload |
 | Shift | Walk |
 | Ctrl or C | Crouch |
 | Space | Jump |
-| 1 / 2 | Rifle / pistol |
+| 1 / 2 | Carried primary / pistol |
 | E (hold) | Plant / defuse |
 | G | Smoke grenade |
 | F | Flash grenade |
@@ -52,12 +53,15 @@ Choose your side and difficulty, then click **Deploy to compound**. Your mouse i
 | Tab (hold) | Scoreboard |
 | Escape | Pause and release mouse |
 
-Sensitivity and sound volume are adjustable in the pause menu. Settings are session-only.
+Sensitivity and sound volume are adjustable in both settings and pause. Field of view (68–100), crosshair length, and standard/performance graphics are in settings. Preferences and the opening primary are saved in local browser storage, with a session-only fallback when storage is unavailable.
 
 ## Gunplay
 
 - Hitscan weapons with original recoil values and head/body hit detection.
-- M-17 rifle: 34 body damage before armor, 160 head damage, 30 rounds, 2.2-second reload. Rifle headshots defeat full health and armor.
+- M4A1: 34 body damage before armor, 160 head damage, 30 rounds, 2.2-second reload. Rifle headshots defeat full health and armor. Rebuy: $2,700.
+- SV98: bolt-action, 10 rounds, 1.35-second shot interval, 3.1-second reload, 24° scoped FOV. Rebuy: $3,800.
+- M82: semi-automatic, 10 rounds, 0.65-second shot interval, 3.6-second reload, 29° scoped FOV. Rebuy: $4,700.
+- Both snipers kill a full-health bot with one head or torso hit; running, jumping, and unscoped firing are inaccurate. Carrying a sniper slows movement.
 - P-9 pistol: 25 body damage before armor, 80 head damage, 12 rounds, 1.45-second reload.
 - Bots have 100 HP and body armor. Player armor reduces incoming body damage.
 - Running and jumping increase spread. Standing still settles the first shot. The crosshair reflects movement and recoil.
@@ -65,6 +69,8 @@ Sensitivity and sound volume are adjustable in the pause menu. Settings are sess
 - No penetration, grenade damage, fall damage, weapon pickups, matchmaking, or anti-cheat in this release.
 - Smoke blocks bot visibility and obscures the scene. Bullets can still pass through it.
 - Flash blinds exposed bots; looking at your own flash can blind you too.
+- Buy at spawn during the buy phase. Purchasing a different primary replaces the old one. Survive to retain it; death leaves the free sidearm for the next round. Buying an already-carried primary cannot refill it.
+- Round reports show actual eliminations, headshot eliminations, shot accuracy, and the standard round reward. The live HUD includes remaining hostiles, armor, credits, reload progress, and weapon slots.
 
 ## Bot difficulty
 
@@ -99,21 +105,26 @@ Connect the GitHub plugin in ChatGPT and grant access to the intended repository
 ```
 index.html        Game menus and HUD
 style.css         Interface styling
+app.js            Game startup and explicit UI preview mode
+ui.js             Menus, armory, settings storage, shop and reports
+weapons.js        Shared weapon balance, model paths and equipment metadata
 game.js           World, gunplay, bots, match rules, controls
-assets/           Bundled GLB models, palette texture, and asset licenses
-tools/            Reproducible Free3D rifle converter and Node validation
+assets/           GLB models, vector UI previews, map plan, and licenses
+tools/            Reproducible converters, vector previews and validation
 vendor/           Three.js 0.170.0, loader, utility, MIT license
 LICENSE           MIT license for original code
 ATTRIBUTION.md    Third-party sources and licenses
 ```
 
-Edit `DIFFICULTY` and `WEAPONS` near the start of `game.js` to tune the game. Edit `buildMap()` for layout. Collision and bot navigation are generated from the solid map boxes. Imported weapon models are replaceable in `loadAssets()`; check both the new asset's license and orientation.
+Edit `DIFFICULTY` in `game.js` and `WEAPONS` in `weapons.js` to tune the game. Edit `buildMap()` for layout. Collision and bot navigation are generated from the solid map boxes. Imported models are replaceable via the weapon metadata; check license and orientation.
 
 An opt-in `?test` URL exposes local state for development and testing. This is an offline game and it is not designed to prevent players from changing their own client.
 
+An explicit `?preview=deploy` (or `armory`, `manual`, `settings`, `hud`, `buy`, `pause`, `scoreboard`, `result`) displays the real interface without starting WebGL or a match. Preview combat values are examples, clearly marked as a preview, and purchases are disabled. This is useful for UI review on a machine without a GPU.
+
 ## License and identity
 
-Original project source is MIT licensed. Kenney assets are CC0; Three.js and its addons retain their MIT notice. The Free3D rifle retains chasieboy317's credit and permission for modified reuploads; **it is not covered by the project's MIT license**. See `assets/M4A1-LICENSE.md` before reusing the model. No assets are extracted from Counter-Strike, Valorant, or their publishers. The working project name has not been trademark-cleared.
+Original project source is MIT licensed. Kenney assets are CC0; Three.js and its addons retain their MIT notice. The Free3D weapons and their derived previews retain chasieboy317's credit and permission for modified reuploads; **they are not covered by the project's MIT license**. See `assets/M4A1-LICENSE.md` and `assets/FREE3D-WEAPONS-LICENSE.md`. No assets are extracted from Counter-Strike, Valorant, or their publishers. The working project name has not been trademark-cleared.
 
 ## Current limits
 

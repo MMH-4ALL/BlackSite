@@ -2,44 +2,70 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Breach Protocol — Helix Compound</title>
-  <meta name="description" content="An original open-source tactical browser FPS. Plant, defend, and master the recoil at Helix Compound.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2315191a'/%3E%3Cpath d='M9 5h13v8H9v14M9 18h13v9' fill='none' stroke='%23c7b58e' stroke-width='4'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="style.css">
+  <meta name="theme-color" content="#101313">
+  <title>BLACKSITE — Tactical Operations</title>
+  <meta name="description" content="An original tactical browser FPS. Precision gunplay, three bot difficulties, and four weapons at Helix Compound.">
+  <link rel="icon" href="assets/mark.svg"><link rel="stylesheet" href="style.css?v=0.3.0">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
 <canvas id="world" aria-label="First-person game view"></canvas>
 <div id="vignette"></div><div id="damage"></div><div id="flash"></div>
 <main id="menu" class="overlay">
-  <div class="mast"><span class="emblem">BP</span><span>BREACH PROTOCOL <small>TACTICAL FPS / 0.2</small></span><span class="build">OFFLINE OPERATIONS</span></div>
-  <section class="briefing">
-    <div class="eyebrow">28° 24′ N / 34° 48′ E &nbsp; · &nbsp; HELIX COMPOUND</div>
-    <h1>HOLD YOUR<br>GROUND.</h1>
-    <p class="intro">A quiet facility. Two sites. No second chances.<br>Stop, aim, and make the first shot count.</p>
-    <div class="setup">
-      <label>OPERATION<select id="side"><option value="attack">Breach · plant the core</option><option value="defend">Contain · defend the sites</option></select></label>
-      <label>BOT DIFFICULTY<select id="difficulty"><option value="easy">Easy · learn the angles</option><option value="normal" selected>Normal · stay sharp</option><option value="hard">Hard · no easy fights</option></select></label>
-    </div>
-    <p id="difficultyInfo" class="muted">Balanced reaction time and controlled bursts. Three opponents.</p>
-    <button id="start" class="primary" disabled>LOADING COMPOUND…</button>
-    <div class="spec"><span>01 MAP</span><span>1 vs 3 BOTS</span><span>FIRST TO 4</span></div>
-  </section>
-  <aside class="fieldnote"><span>FIELD NOTES / 001</span><h2>Precision beats speed.</h2><p>Movement opens your spread. Release the keys, settle your aim, then fire. A rifle headshot defeats full armor.</p><div class="rule"></div><p>WASD move · Mouse aim / fire<br>R reload · Shift walk · Ctrl crouch<br>Space jump · E plant / defuse<br>1 / 2 weapons · G smoke · F flash<br>B buy · Tab scoreboard · Esc pause</p></aside>
-  <footer>ORIGINAL MAP & CODE · M4A1 BY CHASIEBOY317 <span>DESKTOP / KEYBOARD + MOUSE</span></footer>
+  <header class="mast">
+    <a class="brand" href="#deploy" aria-label="BlackSite home"><img src="assets/mark.svg" alt=""><span>BLACK<span class="brand-light">SITE</span><small>TACTICAL OPERATIONS</small></span></a>
+    <nav aria-label="Main menu"><button data-view="deploy" class="nav-link active" aria-current="page">DEPLOY</button><button data-view="armory" class="nav-link">ARMORY</button><button data-view="manual" class="nav-link">FIELD MANUAL</button><button data-view="settings" class="nav-link">SETTINGS</button></nav>
+    <div class="build"><span class="status-dot"></span> OFFLINE OPERATIONS <small>BUILD 0.3.0</small></div>
+  </header>
+  <div class="menu-body">
+    <section id="view-deploy" class="menu-view deploy-grid">
+      <div class="briefing">
+        <div class="eyebrow"><span class="short-line"></span> PRECISION. POSITION. CONTROL.</div>
+        <h1>EVERY SHOT<br><span>COUNTS.</span></h1>
+        <p class="intro">One operator. Three hostiles. Two sites.<br>Hold the angle. Make the first shot count.</p>
+        <div class="operation-strip"><span>01 <small>ORIGINAL MAP</small></span><span>1 <small>VS 3 BOTS</small></span><span>4 <small>ROUNDS TO WIN</small></span></div>
+        <div class="setup">
+          <label for="side">TACTICAL ROLE<select id="side"><option value="attack">BREACH / ATTACK</option><option value="defend">CONTAIN / DEFEND</option></select></label>
+          <label for="difficulty">BOT PROFILE<select id="difficulty"><option value="easy">EASY / RECRUIT</option><option value="normal" selected>NORMAL / OPERATOR</option><option value="hard">HARD / VETERAN</option></select></label>
+        </div>
+        <p id="difficultyInfo" class="difficulty-note">Balanced reactions and controlled bursts. Stay sharp.</p>
+        <div class="deploy-action"><button id="start" class="primary" disabled>LOADING COMPOUND… <span>↗</span></button><span class="input-note">KEYBOARD + MOUSE<br>DESKTOP BROWSER</span></div>
+        <p id="compatibility" class="compatibility" hidden></p>
+      </div>
+      <aside class="mission-column">
+        <div class="map-card"><div class="card-top"><span>OPERATION / 001</span><span class="tag">HELIX</span></div><div class="map-image"><img src="assets/helix-map.svg" alt="Helix Compound plan: two objective sites and west, middle, and east routes"><span class="map-coordinates">28°24′ N<br>34°48′ E</span><span class="map-label">SITE PLAN / 01</span></div><div class="map-caption"><div><span class="eyebrow">HELIX COMPOUND</span><h2>Restricted territory.</h2></div><span class="map-number">01</span></div><div class="map-detail"><span>DESERT RESEARCH FACILITY</span><span>TWO OBJECTIVE SITES</span></div></div>
+        <button class="loadout-shortcut" data-view="armory"><span class="loadout-thumb"><img id="startingImage" src="assets/ui/m4a1.svg" alt=""></span><span><small>YOUR OPENING LOADOUT</small><strong id="startingName">M4A1 <em>+ P-9</em></strong><small>INSPECT & CHANGE WEAPON</small></span><b>↗</b></button>
+      </aside>
+    </section>
+    <section id="view-armory" class="menu-view" hidden>
+      <div class="view-heading"><div><span class="eyebrow">FIELD EQUIPMENT / 04 WEAPONS</span><h1 class="view-title">THE ARMORY<span>.</span></h1><p>Know your weapon. Choose your opening primary.</p></div><span class="section-index">02 / 04</span></div>
+      <div class="armory-layout"><div id="armoryList" class="armory-list" aria-label="Weapons"></div><article class="weapon-inspect"><div class="card-top"><span id="inspectCategory">RIFLE</span><span class="tag">FIELD READY</span></div><div class="inspect-stage"><img id="inspectImage" src="assets/ui/m4a1.svg" alt="M4A1 model preview"><span class="stage-line"></span><span id="inspectStrength">CONTROLLED BURSTS</span></div><div class="inspect-content"><span id="inspectLabel" class="eyebrow"></span><h2 id="inspectName"></h2><p id="inspectDescription"></p><dl id="inspectStats" class="weapon-stats"></dl><div id="inspectBars" class="stat-bars"></div><button id="useWeapon" class="primary">USE AS STARTING PRIMARY <span>↗</span></button><small class="loadout-note">Issued at deployment. Rebuy after elimination. P-9 is always carried.</small></div></article></div>
+    </section>
+    <section id="view-manual" class="menu-view" hidden>
+      <div class="view-heading"><div><span class="eyebrow">OPERATOR HANDBOOK / HELIX</span><h1 class="view-title">HOLD THE ANGLE<span>.</span></h1><p>Learn the essentials before entering the compound.</p></div><span class="section-index">03 / 04</span></div>
+      <div class="manual-grid"><article class="manual-card"><span class="manual-number">01</span><h2>Stop. Aim. Fire.</h2><p>Movement and jumping widen your spread. Release the keys to settle your aim. Control automatic recoil with short bursts and downward mouse movement.</p><div class="manual-callout">M4A1 HEADSHOT / ONE HIT<br><small>Snipers also defeat a target with one torso hit.</small></div></article><article class="manual-card"><span class="manual-number">02</span><h2>Play the objective.</h2><p>Attack: reach A or B, stay still, and hold E for 3 seconds to plant. Defend: reach the armed core and hold E for 5 seconds to defuse.</p><div class="manual-callout">90 SECOND ROUND / 40 SECOND CORE<br><small>First to four rounds wins the operation.</small></div></article><article class="manual-card"><span class="manual-number">03</span><h2>Build your advantage.</h2><p>Press B near spawn during the 12-second buy phase. Use armor to absorb body damage, smoke to block sight, and flash to blind exposed bots.</p><div class="manual-callout">WIN +$3,000 / LOSS +$1,900<br><small>Weapons survive a round if you stay alive.</small></div></article></div>
+      <div class="controls-card"><h2>Controls</h2><div class="controls-grid"><span><kbd>W A S D</kbd> Move</span><span><kbd>MOUSE</kbd> Aim / fire</span><span><kbd>RMB</kbd> Sniper scope</span><span><kbd>R</kbd> Reload</span><span><kbd>SHIFT</kbd> Walk</span><span><kbd>CTRL</kbd> Crouch</span><span><kbd>SPACE</kbd> Jump</span><span><kbd>E</kbd> Plant / defuse</span><span><kbd>1 / 2</kbd> Weapons</span><span><kbd>G / F</kbd> Smoke / flash</span><span><kbd>B</kbd> Buy equipment</span><span><kbd>TAB / ESC</kbd> Score / pause</span></div></div>
+    </section>
+    <section id="view-settings" class="menu-view" hidden>
+      <div class="view-heading"><div><span class="eyebrow">OPERATOR PREFERENCES</span><h1 class="view-title">MAKE IT YOURS<span>.</span></h1><p>Settings are saved on this browser.</p></div><span class="section-index">04 / 04</span></div>
+      <div class="settings-layout"><div class="settings-card"><h2>Input & sound</h2><label>Mouse sensitivity <output data-output="sensitivity">1.0</output><input data-setting="sensitivity" type="range" min="0.4" max="2.4" value="1" step="0.1"></label><label>Master volume <output data-output="volume">45%</output><input data-setting="volume" type="range" min="0" max="1" value="0.45" step="0.05"></label><label>Field of view <output data-output="fov">78°</output><input data-setting="fov" type="range" min="68" max="100" value="78" step="1"></label></div><div class="settings-card"><h2>Display & crosshair</h2><label>Graphics quality<select data-setting="quality"><option value="standard">STANDARD / SHADOWS</option><option value="low">LOW / PERFORMANCE</option></select></label><label>Crosshair length <output data-output="crosshair">6 px</output><input data-setting="crosshair" type="range" min="3" max="12" value="6" step="1"></label><div class="crosshair-preview" aria-label="Crosshair preview"><div class="preview-reticle"><i></i><i></i><i></i><i></i></div><span>LIVE RETICLE PREVIEW</span></div></div></div><div class="settings-footer"><button id="resetSettings" class="secondary">RESET TO DEFAULTS</button><span id="settingsSaved" role="status">Preferences saved automatically.</span></div>
+    </section>
+  </div>
+  <footer><span><span class="status-dot"></span> ORIGINAL MAP & GAMEPLAY <i>/</i> WEAPON MODELS BY CHASIEBOY317 & KENNEY</span><a href="https://github.com/MMH-4ALL/BlackSite" target="_blank" rel="noopener">SOURCE & CREDITS ↗</a></footer>
 </main>
 <div id="hud" hidden>
-  <div id="radarWrap"><canvas id="radar" width="180" height="180"></canvas><span id="location">ATTACKER APPROACH</span></div>
-  <div class="roundbar"><span class="team">YOU <b id="scoreYou">0</b></span><div><small id="phase">BUY PHASE</small><strong id="timer">0:12</strong></div><span class="team"><b id="scoreBot">0</b> HELIX</span></div>
-  <div id="feed"></div><div id="crosshair"><i></i><i></i><i></i><i></i></div><div id="hitmarker">×</div>
+  <div id="radarWrap"><div class="radar-head"><span>HELIX / 01</span><span>N ↑</span></div><canvas id="radar" width="180" height="180"></canvas><span id="location">ATTACKER APPROACH</span></div>
+  <div class="roundbar"><div class="team"><small>OPERATOR</small><b id="scoreYou">0</b></div><div class="round-clock"><small id="phase">BUY / ROUND 1</small><strong id="timer">0:12</strong><div class="round-pips" id="roundPips"></div></div><div class="team enemy"><small>HOSTILES</small><b id="scoreBot">0</b></div></div>
+  <div class="hostile-count"><span id="hostileCount">3</span> HOSTILES REMAINING</div>
+  <div id="feed"></div><div id="crosshair"><i></i><i></i><i></i><i></i></div><div id="hitmarker">×</div><div id="scope" hidden><div class="scope-line vertical"></div><div class="scope-line horizontal"></div><div class="scope-center"></div></div>
   <div id="objective"></div><div id="progress"><span></span></div><div id="toast" role="status"></div>
-  <div class="bottom"><div class="vitals"><strong id="health">100</strong><span>HEALTH</span><b id="armor">0 ARMOR</b></div><div class="equipment"><span id="cash">$3,400</span><small id="utility">G SMOKE · F FLASH</small></div><div class="weapon"><small id="weaponName">M-17 CARBINE</small><strong id="ammo">30 <em>/ 90</em></strong></div></div>
-  <div id="hints">WASD MOVE &nbsp; R RELOAD &nbsp; E OBJECTIVE &nbsp; B BUY &nbsp; ESC PAUSE</div>
+  <div class="bottom"><div class="vitals"><div><span class="hud-label">VITALS</span><strong id="health">100</strong><small>HP</small></div><div class="health-track"><span id="healthBar"></span></div><b id="armor">0 ARMOR</b></div><div class="equipment"><span class="hud-label">CREDITS</span><strong id="cash">$3,400</strong><small id="utility">G SMOKE ×1 · F FLASH ×1</small></div><div class="weapon"><div id="weaponSlots" class="weapon-slots"><span><kbd>1</kbd> M4A1</span><span><kbd>2</kbd> P-9</span></div><small id="weaponName">M4A1</small><strong id="ammo">30 <em>/ 90</em></strong><div id="reloadTrack" class="reload-track" hidden><span></span></div></div></div>
+  <div id="hints"><span><kbd>R</kbd> RELOAD</span><span><kbd>E</kbd> OBJECTIVE</span><span><kbd>B</kbd> BUY</span><span><kbd>TAB</kbd> REPORT</span><span><kbd>ESC</kbd> PAUSE</span></div>
 </div>
-<div id="buy" class="panel" hidden><span class="eyebrow">FIELD SUPPLY</span><h2>Choose your equipment.</h2><p>Buy near your spawn during the buy phase. Keys 1 / 2 switch weapons.</p><div class="shop"><button data-buy="rifle">M-17 CARBINE <span>$2,700 · 30 rounds · lethal headshots</span></button><button data-buy="armor">BODY ARMOR <span>$650 · reduces body damage</span></button><button data-buy="smoke">SMOKE GRENADE <span>$300 · blocks bot and player sight</span></button><button data-buy="flash">FLASH GRENADE <span>$200 · blinds exposed targets</span></button></div><button id="closeBuy" class="primary">RETURN TO GAME</button></div>
-<div id="pause" class="panel" hidden><span class="eyebrow">OPERATION PAUSED</span><h2>Take a breath.</h2><label>Mouse sensitivity <input id="sensitivity" type="range" min="0.4" max="2.4" value="1" step="0.1"></label><label>Sound <input id="volume" type="range" min="0" max="1" value="0.45" step="0.05"></label><button id="resume" class="primary">RESUME</button><button id="quit" class="secondary">RETURN TO BRIEFING</button></div>
-<div id="scoreboard" class="panel" hidden><span class="eyebrow">OPERATION REPORT</span><h2 id="scoreTitle">Helix Compound</h2><div id="scoreRows"></div></div>
-<div id="result" class="panel" hidden><span id="resultLabel" class="eyebrow">ROUND COMPLETE</span><h2 id="resultTitle"></h2><p id="resultDetail"></p><button id="next" class="primary">NEXT ROUND</button><button id="resultQuit" class="secondary">RETURN TO BRIEFING</button></div>
-<div id="unsupported" class="panel" hidden><h2>A desktop is required.</h2><p>Use a keyboard, mouse, and WebGL-capable browser for this first release.</p></div>
-<script type="module" src="game.js"></script>
+<section id="buy" class="panel buy-panel" aria-labelledby="buyTitle" hidden><div class="panel-head"><div><span class="eyebrow">SPAWN SUPPLY / BUY PHASE</span><h2 id="buyTitle">FIELD EQUIPMENT<span>.</span></h2></div><div class="wallet"><small>AVAILABLE CREDITS</small><strong id="shopCash">$3,400</strong></div></div><div class="shop-heading">PRIMARY WEAPONS <span>REPLACES YOUR CURRENT PRIMARY</span></div><div id="shopWeapons" class="shop-weapons"></div><div class="shop-heading">ARMOR & UTILITY <span>MAX. TWO OF EACH GRENADE</span></div><div class="shop-utility"><button data-buy="armor"><span class="utility-icon">◇</span><span><strong>BODY ARMOR</strong><small>Reduces body damage</small></span><b>$650</b><em data-status="armor"></em></button><button data-buy="smoke"><span class="utility-icon">≋</span><span><strong>SMOKE</strong><small>14 seconds of cover</small></span><b>$300</b><em data-status="smoke"></em></button><button data-buy="flash"><span class="utility-icon">✳</span><span><strong>FLASH</strong><small>Blinds exposed targets</small></span><b>$200</b><em data-status="flash"></em></button></div><div class="shop-footer"><p id="shopMessage" role="status">P-9 sidearm is always equipped. Survive to keep your primary.</p><button id="closeBuy" class="primary">RETURN TO GAME <span>↗</span></button></div></section>
+<section id="pause" class="panel pause-panel" aria-labelledby="pauseTitle" hidden><span class="eyebrow">OPERATION ON HOLD</span><h2 id="pauseTitle">TAKE A BREATH<span>.</span></h2><p>The operation is paused. Your next shot can wait.</p><div class="pause-summary"><span id="pauseMap">HELIX COMPOUND</span><span id="pauseRound">ROUND 1</span></div><label>Mouse sensitivity <output data-output="sensitivity">1.0</output><input id="sensitivity" data-setting="sensitivity" type="range" min="0.4" max="2.4" value="1" step="0.1"></label><label>Master volume <output data-output="volume">45%</output><input id="volume" data-setting="volume" type="range" min="0" max="1" value="0.45" step="0.05"></label><button id="resume" class="primary">RESUME OPERATION <span>↗</span></button><button id="quit" class="secondary">RETURN TO MAIN MENU</button></section>
+<section id="scoreboard" class="panel score-panel" aria-labelledby="scoreTitle" hidden><span class="eyebrow">LIVE OPERATION REPORT</span><div class="report-heading"><h2 id="scoreTitle">HELIX COMPOUND</h2><strong id="reportScore">0 — 0</strong></div><div class="score-columns"><span>OPERATOR</span><span>COMBAT STATUS</span></div><div id="scoreRows"></div><p class="panel-note">HOLD TAB TO VIEW / RELEASE TO RETURN</p></section>
+<section id="result" class="panel result-panel" aria-labelledby="resultTitle" hidden><span id="resultLabel" class="eyebrow">ROUND COMPLETE</span><div class="result-symbol" aria-hidden="true">⌁</div><h2 id="resultTitle">SECTOR SECURED<span>.</span></h2><p id="resultDetail"></p><div class="result-score"><div><span>OPERATOR</span><strong id="resultYou">1</strong></div><small>FIRST TO 4</small><div><span>HOSTILES</span><strong id="resultBot">0</strong></div></div><div id="resultStats" class="result-stats"></div><button id="next" class="primary">NEXT ROUND <span>↗</span></button><button id="resultQuit" class="secondary">RETURN TO MAIN MENU</button></section>
+<div id="unsupported" class="panel" hidden><span class="eyebrow">BROWSER COMPATIBILITY</span><h2>WebGL is required.</h2><p>Use a desktop browser with graphics acceleration, keyboard, and mouse.</p></div>
+<script type="module" src="app.js?v=0.3.0"></script>
 </body></html>

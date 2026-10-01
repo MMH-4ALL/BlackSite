@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 
-def convert(source, destination):
+def convert(source, destination, profile="m4a1"):
     positions, normals, polygons = [], [], []
     group = "default"
     for line in source.read_text().splitlines():
@@ -38,8 +38,19 @@ def convert(source, destination):
 
     positions = np.asarray(positions, dtype=np.float64)
     normals = np.asarray(normals, dtype=np.float64)
-    center = (positions.min(0) + positions.max(0)) * .5
-    scale = .95 / np.ptp(positions, axis=0).max()
+    if profile == "sv98":
+        polygons = [(g,f) for g,f in polygons if g != "pPlane1"]
+    if profile == "m82":
+        # Remove the deployed bipod and level the source's tilted barrel.
+        polygons = [(g,f) for g,f in polygons if g != "polySurface233"]
+        angle = -np.arctan(.226)
+        rotation = np.array([[1,0,0],[0,np.cos(angle),-np.sin(angle)],[0,np.sin(angle),np.cos(angle)]])
+        positions = positions @ rotation.T
+        normals = normals @ rotation.T
+    used = np.unique([v for _,f in polygons for v,_ in f])
+    center = (positions[used].min(0) + positions[used].max(0)) * .5
+    length = {"m4a1":.95,"sv98":1.2,"m82":1.35}[profile]
+    scale = length / np.ptp(positions[used], axis=0).max()
     positions = (positions - center) * scale
     materials = [
         {"name": "Parkerized steel", "pbrMetallicRoughness": {"baseColorFactor": [.10, .125, .135, 1], "metallicFactor": .72, "roughnessFactor": .46}},
@@ -49,11 +60,25 @@ def convert(source, destination):
     ]
     # Separate the magazine for reloading; merge the many tiny source objects
     # into four draw calls. Cluster only close vertices with similar normals.
+    if profile != "m4a1":
+        materials[1]["pbrMetallicRoughness"]["baseColorFactor"] = [.15,.175,.125,1] if profile=="sv98" else [.10,.105,.105,1]
+        materials[3] = {"name":"Scope housing", "pbrMetallicRoughness":{"baseColorFactor":[.07,.085,.09,1],"metallicFactor":.65,"roughnessFactor":.4}}
     buckets = {name: {"vertices": [], "normals": [], "indices": [], "lookup": {}}
-               for name in ["Receiver", "Furniture", "Magazine", "Sight"]}
+               for name in ["Receiver", "Furniture", "Magazine", "Sight" if profile=="m4a1" else "Scope"]}
     source_triangles = 0
     for name, face in polygons:
-        if "desmont:magpul" in name or "group16" in name:
+        if profile == "sv98":
+            if name == "group4 polySurface2":kind = "Magazine"
+            elif name in ["group4 polySurface13","group4 polySurface14","group4 pSphere2","group4 pSphere3","group4 pCylinder18","group4 pCylinder19"]:kind = "Scope"
+            elif name in ["group4 pCube4","pCube1 group4","group4 pCube2","group4 pCube3","group4 pCube5","group4 pCube6","group4 pCube7","group4 pCube8"]:kind="Furniture"
+            else:kind="Receiver"
+        elif profile == "m82":
+            number = int(name.replace("polySurface", ""))
+            if number >= 378:kind="Magazine"
+            elif 345 <= number <= 352:kind="Scope"
+            elif number in [247,249,250,251,252,291]:kind="Furniture"
+            else:kind="Receiver"
+        elif "desmont:magpul" in name or "group16" in name:
             kind = "Magazine"
         elif name == "M4_carbine:pPlane1":
             kind = "Sight"
@@ -90,13 +115,13 @@ def convert(source, destination):
 
     binary = bytearray()
     gltf = {"asset": {"version": "2.0", "generator": "BlackSite Free3D OBJ converter",
-                      "copyright": "M4A1 by chasieboy317; modified by the BlackSite project; see assets/M4A1-LICENSE.md"},
+                      "copyright": profile.upper()+" by chasieboy317; modified by the BlackSite project; see ATTRIBUTION.md"},
             "scene": 0, "scenes": [{"nodes": []}], "nodes": [], "meshes": [],
             "materials": materials, "bufferViews": [], "accessors": [],
-            "extras": {"source": "https://free3d.com/3d-model/m4a1-33156.html",
+            "extras": {"source": {"m4a1":"https://free3d.com/3d-model/m4a1-33156.html","sv98":"https://free3d.com/3d-model/sv98-sniper-rifle-72000.html","m82":"https://free3d.com/3d-model/m82-barrett-10543.html"}[profile],
                        "sourceSha256": hashlib.sha256(source.read_bytes()).hexdigest(),
                        "sourceTriangles": source_triangles,
-                       "changes": "Triangulated, indexed, close-vertex clustering, merged parts, normalized to .95m, original PBR materials; magazine kept separate"}}
+                       "changes": "Triangulated, indexed, close-vertex clustering, merged parts, normalized, original PBR materials; magazine kept separate; non-weapon ground / deployed M82 bipod removed"}}
 
     def accessor(array, component, shape, target, normalized=False, bounds=False):
         while len(binary) % 4:
@@ -149,4 +174,4 @@ def convert(source, destination):
 
 
 if __name__ == "__main__":
-    convert(Path(sys.argv[1]), Path(sys.argv[2]))
+    convert(Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3] if len(sys.argv)>3 else "m4a1")
