@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
-import { WEAPONS } from './weapons.js';
-import { settings, refreshShop, showReport, showView } from './ui.js';
+import { WEAPONS } from './weapons.js?v=0.3.0';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.3.0';
 
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
@@ -159,7 +159,7 @@ function prepareModel(g,targetLength,muted=false){
     o.material=Array.isArray(o.material)?o.material.map(prepare):prepare(o.material);
   }});return wrapper;
 }
-async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));const crate=prepareModel(loaded.at(-1).scene,1.8,true);for(const [x,z] of [[-21,12],[21,12],[-11,-26],[11,-26]]){const m=crate.clone(true);m.position.set(x,.9,z);scene.add(m);walls.push({x,z,w:1.8,d:1.8});m.traverse(o=>{if(o.isMesh)hitWalls.push(o);});}loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY TO COMPOUND <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The compound could not load. Reload the page, or check that the complete game folder is hosted.';}}
+async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.3.0')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));const crate=prepareModel(loaded.at(-1).scene,1.8,true);for(const [x,z] of [[-21,12],[21,12],[-11,-26],[11,-26]]){const m=crate.clone(true);m.position.set(x,.9,z);scene.add(m);walls.push({x,z,w:1.8,d:1.8});m.traverse(o=>{if(o.isMesh)hitWalls.push(o);});}loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY TO COMPOUND <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The compound could not load. Reload the page, or check that the complete game folder is hosted.';}}
 loadAssets();
 
 function updateWeaponPresentation(dt){

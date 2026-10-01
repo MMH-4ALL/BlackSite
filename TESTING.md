@@ -27,6 +27,9 @@
 - Replaced or lost primaries cannot be equipped; surviving primaries persist; death leaves the sidearm.
 - Scope changes camera FOV and resets on reload/switch; a pistol cannot scope.
 - Shot, hit, and headshot counters match actual rifle raycast results.
+- Browser UI review on the deployed Pages site: deployment, armory, field manual, and settings; changing the opening primary, sensitivity, and crosshair, reloading to confirm persistence, and resetting preferences.
+- Combat interfaces reviewed through explicit preview mode: HUD, buy screen, round report, pause, and scoreboard. Preview values are samples, not a recorded match.
+- The cloud review browser cannot create a WebGL context. Menus still work and compatibility feedback appears; 3D rendering/input/performance require a real desktop playtest.
 
 Run the checks with `node tools/validate.mjs`. Rendering and DOM are stubbed, but the three Free3D model loaders, scene graph, geometry, materials, raycaster, and gameplay logic are real. No network or installed npm packages are required.
 

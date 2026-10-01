@@ -1,4 +1,4 @@
-import { WEAPONS, PRIMARY_KEYS } from './weapons.js';
+import { WEAPONS, PRIMARY_KEYS } from './weapons.js?v=0.3.0';
 const $=id=>document.getElementById(id), defaults={sensitivity:1,volume:.45,fov:78,crosshair:6,quality:'standard',primary:'rifle'};
 export const settings={...defaults};
 try {
@@ -14,7 +14,7 @@ function syncSettings(){
   document.querySelectorAll('[data-setting]').forEach(input=>input.value=settings[input.dataset.setting]);
   document.querySelectorAll('[data-output]').forEach(output=>{const k=output.dataset.output;output.textContent=k==='volume'?Math.round(settings[k]*100)+'%':k==='sensitivity'?settings[k].toFixed(1):settings[k]+(k==='fov'?'°':' px');});
   document.documentElement.style.setProperty('--crosshair',settings.crosshair+'px');
-  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ P-9</em>';$('startingImage').src='assets/ui/'+w.image+'.svg';
+  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ P-9</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.3.0';
 }
 export function showView(view){
   if(!['deploy','armory','manual','settings'].includes(view))view='deploy';
@@ -26,13 +26,13 @@ function inspectWeapon(key){
   inspected=key;const w=WEAPONS[key];
   document.querySelectorAll('.armory-item').forEach(button=>{button.classList.toggle('selected',button.dataset.weapon===key);button.setAttribute('aria-pressed',String(button.dataset.weapon===key));});
   $('inspectCategory').textContent=w.category;$('inspectLabel').textContent=w.label;$('inspectName').textContent=w.name;$('inspectDescription').textContent=w.description;$('inspectStrength').textContent=w.strength;
-  $('inspectImage').src='assets/ui/'+w.image+'.svg';$('inspectImage').alt=w.name+' modified model preview';
+  $('inspectImage').src='assets/ui/'+w.image+'.svg?v=0.3.0';$('inspectImage').alt=w.name+' modified model preview';
   $('inspectStats').innerHTML=[['MAGAZINE',w.capacity+' RDS'],['RELOAD',w.reload.toFixed(1)+' SEC'],['FIRE RATE',Math.round(60/w.interval)+' RPM'],['REBUY',w.price?money(w.price):'ISSUED']].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('');
   $('inspectBars').innerHTML=['POWER','FIRE RATE','PRECISION'].map((label,i)=>`<div><small>${label}</small><b><i style="width:${w.bars[i]}%"></i></b></div>`).join('');
   const equipped=key===settings.primary;$('useWeapon').disabled=w.slot==='secondary'||equipped;$('useWeapon').innerHTML=w.slot==='secondary'?'ALWAYS EQUIPPED':equipped?'STARTING PRIMARY SELECTED <span>✓</span>':'USE AS STARTING PRIMARY <span>↗</span>';
 }
-$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg" alt=""><em>${w.slot==='secondary'?'ALWAYS CARRIED':'PRIMARY / '+w.capacity+' ROUNDS'}</em></button>`).join('');
-$('shopWeapons').innerHTML=PRIMARY_KEYS.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg" alt=""><strong>${w.name}</strong><b>${money(w.price)}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
+$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg?v=0.3.0" alt=""><em>${w.slot==='secondary'?'ALWAYS CARRIED':'PRIMARY / '+w.capacity+' ROUNDS'}</em></button>`).join('');
+$('shopWeapons').innerHTML=PRIMARY_KEYS.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg?v=0.3.0" alt=""><strong>${w.name}</strong><b>${money(w.price)}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
 document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>showView(button.dataset.view));
 document.querySelector('.brand').onclick=e=>{e.preventDefault();showView('deploy');};
 document.querySelectorAll('[data-weapon]').forEach(button=>button.onclick=()=>inspectWeapon(button.dataset.weapon));
@@ -71,7 +71,7 @@ export function previewInterface(view){
   $('scoreYou').textContent='2';$('scoreBot').textContent='1';$('phase').textContent='ROUND 4';$('timer').textContent='1:09';$('objective').textContent='PLANT AT A OR B';$('health').textContent='87';$('healthBar').style.width='87%';$('armor').textContent='65 ARMOR';$('cash').textContent='$5,800';$('roundPips').innerHTML='<i class="won"></i><i class="lost"></i><i class="won"></i><i></i>';
   if(view!=='hud')$(view).hidden=false;
   if(view==='buy'){refreshShop({money:5800,primary:'rifle',owned:true,phase:'buy',smoke:1,flash:1},{armor:65},'INTERFACE PREVIEW / purchases are disabled.');document.querySelectorAll('[data-buy]').forEach(b=>b.disabled=true);$('closeBuy').onclick=()=>{$('buy').hidden=true;};}
-  if(view==='pause'){$('resume').onclick=()=>{$('pause').hidden=true;};$('quit').onclick=()=>{location.href=location.pathname+'?preview=deploy';};}
-  if(view==='result'){showReport({round:4,wins:3,losses:1,kills:3,headshots:2,shotsFired:12,hits:4},true,'All hostiles eliminated.');$('next').onclick=()=>{$('result').hidden=true;};$('resultQuit').onclick=()=>{location.href=location.pathname+'?preview=deploy';};}
+  if(view==='pause'){$('pauseRound').textContent='ROUND 4 / NORMAL';$('resume').onclick=()=>{$('pause').hidden=true;};$('quit').onclick=()=>{location.href=location.pathname+'?preview=deploy';};}
+  if(view==='result'){$('scoreYou').textContent='3';$('hostileCount').textContent='0';showReport({round:4,wins:3,losses:1,kills:3,headshots:2,shotsFired:12,hits:4},true,'All hostiles eliminated.');$('next').onclick=()=>{$('result').hidden=true;};$('resultQuit').onclick=()=>{location.href=location.pathname+'?preview=deploy';};}
   if(view==='scoreboard'){$('reportScore').textContent='2 — 1';$('scoreRows').innerHTML='<div><span>YOU / OPERATOR</span><span>5 K / 1 D</span></div><div><span>WARDEN</span><span>ACTIVE / 100 HP</span></div><div class="dead"><span>SENTRY</span><span>ELIMINATED</span></div><div><span>NOMAD</span><span>ACTIVE / 100 HP</span></div>';}
 }

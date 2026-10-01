@@ -39,7 +39,8 @@ def convert(source, destination, profile="m4a1"):
     positions = np.asarray(positions, dtype=np.float64)
     normals = np.asarray(normals, dtype=np.float64)
     if profile == "sv98":
-        polygons = [(g,f) for g,f in polygons if g != "pPlane1"]
+        # The source scene includes a floor and four loose cartridge props.
+        polygons = [(g,f) for g,f in polygons if g not in {"pPlane1","pCylinder7","pCylinder8","pCylinder22","pCylinder23"}]
     if profile == "m82":
         # Remove the deployed bipod and level the source's tilted barrel.
         polygons = [(g,f) for g,f in polygons if g != "polySurface233"]
@@ -121,7 +122,7 @@ def convert(source, destination, profile="m4a1"):
             "extras": {"source": {"m4a1":"https://free3d.com/3d-model/m4a1-33156.html","sv98":"https://free3d.com/3d-model/sv98-sniper-rifle-72000.html","m82":"https://free3d.com/3d-model/m82-barrett-10543.html"}[profile],
                        "sourceSha256": hashlib.sha256(source.read_bytes()).hexdigest(),
                        "sourceTriangles": source_triangles,
-                       "changes": "Triangulated, indexed, close-vertex clustering, merged parts, normalized, original PBR materials; magazine kept separate; non-weapon ground / deployed M82 bipod removed"}}
+                       "changes": "Triangulated, indexed, close-vertex clustering, merged parts, normalized, original PBR materials; magazine kept separate; non-weapon floor / loose cartridge props / deployed M82 bipod removed"}}
 
     def accessor(array, component, shape, target, normalized=False, bounds=False):
         while len(binary) % 4:

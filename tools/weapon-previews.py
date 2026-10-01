@@ -55,7 +55,7 @@ def preview(name,source):
     for i in np.flatnonzero(visible):
         layer=int((z[i]-minz)/span*64);shade=tuple((rgb[i]//12*12).tolist());pts=np.round(xy[i],1)
         layers[(layer,shade)].append('M'+'L'.join(','.join(f'{v:g}' for v in p) for p in pts)+'Z')
-    body=''.join(f'<path fill="rgb{shade}" d="{"".join(paths)}"/>' for (layer,shade),paths in sorted(layers.items()))
+    body=''.join(f'<path fill="rgb{shade}" stroke="rgb{shade}" stroke-width=".35" stroke-linejoin="round" d="{"".join(paths)}"/>' for (layer,shade),paths in sorted(layers.items()))
     # SVG uses its native sRGB fills; the game uses the full PBR materials.
     text='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220" role="img"><title>'+name.upper()+' model preview</title>'+body+'</svg>'
     (OUTPUT/(name+'.svg')).write_text(text)

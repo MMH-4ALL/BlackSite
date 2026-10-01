@@ -16,7 +16,7 @@
 - M82: https://free3d.com/3d-model/m82-barrett-10543.html, archive `olf2hohvj9-M82 Barrett.rar`.
 - Downloaded 1 October 2026. Included modified `assets/sv98.glb`, `assets/m82.glb`, and their derived vector UI previews.
 - Both source descriptions permit credited use and modified reuploads. Assets retain the author's permission and credit, separately from the MIT code license. See `assets/FREE3D-WEAPONS-LICENSE.md`.
-- Changes: mesh optimization and merging, normalization, repaired normals, separate magazines, original PBR materials, removal of the SV98 ground plane, leveling and removal of the deployed M82 bipod. Browser GLBs contain four meshes each: 20,377 / 27,672 triangles and 596,992 / 527,864 bytes respectively.
+- Changes: mesh optimization and merging, normalization, repaired normals, separate magazines, original PBR materials, removal of the SV98 ground plane and loose cartridge props, leveling and removal of the deployed M82 bipod. Browser GLBs contain four meshes each: 18,957 / 27,672 triangles and 548,368 / 527,864 bytes respectively.
 - `tools/convert-m4a1.py` supports the `sv98` and `m82` profiles. `tools/weapon-previews.py` generates model-derived SVG previews. The M4A1 preview retains its original model permission; the P-9 preview is derived from Kenney's CC0 asset.
 
 ## Kenney — Blaster Kit 2.1

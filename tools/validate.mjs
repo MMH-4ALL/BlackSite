@@ -47,7 +47,7 @@ globalThis.window={addEventListener:noop};globalThis.innerWidth=1280;globalThis.
 let frame;globalThis.requestAnimationFrame=fn=>{frame=fn;};
 class FakeRenderer{constructor(){this.shadowMap={};}setPixelRatio(){}setSize(){}render(){}clearDepth(){}}
 const THREE={...RealThree,WebGLRenderer:FakeRenderer};
-class FakeLoader{async loadAsync(path){const name=path.split('/').at(-1).replace('.glb','');return actualAssets[name]?{scene:actualAssets[name].scene.clone(true)}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial())};}}
+class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');return actualAssets[name]?{scene:actualAssets[name].scene.clone(true)}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial())};}}
 const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
 const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle'};
 new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop);
