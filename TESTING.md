@@ -1,4 +1,4 @@
-# Validation — 30 September 2026
+# Validation — 1 October 2026
 
 ## Completed
 
@@ -13,18 +13,26 @@
 - Multiple nearby bots do not speed up the seven-second defuse.
 - Completed bot defuse ends the round with the correct winner.
 - Difficulty ordering: Hard has a faster reaction and tighter aim than Normal/Easy.
-- Binary integrity and mesh data for all three bundled GLB assets.
+- Actual bundled GLTFLoader parses the modified Free3D M4A1: four meshes, an independently movable magazine, 32,980 triangles, and an 847,036-byte GLB.
+- Quantized normals have unit length within rounding tolerance; zero normals in the original OBJ were repaired.
+- Imported rifle PBR materials survive loading.
+- Reload animation lowers and restores the magazine; the weapon settles after reload and switching. Presentation does not alter ammunition.
+- Corpse animation changes the visual rig rather than the gameplay hit volumes.
+- Binary integrity and mesh data for the active GLB assets; all external texture references resolve to bundled files.
+- Weapon framing inspected in a CPU projection of the actual loaded geometry and game transforms. This verifies orientation and screen coverage, not browser lighting or frame rate.
 - Static asset and module imports are local and use relative paths.
+
+Run the checks with `node tools/validate.mjs`. Rendering and DOM are stubbed, but the rifle loader, scene graph, geometry, materials, raycaster, and gameplay logic are real. No network or installed npm packages are required.
 
 ## Not completed in this environment
 
-An interactive browser rendering test was not available: the test-browser download returned an invalid archive. No desktop visual performance, mouse-capture, sound playback, weapon framing, or cross-browser claims are made. A human playtest is still required before treating this as a polished release.
+GPU rendering, mouse capture, sound playback, frame rate, and cross-browser behavior have not been verified by the Node checks. A desktop browser playtest is still required before treating this as a polished release.
 
 ## First browser playtest
 
 1. Serve with `python3 -m http.server 8000` and open `http://localhost:8000`.
 2. Confirm the menu, weapon models, map, and shadows appear without console errors.
-3. Start Easy / Breach. Test mouse capture, Escape / Resume, WASD, crouch, jump, and reloading.
+3. Start Easy / Breach. Test mouse capture, Escape / Resume, WASD, crouch, jump, reloading, magazine travel, weapon switching, and muted palette shading.
 4. Open B during buy time; buy armor, close the panel, and confirm the clock resumes.
 5. Shoot a bot's head, then compare controlled bursts with moving fire.
 6. Plant at A and B in separate rounds; interrupt planting and verify progress resets.

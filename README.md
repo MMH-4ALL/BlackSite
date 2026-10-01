@@ -6,7 +6,9 @@ Open source, half vibecoded html game open for all students with a chromebook or
 
 An original, open-source tactical FPS for a desktop browser. A muted desert research compound, two objective sites, and offline matches against three bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
 
-This is a **first playable prototype**, not a replacement for a commercial shooter. The weapon models and crates come from Kenney's CC0 Blaster Kit, recolored to graphite. Map geometry and simple articulated bot characters are original. The weapon pack is stylized rather than a realistic military pack. See `ATTRIBUTION.md` for license details.
+This is a **playable prototype**. The rifle is a modified realistic M4A1 by chasieboy317 from Free3D, with separate steel, polymer, and sight materials and an animated magazine. The pistol and crates use Kenney's CC0 Blaster Kit, with a desaturated palette. Map geometry, articulated bot characters, and first-person gloves are original. See `ATTRIBUTION.md` for the separate asset licenses.
+
+The visual update adds smooth weapon sway and recoil recovery, a progressive reload pose, jointed bot legs and aiming poses, smoother bot turns, settling corpses, and procedural concrete grain. Aim, damage, difficulty, and objective rules are unchanged. The pistol is still stylized; this release is not a complete realistic character or environment asset pack.
 
 ## Play locally
 
@@ -98,7 +100,8 @@ Connect the GitHub plugin in ChatGPT and grant access to the intended repository
 index.html        Game menus and HUD
 style.css         Interface styling
 game.js           World, gunplay, bots, match rules, controls
-assets/           CC0 GLB models and original pack license
+assets/           Bundled GLB models, palette texture, and asset licenses
+tools/            Reproducible Free3D rifle converter and Node validation
 vendor/           Three.js 0.170.0, loader, utility, MIT license
 LICENSE           MIT license for original code
 ATTRIBUTION.md    Third-party sources and licenses
@@ -110,8 +113,8 @@ An opt-in `?test` URL exposes local state for development and testing. This is a
 
 ## License and identity
 
-Original project source is MIT licensed. Included Kenney assets are CC0; Three.js and its addons retain their MIT notice. No assets are extracted from Counter-Strike, Valorant, or their publishers. The working project name has not been trademark-cleared. Asset provenance reduces avoidable licensing problems but is not a guarantee against any possible complaint.
+Original project source is MIT licensed. Kenney assets are CC0; Three.js and its addons retain their MIT notice. The Free3D rifle retains chasieboy317's credit and permission for modified reuploads; **it is not covered by the project's MIT license**. See `assets/M4A1-LICENSE.md` before reusing the model. No assets are extracted from Counter-Strike, Valorant, or their publishers. The working project name has not been trademark-cleared.
 
 ## Current limits
 
-This release uses simple bot silhouettes, synthetic sound effects, basic utility effects, and a compact original map. It has no online multiplayer, physical grenade arcs, advanced skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons and crates; the map and bots remain procedural. See `TESTING.md` for what was checked and what still needs a browser playtest.
+This release uses procedural articulated bot silhouettes, synthetic sound effects, basic utility effects, and a compact original map. It has no online multiplayer, physical grenade arcs, advanced skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons and crates; the map and bots remain procedural. See `TESTING.md` for what was checked and what still needs a browser playtest.
