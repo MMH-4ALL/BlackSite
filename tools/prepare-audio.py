@@ -17,6 +17,11 @@ from scipy.signal import butter, sosfilt, resample_poly
 warnings.filterwarnings('ignore', category=wavfile.WavFileWarning)
 ROOT = Path(__file__).resolve().parents[1]
 SOURCES = {
+ 'ak47': ('extracted/Prepared SFX Library/AK-47/C_28P.wav','e0934c1d79192d2216db62fdf6ab57bf9d5d585267af367a1cfb21f0972a537d','firearms'),
+ 'smg': ('extracted/Prepared SFX Library/Carl Gustav M45/G_31P.wav','5982c6c2fa44545b750ba6217ed57797a6a15c02f5c9943ac0e99e5f3ab2b158','firearms'),
+ 'compact': ('extracted/Prepared SFX Library/Bersa/F_47P.wav','f800c86f9a724bd52f6fe844909adbb9ad3c50cac654908ee83bf15d1ad18ce3','firearms'),
+ 'heavy': ('extracted/Prepared SFX Library/1911/A_42P.wav','8e84438e771c157155a6a1ff47a6a7a7d81b6f39b185d41e426c57337a82254a','firearms'),
+ 'mechanics2': ('equipmentclicks2.wav','42d40e4970fcee45b86088dab9c6a6e7f87b6dc29a6dd9dbbf4d98da7a4e3a47','mechanics2'),
  'ar15': ('extracted/Prepared SFX Library/AR-15/D_32P.wav', 'acee9d2106b68fe5956225a19d7aedf943d97793817f9bda9d486a2b74b0a812', 'firearms'),
  'ar15_distant': ('extracted/Prepared SFX Library/AR-15/D_24P.wav', '4c6a54ca0583150bbb32b7f658bc64da9ad9ba42fd3aca769c6120b44af8d3f0', 'firearms'),
  'tikka': ('extracted/Prepared SFX Library/Tikka/W_29P.wav', 'b1ffe3c104391bf8ceb8337aa4d5a2ca47938fb88ccbd051cdd2b2e205d9e72b', 'firearms'),
@@ -27,12 +32,42 @@ SOURCES = {
  'mechanics': ('equipment_clicks3.wav', '1cd2612f226886a7c0badbe26e9732e097a448e97cbea72a3e3cd2c8aa91ace8', 'mechanics'),
 }
 PAGES = {
+ 'mechanics2': 'https://opengameart.org/content/equipment-clicks-ii',
  'firearms': 'https://opengameart.org/content/the-free-firearm-sound-library',
  'reloads': 'https://opengameart.org/content/gun-reload-sounds',
  'mechanics': 'https://opengameart.org/content/equipment-clicks-iii',
 }
 # filename, source, source start/end seconds, pitch/speed, low-pass Hz, target peak.
 CLIPS = [
+ ('ak47-shot-01', 'ak47', 0.59, 1.45, 1, 13500, 0.84),
+ ('ak47-shot-02', 'ak47', 3.24, 4.1, 1, 13500, 0.84),
+ ('mp5-shot-01', 'smg', 0.29, 0.89, 1, 12500, 0.77),
+ ('mp5-shot-02', 'smg', 3.48, 4.08, 1, 12500, 0.77),
+ ('c9-shot-01', 'compact', 0.32, 0.9, 1, 14500, 0.73),
+ ('c9-shot-02', 'compact', 4.39, 4.98, 1, 14500, 0.73),
+ ('h45-shot-01', 'heavy', 0.92, 1.72, 1, 12000, 0.85),
+ ('h45-shot-02', 'heavy', 4.985, 5.785, 1, 12000, 0.85),
+ ('ak47-mag-out', 'mechanics2', 0.05, 0.47, 1, 12500, 0.65),
+ ('ak47-mag-in', 'mechanics2', 1, 1.41, 1, 12500, 0.65),
+ ('ak47-charge', 'mechanics2', 3.82, 4.22, 1, 12500, 0.65),
+ ('ak47-equip', 'mechanics', 19, 19.34, 1, 12500, 0.53),
+ ('ak47-empty', 'mechanics', 21.23, 21.58, 1, 12500, 0.53),
+ ('mp5-mag-out', 'mechanics', 3.23, 3.58, 1, 12500, 0.65),
+ ('mp5-mag-in', 'mechanics', 3.7, 4.04, 1, 12500, 0.65),
+ ('mp5-charge', 'mechanics', 4.23, 4.57, 1, 12500, 0.65),
+ ('mp5-equip', 'mechanics', 19.63, 19.96, 1, 12500, 0.53),
+ ('mp5-empty', 'mechanics', 21.95, 22.25, 1, 12500, 0.53),
+ ('c9-mag-out', 'mechanics', 5, 5.34, 1, 12500, 0.65),
+ ('c9-mag-in', 'mechanics', 5.6, 5.93, 1, 12500, 0.65),
+ ('c9-charge', 'mechanics', 12.05, 12.38, 1, 12500, 0.65),
+ ('c9-equip', 'mechanics', 20.27, 20.57, 1, 12500, 0.53),
+ ('c9-empty', 'mechanics', 22.48, 22.8, 1, 12500, 0.53),
+ ('h45-mag-out', 'mechanics', 17.36, 17.72, 1, 12500, 0.65),
+ ('h45-mag-in', 'mechanics', 17.96, 18.32, 1, 12500, 0.65),
+ ('h45-charge', 'mechanics', 18.47, 18.81, 1, 12500, 0.65),
+ ('h45-equip', 'mechanics', 20.77, 21.05, 1, 12500, 0.53),
+ ('h45-empty', 'mechanics2', 2.26, 2.57, 1, 12500, 0.53),
+
  ('m4a1-shot-01', 'ar15', .64, 1.19, 1, 5400, .79),
  ('m4a1-shot-02', 'ar15', 5.58, 6.13, 1, 5400, .79),
  ('m4a1-distant-01', 'ar15_distant', .49, 1.30, 1, 4700, .75),

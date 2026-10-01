@@ -1,12 +1,13 @@
-import { WEAPONS, PRIMARY_KEYS } from './weapons.js?v=0.3.0';
-import { weaponAudio } from './audio.js?v=0.3.1';
-const $=id=>document.getElementById(id), defaults={sensitivity:1,volume:.45,fov:78,crosshair:6,quality:'standard',primary:'rifle'};
+import { WEAPONS, PRIMARY_KEYS, SECONDARY_KEYS } from './weapons.js?v=0.4.0';
+import { weaponAudio } from './audio.js?v=0.4.0';
+const $=id=>document.getElementById(id), defaults={sensitivity:1,volume:.45,fov:78,crosshair:6,quality:'standard',primary:'rifle',secondary:'pistol'};
 export const settings={...defaults};
 try {
   const saved=JSON.parse(localStorage.getItem('blacksite.settings.v1')||'{}');
   for(const [key,min,max] of [['sensitivity',.4,2.4],['volume',0,1],['fov',68,100],['crosshair',3,12]])if(Number.isFinite(saved[key]))settings[key]=Math.min(max,Math.max(min,saved[key]));
   if(['standard','low'].includes(saved.quality))settings.quality=saved.quality;
   if(PRIMARY_KEYS.includes(saved.primary))settings.primary=saved.primary;
+  if(SECONDARY_KEYS.includes(saved.secondary))settings.secondary=saved.secondary;
 }catch{/* Browsing and play also work when storage is unavailable. */}
 let inspected=settings.primary, soundRequest=0;
 weaponAudio.preload();
@@ -17,7 +18,7 @@ function syncSettings(){
   document.querySelectorAll('[data-setting]').forEach(input=>input.value=settings[input.dataset.setting]);
   document.querySelectorAll('[data-output]').forEach(output=>{const k=output.dataset.output;output.textContent=k==='volume'?Math.round(settings[k]*100)+'%':k==='sensitivity'?settings[k].toFixed(1):settings[k]+(k==='fov'?'°':' px');});
   document.documentElement.style.setProperty('--crosshair',settings.crosshair+'px');
-  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ P-9</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.3.0';
+  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ '+WEAPONS[settings.secondary].name+'</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.4.0';
 }
 export function showView(view){
   soundRequest++;weaponAudio.stopAll();
@@ -31,17 +32,17 @@ function inspectWeapon(key){
   inspected=key;const w=WEAPONS[key];
   document.querySelectorAll('.armory-item').forEach(button=>{button.classList.toggle('selected',button.dataset.weapon===key);button.setAttribute('aria-pressed',String(button.dataset.weapon===key));});
   $('inspectCategory').textContent=w.category;$('inspectLabel').textContent=w.label;$('inspectName').textContent=w.name;$('inspectDescription').textContent=w.description;$('inspectStrength').textContent=w.strength;
-  $('inspectImage').src='assets/ui/'+w.image+'.svg?v=0.3.0';$('inspectImage').alt=w.name+' modified model preview';
+  $('inspectImage').src='assets/ui/'+w.image+'.svg?v=0.4.0';$('inspectImage').alt=w.name+' modified model preview';
   $('inspectStats').innerHTML=[['MAGAZINE',w.capacity+' RDS'],['RELOAD',w.reload.toFixed(1)+' SEC'],['FIRE RATE',Math.round(60/w.interval)+' RPM'],['REBUY',w.price?money(w.price):'ISSUED']].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('');
   $('inspectBars').innerHTML=['POWER','FIRE RATE','PRECISION'].map((label,i)=>`<div><small>${label}</small><b><i style="width:${w.bars[i]}%"></i></b></div>`).join('');
-  const equipped=key===settings.primary;$('useWeapon').disabled=w.slot==='secondary'||equipped;$('useWeapon').innerHTML=w.slot==='secondary'?'ALWAYS EQUIPPED':equipped?'STARTING PRIMARY SELECTED <span>✓</span>':'USE AS STARTING PRIMARY <span>↗</span>';
+  const slot=w.slot==='primary'?'primary':'secondary',label=slot==='primary'?'PRIMARY':'SIDEARM',equipped=key===settings[slot];$('useWeapon').disabled=equipped;$('useWeapon').innerHTML=equipped?'STARTING '+label+' SELECTED <span>✓</span>':'USE AS STARTING '+label+' <span>↗</span>';
 }
-$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg?v=0.3.0" alt=""><em>${w.slot==='secondary'?'ALWAYS CARRIED':'PRIMARY / '+w.capacity+' ROUNDS'}</em></button>`).join('');
-$('shopWeapons').innerHTML=PRIMARY_KEYS.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg?v=0.3.0" alt=""><strong>${w.name}</strong><b>${money(w.price)}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
+$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg?v=0.4.0" alt=""><em>${(w.slot==='secondary'?'SIDEARM':'PRIMARY')+' / '+w.capacity+' ROUNDS'}</em></button>`).join('');
+for(const [id,keys] of [['shopWeapons',PRIMARY_KEYS],['shopSidearms',SECONDARY_KEYS]])$(id).innerHTML=keys.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg?v=0.4.0" alt=""><strong>${w.name}</strong><b>${w.price?money(w.price):'FREE'}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
 document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>showView(button.dataset.view));
 document.querySelector('.brand').onclick=e=>{e.preventDefault();showView('deploy');};
 document.querySelectorAll('[data-weapon]').forEach(button=>button.onclick=()=>inspectWeapon(button.dataset.weapon));
-$('useWeapon').onclick=()=>{if(WEAPONS[inspected].slot!=='primary')return;settings.primary=inspected;saveSettings();syncSettings();inspectWeapon(inspected);};
+$('useWeapon').onclick=()=>{settings[WEAPONS[inspected].slot==='primary'?'primary':'secondary']=inspected;saveSettings();syncSettings();inspectWeapon(inspected);};
 async function previewSound(kind){
   const request=++soundRequest,key=inspected;weaponAudio.stopAll();
   if(settings.volume===0){$('soundStatus').textContent='Sound is muted. Raise Master volume in Settings.';return;}
@@ -62,7 +63,7 @@ export function refreshShop(state,player,message){
   $('shopCash').textContent=money(state.money);
   document.querySelectorAll('[data-buy]').forEach(button=>{
     const k=button.dataset.buy,w=WEAPONS[k],cost=w?.price??{armor:650,smoke:300,flash:200}[k];
-    const full=w?state.owned&&state.primary===k:k==='armor'?player.armor>=100:state[k]>=2;
+    const full=w?(w.slot==='primary'?state.owned&&state.primary===k:state.secondary===k):k==='armor'?player.armor>=100:state[k]>=2;
     button.disabled=full||state.money<cost||state.phase!=='buy';button.classList.toggle('equipped',!!full);
     const status=button.querySelector('[data-status]');if(status)status.textContent=full?(w?'EQUIPPED':k==='armor'?'EQUIPPED':'AT CAPACITY'):state.money<cost?'INSUFFICIENT CREDITS':w?'AVAILABLE':(k==='armor'?Math.ceil(player.armor)+' / 100':state[k]+' / 2');
   });
@@ -86,7 +87,7 @@ export function previewInterface(view){
   document.body.classList.add('preview-scene');$('menu').hidden=true;$('hud').hidden=false;
   $('scoreYou').textContent='2';$('scoreBot').textContent='1';$('phase').textContent='ROUND 4';$('timer').textContent='1:09';$('objective').textContent='PLANT AT A OR B';$('health').textContent='87';$('healthBar').style.width='87%';$('armor').textContent='65 ARMOR';$('cash').textContent='$5,800';$('roundPips').innerHTML='<i class="won"></i><i class="lost"></i><i class="won"></i><i></i>';
   if(view!=='hud')$(view).hidden=false;
-  if(view==='buy'){refreshShop({money:5800,primary:'rifle',owned:true,phase:'buy',smoke:1,flash:1},{armor:65},'INTERFACE PREVIEW / purchases are disabled.');document.querySelectorAll('[data-buy]').forEach(b=>b.disabled=true);$('closeBuy').onclick=()=>{$('buy').hidden=true;};}
+  if(view==='buy'){refreshShop({money:5800,primary:'rifle',secondary:'pistol',owned:true,phase:'buy',smoke:1,flash:1},{armor:65},'INTERFACE PREVIEW / purchases are disabled.');document.querySelectorAll('[data-buy]').forEach(b=>b.disabled=true);$('closeBuy').onclick=()=>{$('buy').hidden=true;};}
   if(view==='pause'){$('pauseRound').textContent='ROUND 4 / NORMAL';$('resume').onclick=()=>{$('pause').hidden=true;};$('quit').onclick=()=>{location.href=location.pathname+'?preview=deploy';};}
   if(view==='result'){$('scoreYou').textContent='3';$('hostileCount').textContent='0';showReport({round:4,wins:3,losses:1,kills:3,headshots:2,shotsFired:12,hits:4},true,'All hostiles eliminated.');$('next').onclick=()=>{$('result').hidden=true;};$('resultQuit').onclick=()=>{location.href=location.pathname+'?preview=deploy';};}
   if(view==='scoreboard'){$('reportScore').textContent='2 — 1';$('scoreRows').innerHTML='<div><span>YOU / OPERATOR</span><span>5 K / 1 D</span></div><div><span>WARDEN</span><span>ACTIVE / 100 HP</span></div><div class="dead"><span>SENTRY</span><span>ELIMINATED</span></div><div><span>NOMAD</span><span>ACTIVE / 100 HP</span></div>';}

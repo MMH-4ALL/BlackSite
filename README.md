@@ -2,7 +2,7 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## BlackSite — Helix Compound / v0.3.1
+## BlackSite — Helix Compound / v0.4.0
 
 An original, open-source tactical FPS for a desktop browser. A muted desert research compound, two objective sites, and offline matches against three bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
 
@@ -10,7 +10,9 @@ This is a **playable prototype**. M4A1, SV98, and M82 models are modified assets
 
 Version 0.3.0 redesigns deployment, the armory, field manual, settings, HUD, buy menu, pause screen, scoreboard, and round results in a muted charcoal/olive style. Model-derived vector previews show the actual weapons. Choose an opening primary in the armory; it is issued at deployment. Snipers have scoped aiming, distinct recoil, heavier movement, and lethal torso hits. M4A1 recoil and objective/bot rules retain the previous behavior. Sidearm and sniper fire is now trigger-based; hold left mouse for automatic M4A1 fire.
 
-Version 0.3.1 replaces all weapon audio with 32 new CC0 recordings. Every gun has
+Version 0.4.0 adds AK-47, MP5, C-9 and H-45: five primaries and three sidearms in total. Each new weapon uses a distinct internet-sourced CC0 model adapted with muted PBR materials, an animated magazine and bolt/slide. Choose both opening slots in Armory. Buy primary and sidearm replacements separately; both persist when you survive, while elimination removes them and issues the free P-9.
+
+This update replaces all weapon audio with 60 distinct CC0 recordings. Every gun has
 separate shots, reload stages, equip sounds, and empty-trigger clicks; SV98 has a
 bolt cycle and bots have separate distant rifle shots. No clip or source excerpt
 is shared between guns/actions. In **Armory**, use **Shot** or **Reload** to hear
@@ -61,7 +63,7 @@ Choose your side and difficulty, then click **Deploy to compound**. Your mouse i
 | Tab (hold) | Scoreboard |
 | Escape | Pause and release mouse |
 
-Sensitivity and sound volume are adjustable in both settings and pause. Field of view (68–100), crosshair length, and standard/performance graphics are in settings. Preferences and the opening primary are saved in local browser storage, with a session-only fallback when storage is unavailable.
+Sensitivity and sound volume are adjustable in both settings and pause. Field of view (68–100), crosshair length, and standard/performance graphics are in settings. Preferences and both opening weapons are saved in local browser storage, with a session-only fallback when storage is unavailable.
 
 ## Gunplay
 
@@ -71,13 +73,17 @@ Sensitivity and sound volume are adjustable in both settings and pause. Field of
 - M82: semi-automatic, 10 rounds, 0.65-second shot interval, 3.6-second reload, 29° scoped FOV. Rebuy: $4,700.
 - Both snipers kill a full-health bot with one head or torso hit; running, jumping, and unscoped firing are inaccurate. Carrying a sniper slows movement.
 - P-9 pistol: 25 body damage before armor, 80 head damage, 12 rounds, 1.45-second reload.
+- AK-47: 30 rounds, 38 body / 160 head damage, automatic, 2.45-second reload; $2,600.
+- MP5: 30 rounds, 27 body / 108 head damage, automatic, 2.1-second reload; $1,500.
+- C-9: 18 rounds, 24 body / 96 head damage, semi-automatic, 1.7-second reload; $400.
+- H-45: 7 rounds, 54 body / 150 head damage, semi-automatic, 1.95-second reload; $700.
 - Bots have 100 HP and body armor. Player armor reduces incoming body damage.
 - Running and jumping increase spread. Standing still settles the first shot. The crosshair reflects movement and recoil.
 - Strafing, tap firing, and burst control matter. Recoil is intentionally original and does not reproduce either commercial game's exact physics.
 - No penetration, grenade damage, fall damage, weapon pickups, matchmaking, or anti-cheat in this release.
 - Smoke blocks bot visibility and obscures the scene. Bullets can still pass through it.
 - Flash blinds exposed bots; looking at your own flash can blind you too.
-- Buy at spawn during the buy phase. Purchasing a different primary replaces the old one. Survive to retain it; death leaves the free sidearm for the next round. Buying an already-carried primary cannot refill it.
+- Buy at spawn during the buy phase. Purchasing a different primary replaces the old one. Survive to retain it; death leaves the free P-9 for the next round. Sidearm purchases replace only the sidearm slot. Buying either already-carried weapon cannot refill it.
 - Round reports show actual eliminations, headshot eliminations, shot accuracy, and the standard round reward. The live HUD includes remaining hostiles, armor, credits, reload progress, and weapon slots.
 
 ## Bot difficulty

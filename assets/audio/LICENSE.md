@@ -1,6 +1,6 @@
 # BlackSite weapon audio — CC0 1.0
 
-All 32 WAV files in this folder use newly added, separate source excerpts. No
+All 60 WAV files in this folder use newly added, separate source excerpts. No
 recording is assigned to two guns or to two different actions. Gunshot variants
 use different recorded shots. The previous generated gunshot and reload tones
 are removed; the original objective, hit-marker, and round-result tones remain.
@@ -69,3 +69,17 @@ https://opengameart.org/content/equipment-clicks-iii. Accessed 1 Oct. 2026.
 
 Creative Commons. “CC0 1.0 Universal.” *Creative Commons*,
 https://creativecommons.org/publicdomain/zero/1.0/. Accessed 1 Oct. 2026.
+
+## Additional weapons in v0.4.0
+
+Each addition has two separate recorded shots, three separate reload cues,
+an equip sound and an empty-trigger click. All added source excerpts are
+disjoint from the original 32 and from each other; all 60 output hashes are
+unique. The AK-47 uses AK-47 recordings. MP5 uses Carl Gustav M45 9mm
+recordings, C-9 uses Bersa .380 recordings, and H-45 uses 1911 .45 recordings.
+These are sound-design adaptations, not exact-model recording claims.
+
+Additional handling source: LFA. “Equipment Clicks II.” *OpenGameArt.org*,
+5 Aug. 2010, https://opengameart.org/content/equipment-clicks-ii. Accessed
+1 Oct. 2026. License: CC0-1.0. Existing Equipment Clicks III source material
+supplies different, previously unused events; source ranges are in manifest.json.

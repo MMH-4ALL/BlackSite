@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
-import { WEAPONS } from './weapons.js?v=0.3.0';
-import { settings, refreshShop, showReport, showView } from './ui.js?v=0.3.1';
-import { weaponAudio } from './audio.js?v=0.3.1';
+import { WEAPONS } from './weapons.js?v=0.4.0';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.4.0';
+import { weaponAudio } from './audio.js?v=0.4.0';
 
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
@@ -13,7 +13,7 @@ const DIFFICULTY = {
   normal: { reaction: .55, interval: .30, spread: .072, speed: 3, memory: 3 },
   hard: { reaction: .28, interval: .19, spread: .04, speed: 3.5, memory: 5 }
 };
-const state = { active:false, paused:true, phase:'menu', side:'attack', difficulty:'normal', round:0, wins:0, losses:0, kills:0, deaths:0, headshots:0, shotsFired:0, hits:0, money:3400, time:90, plant:null, interact:0, bots:[], weapon:'rifle', primary:'rifle', owned:true, scoped:false, ammo:{}, smoke:1, flash:1, flashTime:0, shots:0, lastShot:-10, reload:0, cooldown:0, t:0, damages:0, hit:0, notice:0 };
+const state = { active:false, paused:true, phase:'menu', side:'attack', difficulty:'normal', round:0, wins:0, losses:0, kills:0, deaths:0, headshots:0, shotsFired:0, hits:0, money:3400, time:90, plant:null, interact:0, bots:[], weapon:'rifle', primary:'rifle', secondary:'pistol', owned:true, scoped:false, ammo:{}, smoke:1, flash:1, flashTime:0, shots:0, lastShot:-10, reload:0, cooldown:0, t:0, damages:0, hit:0, notice:0 };
 const player = { pos:V(0,0,24), vel:V(), yaw:0, pitch:0, health:100, armor:0, height:1.68, vy:0, grounded:true, moving:0, crouch:false };
 const keys = new Set(); let firing=false, audio=null, models={};
 // Presentation has its own state: animation never affects aim or damage.
@@ -142,13 +142,13 @@ function addGrip(type){
   const glove=0x303938,sleeve=0x4a5148;
   function arm(a,b){const delta=b.clone().sub(a),mesh=capsule(0,0,0,.033,Math.max(.01,delta.length()-.066),sleeve,gunRoot);mesh.position.copy(a).add(b).multiplyScalar(.5);mesh.quaternion.setFromUnitVectors(V(0,1,0),delta.normalize());mesh.userData.viewPart=true;}
   function hand(x,y,z,angle){const mesh=capsule(x,y,z,.027,.065,glove,gunRoot);mesh.rotation.x=angle;mesh.userData.viewPart=true;}
-  if(type!=='pistol'){arm(V(.23,-.23,.38),V(.015,-.07,.22));hand(.015,-.055,.22,.18);arm(V(-.13,-.25,.36),V(-.018,-.04,-.06));hand(-.018,-.03,-.06,-.2);}
+  if(WEAPONS[type].slot==='primary'){arm(V(.23,-.23,.38),V(.015,-.07,.22));hand(.015,-.055,.22,.18);arm(V(-.13,-.25,.36),V(-.018,-.04,-.06));hand(-.018,-.03,-.06,-.2);}
   else{arm(V(.16,-.24,.25),V(.015,-.095,.10));hand(.015,-.085,.10,.3);}
 }
 function loadGun(type){
   disposeViewParts();if(!models[type])return;
-  const g=models[type].clone(true);g.rotation.y=type==='pistol'?Math.PI:0;g.scale.multiplyScalar(type==='pistol'?.8:1);gunRoot.add(g);addGrip(type);
-  weaponMotion.magazine=g.getObjectByName('Magazine')??null;weaponMotion.magazineHome=weaponMotion.magazine?.position.clone()??null;
+  const g=models[type].clone(true);g.rotation.y=WEAPONS[type].viewRotationY||0;g.scale.multiplyScalar(WEAPONS[type].viewScale||1);gunRoot.add(g);addGrip(type);
+  weaponMotion.magazine=g.getObjectByName('Magazine')??null;weaponMotion.magazineHome=weaponMotion.magazine?.position.clone()??null;weaponMotion.cycling=g.getObjectByName('Slide')||g.getObjectByName('Bolt');weaponMotion.cyclingHome=weaponMotion.cycling?.position.clone()??null;
   Object.assign(weaponMotion,{kick:0,equip:1,swayX:0,swayY:0,bob:0});
   gunRoot.position.fromArray(WEAPONS[type].pose);gunRoot.rotation.set(0,0,0);
 }
@@ -160,7 +160,7 @@ function prepareModel(g,targetLength,muted=false){
     o.material=Array.isArray(o.material)?o.material.map(prepare):prepare(o.material);
   }});return wrapper;
 }
-async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.3.0')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));const crate=prepareModel(loaded.at(-1).scene,1.8,true);for(const [x,z] of [[-21,12],[21,12],[-11,-26],[11,-26]]){const m=crate.clone(true);m.position.set(x,.9,z);scene.add(m);walls.push({x,z,w:1.8,d:1.8});m.traverse(o=>{if(o.isMesh)hitWalls.push(o);});}loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY TO COMPOUND <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The compound could not load. Reload the page, or check that the complete game folder is hosted.';}}
+async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.4.0')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));const crate=prepareModel(loaded.at(-1).scene,1.8,true);for(const [x,z] of [[-21,12],[21,12],[-11,-26],[11,-26]]){const m=crate.clone(true);m.position.set(x,.9,z);scene.add(m);walls.push({x,z,w:1.8,d:1.8});m.traverse(o=>{if(o.isMesh)hitWalls.push(o);});}loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY TO COMPOUND <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The compound could not load. Reload the page, or check that the complete game folder is hosted.';}}
 loadAssets();
 
 function updateWeaponPresentation(dt){
@@ -176,6 +176,7 @@ function updateWeaponPresentation(dt){
     pose[2]+kick*.036+dip*.035);
   gunRoot.position.lerp(target,smooth);
   gunRoot.rotation.set(kick*.08+weaponMotion.swayY-dip*.18,.035+weaponMotion.swayX,-dip*.45-weaponMotion.swayX*.5+Math.sin(bob)*speed*.0015);
+  if(weaponMotion.cycling){const cycle=state.lastShotWeapon===state.weapon?Math.sin(Math.PI*clamp(state.cooldown/WEAPONS[state.weapon].interval,0,1)):0;weaponMotion.cycling.position.copy(weaponMotion.cyclingHome).z+=cycle*.025;}
   if(weaponMotion.magazine){const out=state.reload>0?Math.sin(clamp((progress-.12)/.72,0,1)*Math.PI):0;weaponMotion.magazine.position.copy(weaponMotion.magazineHome).y-=out*.18;weaponMotion.magazine.rotation.z=out*.18;}
 }
 function updateBotPresentation(dt){
@@ -194,29 +195,29 @@ function shotSound(enemy=false,position){const offset=position?.clone().sub(came
 function toast(text){$('toast').textContent=text;state.notice=2.6;}
 function feed(text){const node=document.createElement('div');node.textContent=text;$('feed').prepend(node);while($('feed').children.length>4)$('feed').lastChild.remove();}
 function lock(){if(!state.active)return;try{const p=$('world').requestPointerLock();if(p?.catch)p.catch(()=>{state.paused=true;$('pause').hidden=false;toast('Click Resume to capture your mouse.');});}catch(e){state.paused=true;$('pause').hidden=false;toast('Mouse capture requires a desktop browser.');}}
-function startMatch(){try{weaponAudio.setVolume(settings.volume);weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));audio=weaponAudio.context;}catch(e){console.warn('Audio unavailable',e);}Object.assign(state,{active:true,paused:false,side:$('side').value,difficulty:$('difficulty').value,round:0,wins:0,losses:0,kills:0,deaths:0,headshots:0,hits:0,shotsFired:0,money:3400,primary:settings.primary,owned:true});$('menu').hidden=true;$('hud').hidden=false;$('result').hidden=true;nextRound();lock();}
+function startMatch(){try{weaponAudio.setVolume(settings.volume);weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));audio=weaponAudio.context;}catch(e){console.warn('Audio unavailable',e);}Object.assign(state,{active:true,paused:false,side:$('side').value,difficulty:$('difficulty').value,round:0,wins:0,losses:0,kills:0,deaths:0,headshots:0,hits:0,shotsFired:0,money:3400,primary:settings.primary,secondary:settings.secondary||'pistol',owned:true});$('menu').hidden=true;$('hud').hidden=false;$('result').hidden=true;nextRound();lock();}
 function nextRound(){
   weaponAudio.stopAll();
   clearBots();for(const s of smokes)scene.remove(s.mesh);smokes.length=0;for(const e of effects){scene.remove(e.mesh);e.mesh.geometry?.dispose();}effects.length=0;
   if(coreMesh){scene.remove(coreMesh);coreMesh=null;}
-  Object.assign(state,{round:state.round+1,phase:'buy',time:12,plant:null,interact:0,paused:false,reload:0,cooldown:0,shots:0,lastShot:-10,lastShotWeapon:null,smoke:1,flash:1,flashTime:0,damages:0,hit:0,weapon:state.owned?state.primary:'pistol',roundBaseline:{kills:state.kills,headshots:state.headshots,shotsFired:state.shotsFired,hits:state.hits}});setScoped(false);
+  Object.assign(state,{round:state.round+1,phase:'buy',time:12,plant:null,interact:0,paused:false,reload:0,cooldown:0,shots:0,lastShot:-10,lastShotWeapon:null,smoke:1,flash:1,flashTime:0,damages:0,hit:0,weapon:state.owned?state.primary:state.secondary,roundBaseline:{kills:state.kills,headshots:state.headshots,shotsFired:state.shotsFired,hits:state.hits}});setScoped(false);
   for(const [k,w] of Object.entries(WEAPONS))state.ammo[k]={mag:w.capacity,reserve:w.reserve};
   Object.assign(player,{health:100,armor:0,yaw:state.side==='attack'?0:Math.PI,pitch:0,vy:0,grounded:true,height:1.68});player.vel.set(0,0,0);player.pos.set(state.side==='attack'?0:-3,0,state.side==='attack'?26:-26);
   const spawns=state.side==='attack'?[[-14,-24],[14,-24],[0,-16]]:[[-15,25],[0,25],[15,25]];
-  state.bots=spawns.map(([x,z],i)=>makeBot(i,V(x,0,z)));for(const id of ['result','buy','pause','scoreboard'])$(id).hidden=true;$('feed').innerHTML='';loadGun(state.weapon);toast('Buy phase · B opens equipment · first to four wins');refreshShop(state,player,'Survive to keep your primary. P-9 is always carried.');updateHUD();
+  state.bots=spawns.map(([x,z],i)=>makeBot(i,V(x,0,z)));for(const id of ['result','buy','pause','scoreboard'])$(id).hidden=true;$('feed').innerHTML='';loadGun(state.weapon);toast('Buy phase · B opens equipment · first to four wins');refreshShop(state,player,'Survive to keep both weapons. Elimination issues a free P-9.');updateHUD();
 }
 function returnMenu(){weaponAudio.stopAll();state.active=false;state.phase='menu';state.paused=true;setScoped(false);document.exitPointerLock();for(const id of ['hud','pause','buy','result','scoreboard'])$(id).hidden=true;$('menu').hidden=false;showView('deploy');keys.clear();firing=false;}
-function endRound(win,reason){if(state.phase==='ended')return;weaponAudio.stopHandling();state.phase='ended';state.paused=true;firing=false;state.reload=0;state.interact=0;win?state.wins++:state.losses++;state.money=Math.min(16000,state.money+(win?3000:1900));if(player.health<=0)state.owned=false;
+function endRound(win,reason){if(state.phase==='ended')return;weaponAudio.stopHandling();state.phase='ended';state.paused=true;firing=false;state.reload=0;state.interact=0;win?state.wins++:state.losses++;state.money=Math.min(16000,state.money+(win?3000:1900));if(player.health<=0){state.owned=false;state.secondary='pistol';}
   setScoped(false);showReport(state,win,reason);$('result').hidden=false;$('buy').hidden=true;$('pause').hidden=true;$('scoreboard').hidden=true;document.exitPointerLock();tone(win?550:160,.3,'triangle',.18);updateHUD();}
 function reload(){const a=state.ammo[state.weapon],w=WEAPONS[state.weapon];if(state.reload||a.mag===w.capacity||a.reserve===0||state.phase==='ended')return;setScoped(false);state.reload=w.reload;firing=false;weaponAudio.reload(state.weapon,w.reload);toast('Reloading…');}
-function equip(k){if(!WEAPONS[k]||(WEAPONS[k].slot==='primary'&&(!state.owned||state.primary!==k)))return;state.weapon=k;state.lastShotWeapon=null;state.reload=0;state.shots=0;firing=false;setScoped(false);loadGun(k);weaponAudio.equip(k);}
+function equip(k){if(!WEAPONS[k]||(WEAPONS[k].slot==='primary'?(!state.owned||state.primary!==k):state.secondary!==k))return;state.weapon=k;state.lastShotWeapon=null;state.reload=0;state.shots=0;firing=false;setScoped(false);loadGun(k);weaponAudio.equip(k);}
 function buyItem(item){
   const spawn=state.side==='attack'?V(0,0,26):V(-3,0,-26),w=WEAPONS[item],cost=w?.price??{armor:650,smoke:300,flash:200}[item];
   if(state.phase!=='buy'||!Number.isFinite(cost)||player.pos.distanceTo(spawn)>=8)return false;
-  const full=w?state.owned&&state.primary===item:item==='armor'?player.armor===100:state[item]>=2;
+  const full=w?(w.slot==='primary'?state.owned&&state.primary===item:state.secondary===item):item==='armor'?player.armor===100:state[item]>=2;
   if(full||state.money<cost){refreshShop(state,player,full?'Already equipped or at capacity.':'Insufficient credits.');return false;}
   state.money-=cost;
-  if(w){state.primary=item;state.owned=true;state.ammo[item]={mag:w.capacity,reserve:w.reserve};equip(item);}
+  if(w){if(w.slot==='primary'){state.primary=item;state.owned=true;}else state.secondary=item;state.ammo[item]={mag:w.capacity,reserve:w.reserve};equip(item);}
   else if(item==='armor')player.armor=100;else state[item]++;
   updateHUD();refreshShop(state,player,(w?w.name:item.toUpperCase())+' acquired.');return true;
 }
@@ -288,7 +289,7 @@ function updateHUD(){
   const t=Math.max(0,Math.ceil(state.plant?state.plant.time:state.time));$('timer').textContent=Math.floor(t/60)+':'+String(t%60).padStart(2,'0');$('health').textContent=Math.ceil(player.health);$('armor').textContent=Math.ceil(player.armor)+' ARMOR';$('cash').textContent='$'+state.money.toLocaleString();$('weaponName').textContent=state.reload?'RELOADING…':WEAPONS[state.weapon].name;
   const a=state.ammo[state.weapon];if(a)$('ammo').innerHTML=a.mag+' <em>/ '+a.reserve+'</em>';$('utility').textContent='G SMOKE ×'+state.smoke+'  ·  F FLASH ×'+state.flash;
   $('healthBar').style.width=player.health+'%';$('hostileCount').textContent=state.bots.filter(b=>b.alive).length;$('timer').classList.toggle('urgent',t<=10&&state.phase==='live');$('pauseRound').textContent='ROUND '+state.round+' / '+state.difficulty.toUpperCase();
-  const slots=`<span class="${state.weapon!=='pistol'?'active':''}"><kbd>1</kbd> ${state.owned?WEAPONS[state.primary].name:'NO PRIMARY'}</span><span class="${state.weapon==='pistol'?'active':''}"><kbd>2</kbd> P-9</span>`;
+  const slots=`<span class="${WEAPONS[state.weapon].slot==='primary'?'active':''}"><kbd>1</kbd> ${state.owned?WEAPONS[state.primary].name:'NO PRIMARY'}</span><span class="${WEAPONS[state.weapon].slot==='secondary'?'active':''}"><kbd>2</kbd> ${WEAPONS[state.secondary].name}</span>`;
   if(slots!==lastSlots){$('weaponSlots').innerHTML=slots;lastSlots=slots;}
   const pips=Array.from({length:4},(_,i)=>`<i class="${i<state.wins?'won':''}"></i>`).join('');if(pips!==lastPips){$('roundPips').innerHTML=pips;lastPips=pips;}
   $('reloadTrack').hidden=state.reload<=0;$('reloadTrack').firstElementChild.style.width=(100*(1-state.reload/WEAPONS[state.weapon].reload))+'%';
@@ -316,7 +317,7 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Escape'&&state.paused&&state.phase!=='ended'){for(const id of ['buy','pause'])$(id).hidden=true;lock();return;}
   if(e.code==='Tab'&&!state.paused){scoreboard();$('scoreboard').hidden=false;return;}
   if(e.code==='KeyB'&&!state.paused){const spawn=state.side==='attack'?V(0,0,26):V(-3,0,-26);if(state.phase==='buy'&&player.pos.distanceTo(spawn)<8){refreshShop(state,player);$('buy').hidden=false;document.exitPointerLock();state.paused=true;$('closeBuy').focus();}else toast('Buy only near spawn during the buy phase');return;}
-  if(state.paused)return;keys.add(e.code);if(e.code==='KeyR')reload();if(e.code==='Digit1')equip(state.primary);if(e.code==='Digit2')equip('pistol');if(e.code==='KeyG')utility('smoke');if(e.code==='KeyF')utility('flash');
+  if(state.paused)return;keys.add(e.code);if(e.code==='KeyR')reload();if(e.code==='Digit1')equip(state.primary);if(e.code==='Digit2')equip(state.secondary);if(e.code==='KeyG')utility('smoke');if(e.code==='KeyF')utility('flash');
 });
 document.addEventListener('keyup',e=>{keys.delete(e.code);if(e.code==='Tab')$('scoreboard').hidden=true;});
 window.addEventListener('blur',()=>{keys.clear();firing=false;if(document.pointerLockElement)document.exitPointerLock();});

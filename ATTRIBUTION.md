@@ -19,6 +19,15 @@
 - Changes: mesh optimization and merging, normalization, repaired normals, separate magazines, original PBR materials, removal of the SV98 ground plane and loose cartridge props, leveling and removal of the deployed M82 bipod. Browser GLBs contain four meshes each: 18,957 / 27,672 triangles and 548,368 / 527,864 bytes respectively.
 - `tools/convert-m4a1.py` supports the `sv98` and `m82` profiles. `tools/weapon-previews.py` generates model-derived SVG previews. The M4A1 preview retains its original model permission; the P-9 preview is derived from Kenney's CC0 asset.
 
+## Pichuliru — CC0 Flat Guns East and West
+
+- Creator: Pichuliru. Both packs explicitly carry CC0 1.0.
+- Sources: https://opengameart.org/content/cc0-flat-guns-east and https://opengameart.org/content/cc0-flat-guns-west
+- Retrieved 1 October 2026. East `Rifle_Assault_East.glb` supplies AK-47; West `SMG_Full_West.glb`, `Pistol_Compact_West.glb`, and `Pistol_Full_West.glb` supply MP5, C-9, and H-45 respectively. Names/balance are game adaptations, not promises of exact manufacturer replicas.
+- Included: `assets/ak47.glb`, `mp5.glb`, `c9.glb`, `h45.glb`, and their model-derived SVG previews.
+- Changes: source geometry preserved, rigid parts separated from source rig weights, animated magazines and bolt/slide meshes, normalized dimensions, muted original PBR materials, unused rigs/textures removed. New models are 1,244–3,271 triangles each.
+- Reproducible converter: `tools/convert-cc0-weapons.py`. Source hashes and source links are embedded in each GLB. Notice: `assets/CC0-WEAPONS-LICENSE.md`.
+
 ## Kenney — Blaster Kit 2.1
 
 - Creator: Kenney.
@@ -40,12 +49,12 @@
 
 ## Weapon recordings — CC0 1.0
 
-32 newly added WAV files supply distinct M4A1, SV98, M82, and P-9 gunshots,
+60 WAV files supply distinct sounds for all eight weapons, including
 reload stages, equip sounds, empty-trigger clicks, SV98 bolt cycling, and separate
 distant M4A1 shots for bots. No file or source excerpt is shared between guns or
 actions. All sources are CC0: The Free Firearm Sound Library by Ben Jaszczak,
 Brian Nelson, Kevin Heras, and Matthew Nanney; gun reload recordings by
-SpringySpringo; and equipment clicks III by LFA.
+SpringySpringo; and equipment clicks II and III by LFA.
 
 See `assets/audio/LICENSE.md` for source links and MLA references;
 `assets/audio/manifest.json` records exact source ranges, edits, and file hashes.

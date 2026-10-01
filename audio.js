@@ -9,7 +9,11 @@ export const SOUND_BANK=Object.freeze({
   rifle:set('m4a1',[.10,.57,.85],{distant:['m4a1-distant-01.wav','m4a1-distant-02.wav']}),
   sv98:set('sv98',[.12,.62,.82],{bolt:['sv98-bolt-open.wav','sv98-bolt-close.wav']}),
   m82:set('m82',[.11,.61,.79]),
-  pistol:set('p9',[.07,.48,.74])
+  pistol:set('p9',[.07,.48,.74]),
+  ak47:set('ak47',[.10,.55,.82]),
+  mp5:set('mp5',[.10,.55,.82]),
+  c9:set('c9',[.07,.48,.78]),
+  h45:set('h45',[.07,.48,.78])
 });
 const files=Object.values(SOUND_BANK).flatMap(bank=>[
   ...bank.shots,...bank.reload,bank.equip,bank.empty,...(bank.distant||[]),...(bank.bolt||[])
@@ -26,7 +30,7 @@ export class WeaponAudio {
   // Downloads are cached once. A missing file cannot borrow another gun's sound.
   preload(){
     this.downloads??=Promise.allSettled(files.map(async file=>{
-      const url=new URL(file,assetRoot);url.searchParams.set('v','0.3.1');
+      const url=new URL(file,assetRoot);url.searchParams.set('v','0.4.0');
       const response=await this.fetchFile(url.href);
       if(!response.ok)throw new Error(file+': HTTP '+response.status);
       return [file,await response.arrayBuffer()];

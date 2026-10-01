@@ -31,8 +31,8 @@ for(const record of manifest.clips){
   for(const [a,b] of sourceRanges.get(record.source)||[])assert.ok(end<=a||start>=b,'source excerpt is never reused');
   sourceRanges.set(record.source,[...(sourceRanges.get(record.source)||[]),[start,end]]);clips.set(record.file,{...record,...wav});
 }
-assert.equal(clips.size,32);assert.equal(new Set(manifest.clips.map(c=>c.sha256)).size,32,'every output is different');
-assert.ok(manifest.clips.reduce((n,c)=>n+c.bytes,0)<1700000,'download budget');
+assert.equal(clips.size,60);assert.equal(new Set(manifest.clips.map(c=>c.sha256)).size,60,'every output is different');
+assert.ok(manifest.clips.reduce((n,c)=>n+c.bytes,0)<3200000,'download budget');
 const assigned=Object.values(SOUND_BANK).flatMap(bank=>[...bank.shots,...bank.reload,bank.equip,bank.empty,...(bank.bolt||[]),...(bank.distant||[])]);
 assert.equal(new Set(assigned).size,assigned.length,'no two actions share a file');assert.deepEqual([...assigned].sort(),[...clips.keys()].sort());
 for(const [key,bank] of Object.entries(SOUND_BANK)){
@@ -59,7 +59,7 @@ const sound=new WeaponAudio({contextFactory:()=>ctx,fetchFile:async url=>{
   fetches++;const bytes=fs.readFileSync(path.join(root,path.basename(new URL(url).pathname)));
   return {ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};
 }});
-await Promise.all([sound.unlock(),sound.unlock()]);assert.equal(fetches,32);assert.equal(ctx.decoded,32);assert.equal(sound.buffers.size,32);assert.deepEqual(sound.failed,[]);
+await Promise.all([sound.unlock(),sound.unlock()]);assert.equal(fetches,60);assert.equal(ctx.decoded,60);assert.equal(sound.buffers.size,60);assert.deepEqual(sound.failed,[]);
 for(const key of Object.keys(WEAPONS)){
   sound.stopAll();const first=sound.shot(key),second=sound.shot(key);
   assert.ok(first&&second);assert.notEqual(first.file,second.file,'two actual recorded shots alternate');
@@ -84,6 +84,6 @@ sound.setVolume(.8);assert.equal(sound.master.gain.value,.8);
 const voices=[];for(let i=0;i<80;i++)voices.push(sound.shot('rifle'));assert.ok(sound.voices.size<=40);assert.ok(voices[0].source.stopped,'old tails are cleaned up under sustained fire');
 const ending=[...sound.voices][0];ending.source.onended();assert.ok(!sound.voices.has(ending));assert.equal(ending.source.connections.length,0);
 sound.stopAll();assert.equal(sound.voices.size,0);
-ctx.state='suspended';assert.equal(sound.shot('pistol'),null);await sound.unlock();assert.equal(fetches,32,'resume never redownloads');
+ctx.state='suspended';assert.equal(sound.shot('pistol'),null);await sound.unlock();assert.equal(fetches,60,'resume never redownloads');
 const before=sound.buffers.get(SOUND_BANK.m82.shots[0]);sound.buffers.delete(SOUND_BANK.m82.shots[0]);sound.cursor.set('m82:shot',0);assert.equal(sound.shot('m82'),null,'missing sound never borrows another gun');sound.buffers.set(SOUND_BANK.m82.shots[0],before);
-console.log('PASS: 32 distinct PCM WAVs and source ranges, CC0 provenance, all action mappings, reload timing/cancellation/resume, shot variants, bot distance/pan, volume/mute, missing assets, caching, rapid fire and node cleanup.');
+console.log('PASS: 60 distinct PCM WAVs and source ranges, CC0 provenance, all action mappings, reload timing/cancellation/resume, shot variants, bot distance/pan, volume/mute, missing assets, caching, rapid fire and node cleanup.');

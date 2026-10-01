@@ -61,4 +61,4 @@ def preview(name,source):
     (OUTPUT/(name+'.svg')).write_text(text)
     print(name,len(text),int(visible.sum()),'visible faces')
 
-for name,source in [('m4a1','m4a1.glb'),('sv98','sv98.glb'),('m82','m82.glb'),('pistol','blaster-b.glb')]:preview(name,source)
+for name,source in [('m4a1','m4a1.glb'),('sv98','sv98.glb'),('m82','m82.glb'),('pistol','blaster-b.glb'),('ak47','ak47.glb'),('mp5','mp5.glb'),('c9','c9.glb'),('h45','h45.glb')]:preview(name,source)

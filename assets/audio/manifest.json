@@ -5,6 +5,36 @@
   "channels": 1,
   "format": "PCM 16-bit WAV",
   "sources": {
+    "ak47": {
+      "file": "extracted/Prepared SFX Library/AK-47/C_28P.wav",
+      "sha256": "e0934c1d79192d2216db62fdf6ab57bf9d5d585267af367a1cfb21f0972a537d",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "smg": {
+      "file": "extracted/Prepared SFX Library/Carl Gustav M45/G_31P.wav",
+      "sha256": "5982c6c2fa44545b750ba6217ed57797a6a15c02f5c9943ac0e99e5f3ab2b158",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "compact": {
+      "file": "extracted/Prepared SFX Library/Bersa/F_47P.wav",
+      "sha256": "f800c86f9a724bd52f6fe844909adbb9ad3c50cac654908ee83bf15d1ad18ce3",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "heavy": {
+      "file": "extracted/Prepared SFX Library/1911/A_42P.wav",
+      "sha256": "8e84438e771c157155a6a1ff47a6a7a7d81b6f39b185d41e426c57337a82254a",
+      "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+      "license": "CC0-1.0"
+    },
+    "mechanics2": {
+      "file": "equipmentclicks2.wav",
+      "sha256": "42d40e4970fcee45b86088dab9c6a6e7f87b6dc29a6dd9dbbf4d98da7a4e3a47",
+      "page": "https://opengameart.org/content/equipment-clicks-ii",
+      "license": "CC0-1.0"
+    },
     "ar15": {
       "file": "extracted/Prepared SFX Library/AR-15/D_32P.wav",
       "sha256": "acee9d2106b68fe5956225a19d7aedf943d97793817f9bda9d486a2b74b0a812",
@@ -55,6 +85,370 @@
     }
   },
   "clips": [
+    {
+      "file": "ak47-shot-01.wav",
+      "source": "ak47",
+      "sourceRangeSeconds": [
+        0.59,
+        1.45
+      ],
+      "speed": 1,
+      "lowPassHz": 13500,
+      "sha256": "40975d5da139edb6aa6b316e2788f43a19c51a3d723af242eae10c2fac024dd9",
+      "duration": 0.841814,
+      "bytes": 74292
+    },
+    {
+      "file": "ak47-shot-02.wav",
+      "source": "ak47",
+      "sourceRangeSeconds": [
+        3.24,
+        4.1
+      ],
+      "speed": 1,
+      "lowPassHz": 13500,
+      "sha256": "a74a811e588c3101402748937aa1e2e44cb63625a5cc757bed05b0afad001848",
+      "duration": 0.845601,
+      "bytes": 74626
+    },
+    {
+      "file": "mp5-shot-01.wav",
+      "source": "smg",
+      "sourceRangeSeconds": [
+        0.29,
+        0.89
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "802e592e38e2737c0bc84852b682de9ffc2453f7a61f3f2d88eccf2d2461abad",
+      "duration": 0.582698,
+      "bytes": 51438
+    },
+    {
+      "file": "mp5-shot-02.wav",
+      "source": "smg",
+      "sourceRangeSeconds": [
+        3.48,
+        4.08
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "de03eef1647e3518f7e084366973ccb1af4cb3305a60d5586b45777fd61a80ac",
+      "duration": 0.581746,
+      "bytes": 51354
+    },
+    {
+      "file": "c9-shot-01.wav",
+      "source": "compact",
+      "sourceRangeSeconds": [
+        0.32,
+        0.9
+      ],
+      "speed": 1,
+      "lowPassHz": 14500,
+      "sha256": "37a9ea1ed738ad8d1c77c4e6d64812015ac79d11b73058d9b98e7ddab8f30a5e",
+      "duration": 0.568957,
+      "bytes": 50226
+    },
+    {
+      "file": "c9-shot-02.wav",
+      "source": "compact",
+      "sourceRangeSeconds": [
+        4.39,
+        4.98
+      ],
+      "speed": 1,
+      "lowPassHz": 14500,
+      "sha256": "9fd5c3375ed3e1805bf9599e99b22cf4104383ec0e5eb77913b90b3c3678e043",
+      "duration": 0.573469,
+      "bytes": 50624
+    },
+    {
+      "file": "h45-shot-01.wav",
+      "source": "heavy",
+      "sourceRangeSeconds": [
+        0.92,
+        1.72
+      ],
+      "speed": 1,
+      "lowPassHz": 12000,
+      "sha256": "f795d54ee420b5d8f9db9566a2a46ea5790ebf2e8dfef998ec8e5fc935d01b84",
+      "duration": 0.781519,
+      "bytes": 68974
+    },
+    {
+      "file": "h45-shot-02.wav",
+      "source": "heavy",
+      "sourceRangeSeconds": [
+        4.985,
+        5.785
+      ],
+      "speed": 1,
+      "lowPassHz": 12000,
+      "sha256": "07e166038e145588cf0851842609eec5be158d2047335c1e6f6cc41d1bcc92f7",
+      "duration": 0.78644,
+      "bytes": 69408
+    },
+    {
+      "file": "ak47-mag-out.wav",
+      "source": "mechanics2",
+      "sourceRangeSeconds": [
+        0.05,
+        0.47
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "f570600c17bf3324bea284c568cf39936924e5781b00a80c372346d272ae5eea",
+      "duration": 0.385669,
+      "bytes": 34060
+    },
+    {
+      "file": "ak47-mag-in.wav",
+      "source": "mechanics2",
+      "sourceRangeSeconds": [
+        1,
+        1.41
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "0c01807f6982a13b41fd36199864fa0b41aef779e350a9677af98a90ca07d003",
+      "duration": 0.290816,
+      "bytes": 25694
+    },
+    {
+      "file": "ak47-charge.wav",
+      "source": "mechanics2",
+      "sourceRangeSeconds": [
+        3.82,
+        4.22
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "40db7c2953312569aa1e94bd268a4b3e059e32bfcc64134eb4689cb873a62264",
+      "duration": 0.4,
+      "bytes": 35324
+    },
+    {
+      "file": "ak47-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        19,
+        19.34
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "269c689893fe4ad8902b255a84955db1368815fab6b54fceb0aecca4b83a27f2",
+      "duration": 0.330862,
+      "bytes": 29226
+    },
+    {
+      "file": "ak47-empty.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        21.23,
+        21.58
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "d37aa987cc96f1f0b449df29ef8d5271b1832c3b7652d78ad75476577a476225",
+      "duration": 0.294626,
+      "bytes": 26030
+    },
+    {
+      "file": "mp5-mag-out.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        3.23,
+        3.58
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "4735746ebb0b7b198708265861ba3a1d98657170fadd65f3fcbc4178316a47e5",
+      "duration": 0.310658,
+      "bytes": 27444
+    },
+    {
+      "file": "mp5-mag-in.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        3.7,
+        4.04
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "e9b4a139b8cce31ae075815f668d522b0c12fd6f8cea5cd6f14f34d706513263",
+      "duration": 0.309751,
+      "bytes": 27364
+    },
+    {
+      "file": "mp5-charge.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        4.23,
+        4.57
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "98ae1964add0afacf007d1000fa6ed5e250adf55654bf8517f40215382f58951",
+      "duration": 0.289728,
+      "bytes": 25598
+    },
+    {
+      "file": "mp5-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        19.63,
+        19.96
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "ccbb2368498357c4717b5efc7ecc3d696a12e85fa70265d305acf32a6210e60f",
+      "duration": 0.301361,
+      "bytes": 26624
+    },
+    {
+      "file": "mp5-empty.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        21.95,
+        22.25
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "1d8aa2d7c85d4a6b515354b0d1676f291b793fb5fd3dc4241d74e6537727c4d5",
+      "duration": 0.267506,
+      "bytes": 23638
+    },
+    {
+      "file": "c9-mag-out.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        5,
+        5.34
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "6ec28d8b601b178d2f1a33482efa48e5222f345c493732830e8b692408f11c4c",
+      "duration": 0.251746,
+      "bytes": 22248
+    },
+    {
+      "file": "c9-mag-in.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        5.6,
+        5.93
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "87e2c0e3d3935b95ed2c4bba655a657730a7d52f41c61daa6c48ca1bbe57f4e7",
+      "duration": 0.244649,
+      "bytes": 21622
+    },
+    {
+      "file": "c9-charge.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        12.05,
+        12.38
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "684e018eaea2ec547b89e1dcb8becd5b1e8df89ef9e3e94dd6b009a62b067547",
+      "duration": 0.237982,
+      "bytes": 21034
+    },
+    {
+      "file": "c9-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        20.27,
+        20.57
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "857680de398c88a3376fa1d4a27cf939a2b6cca3835553b4766bfc918a859c60",
+      "duration": 0.216848,
+      "bytes": 19170
+    },
+    {
+      "file": "c9-empty.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        22.48,
+        22.8
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "9fb4308ec8ce11c47e484e961b79d192c400ae2e12f8b272d48fd2be07e1d5ab",
+      "duration": 0.255215,
+      "bytes": 22554
+    },
+    {
+      "file": "h45-mag-out.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        17.36,
+        17.72
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "45ad42b473fb1e2db36c2687764c2aa1603f1d06b46a23779440d315cc06bdee",
+      "duration": 0.27907,
+      "bytes": 24658
+    },
+    {
+      "file": "h45-mag-in.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        17.96,
+        18.32
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "370c2418b37a20b8edaf44a2f92bb5dd4ca8141e239dfe3221ba55f178a312bc",
+      "duration": 0.266803,
+      "bytes": 23576
+    },
+    {
+      "file": "h45-charge.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        18.47,
+        18.81
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "208761dca98edb083e637836f8ee7dde821debcd5d658d35d1448f09bc1a9b12",
+      "duration": 0.27059,
+      "bytes": 23910
+    },
+    {
+      "file": "h45-equip.wav",
+      "source": "mechanics",
+      "sourceRangeSeconds": [
+        20.77,
+        21.05
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "baeeaa453563fa155640af27b48f119e823730dff441ec4a04e620063fbaf6d7",
+      "duration": 0.19898,
+      "bytes": 17594
+    },
+    {
+      "file": "h45-empty.wav",
+      "source": "mechanics2",
+      "sourceRangeSeconds": [
+        2.26,
+        2.57
+      ],
+      "speed": 1,
+      "lowPassHz": 12500,
+      "sha256": "73d585535ebd796330adf9e67e1e67980973ad8d7afafdc36ad38c095b99f53c",
+      "duration": 0.288435,
+      "bytes": 25484
+    },
     {
       "file": "m4a1-shot-01.wav",
       "source": "ar15",

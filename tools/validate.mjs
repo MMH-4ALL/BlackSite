@@ -29,6 +29,15 @@ for(const name of ['sv98','m82']){
  assert.ok(count>15000&&count<30000,'new models fit geometry budget');
  const size=new RealThree.Box3().setFromObject(asset.scene).getSize(new RealThree.Vector3());assert.ok(size.z>size.x*3&&size.z>size.y*2,'weapon is level, points along Z, and has no oversized background plane');
 }
+for(const name of ['ak47','mp5','c9','h45']){
+ const bytes=fs.readFileSync('./assets/'+name+'.glb');
+ const asset=await new RealLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');actualAssets[name]=asset;
+ assert.ok(asset.scene.getObjectByName('Magazine'),'separate '+name+' magazine');
+ assert.ok(asset.scene.getObjectByName(name==='c9'||name==='h45'?'Slide':'Bolt'));
+ let count=0;asset.scene.traverse(o=>{if(o.isMesh){count+=o.geometry.attributes.position.count/3;const n=o.geometry.attributes.normal;for(let i=0;i<n.count;i++)assert.ok(Math.abs(Math.hypot(n.getX(i),n.getY(i),n.getZ(i))-1)<.02);}});
+ assert.ok(count>1000&&count<4000);assert.ok(bytes.length<260000);
+ const size=new RealThree.Box3().setFromObject(asset.scene).getSize(new RealThree.Vector3());assert.ok(size.z>size.x*3&&size.z>size.y,'weapon orientation is level');
+}
 const noop=()=>{};
 const context=new Proxy({},{get:()=>noop,set:()=>true});
 class Element {
@@ -50,7 +59,7 @@ class FakeRenderer{constructor(){this.shadowMap={};}setPixelRatio(){}setSize(){}
 const THREE={...RealThree,WebGLRenderer:FakeRenderer};
 class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');return actualAssets[name]?{scene:actualAssets[name].scene.clone(true)}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial())};}}
 const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
-const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle'};
+const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol'};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
 new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio);
@@ -130,6 +139,29 @@ for(const key of ['pistol','sv98','m82']){
  assert.equal(state.ammo[key].mag,before-1,key+' hold does not repeat');
  inputHandlers.get('mousedown')({button:0});assert.equal(state.ammo[key].mag,before-2,key+' fresh click fires');inputHandlers.get('mouseup')();
 }
+// New weapons must preserve separate ownership, replacement, costs and sounds.
+state.side='attack';state.primary='rifle';state.secondary='pistol';state.owned=true;g.nextRound();state.money=16000;
+assert.ok(g.buyItem('c9'));assert.equal(state.money,15600);assert.equal(state.secondary,'c9');assert.equal(state.primary,'rifle');assert.equal(state.weapon,'c9');
+assert.equal(g.buyItem('c9'),false);g.equip('h45');assert.equal(state.weapon,'c9','unowned sidearm cannot be equipped');g.equip('pistol');assert.equal(state.weapon,'c9','replaced sidearm cannot be equipped');
+assert.ok(g.buyItem('h45'));assert.equal(state.money,14900);assert.equal(state.secondary,'h45');g.equip('c9');assert.equal(state.weapon,'h45');
+g.nextRound();assert.equal(state.secondary,'h45','surviving sidearm persists');player.health=0;g.endRound(false,'Sidearm check');g.nextRound();assert.equal(state.secondary,'pistol');assert.equal(state.weapon,'pistol');g.equip('h45');assert.equal(state.weapon,'pistol');
+for(const key of ['ak47','mp5','c9','h45']){
+ state.phase='buy';state.money=16000;assert.ok(g.buyItem(key));assert.equal(state.money,16000-WEAPONS[key].price);
+ state.phase='live';state.paused=false;state.cooldown=0;state.reload=0;state.shots=0;
+ const before=state.ammo[key].mag;g.camera.position.set(0,30,26);g.shoot();assert.equal(state.ammo[key].mag,before-1);
+ g.shoot();assert.equal(state.ammo[key].mag,before-1,'fire interval enforced');
+ g.reload();assert.equal(state.reload,WEAPONS[key].reload);g.equip(key);assert.equal(state.reload,0);
+ assert.ok(g.weaponMotion.magazine&&g.weaponMotion.cycling);
+ if(!WEAPONS[key].automatic){state.cooldown=0;const rounds=state.ammo[key].mag;inputHandlers.get('mousedown')({button:0});for(let i=0;i<10;i++){state.cooldown=0;g.updatePlayer(.02);}assert.equal(state.ammo[key].mag,rounds-1,'sidearm requires a new click');inputHandlers.get('mouseup')();}
+}
+// H-45 and new primaries have lethal headshots, using the real raycaster.
+for(const key of ['ak47','mp5','h45']){
+ if(WEAPONS[key].slot==='primary'){state.primary=key;state.owned=true;}else state.secondary=key;
+ g.equip(key);state.phase='live';state.cooldown=0;state.reload=0;state.shots=0;player.moving=0;player.grounded=true;
+ const target=state.bots[0];target.hp=100;target.alive=true;target.pos.set(0,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
+ g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;g.shoot();Math.random=random;assert.equal(target.alive,false,key+' headshot is lethal');
+}
+state.secondary='pistol';
 // Validate bundled binary models and every relative import.
 for(const key of Object.keys(WEAPONS))assert.ok(soundEvents.some(e=>e.action==='shot'&&e.args[0]===key),'game dispatches '+key+' to its own sound bank');
 assert.ok(soundEvents.some(e=>e.action==='reload'&&e.args[0]==='sv98'&&e.args[1]===WEAPONS.sv98.reload),'reload uses the actual duration');
@@ -139,9 +171,9 @@ const dryCount=soundEvents.filter(e=>e.action==='empty').length,shotCount=state.
 g.shoot();g.shoot();assert.equal(soundEvents.filter(e=>e.action==='empty').length,dryCount+1);assert.equal(state.shotsFired,shotCount);assert.equal(state.reload,0);
 // Scope/reload/switch cancellation removes stale handling audio on a round end.
 const cancelCount=soundEvents.filter(e=>e.action==='stopHandling').length;g.endRound(false,'Audio regression check');assert.equal(soundEvents.filter(e=>e.action==='stopHandling').length,cancelCount+1);
-for(const name of ['m4a1','sv98','m82','blaster-b','crate-medium']){const data=fs.readFileSync('./assets/'+name+'.glb');assert.equal(data.toString('ascii',0,4),'glTF');assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);const json=JSON.parse(data.toString('utf8',20,20+data.readUInt32LE(12)));assert.ok(json.meshes.length);for(const image of json.images??[])if(image.uri)assert.ok(fs.existsSync('./assets/'+image.uri),'external model texture exists');console.log(name+': '+json.meshes.length+' meshes');}
+for(const name of ['m4a1','sv98','m82','ak47','mp5','c9','h45','blaster-b','crate-medium']){const data=fs.readFileSync('./assets/'+name+'.glb');assert.equal(data.toString('ascii',0,4),'glTF');assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);const json=JSON.parse(data.toString('utf8',20,20+data.readUInt32LE(12)));assert.ok(json.meshes.length);for(const image of json.images??[])if(image.uri)assert.ok(fs.existsSync('./assets/'+image.uri),'external model texture exists');console.log(name+': '+json.meshes.length+' meshes');}
 for(const w of Object.values(WEAPONS))assert.ok(fs.existsSync('./assets/ui/'+w.image+'.svg'));
-console.log('PASS: three actual Free3D assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.');
+console.log('PASS: seven actual imported weapon assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.');
 if(process.env.BLACKSITE_RENDER_EXPORT){
  state.owned=true;state.primary='rifle';state.weapon='rifle';g.equip('rifle');for(let i=0;i<150;i++)g.updateWeaponPresentation(.016);
  g.gunRoot.updateMatrixWorld(true);const meshes=[];
