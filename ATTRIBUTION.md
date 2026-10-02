@@ -74,3 +74,7 @@ Kenney. “Blaster Kit.” *Kenney*, https://kenney.nl/assets/blaster-kit. Acces
 Three.js Authors. “Three.js, Release r170.” *GitHub*, https://github.com/mrdoob/three.js/tree/r170. Accessed 30 Sept. 2026.
 
 GitHub. “Configuring a Publishing Source for Your GitHub Pages Site.” *GitHub Docs*, https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site. Accessed 30 Sept. 2026.
+
+## Original military maps (v0.6.0)
+
+Helix Compound, Bastion Depot, and Ironwood Garrison layout data, procedural scenery, and generated SVG site plans are original project work under the project MIT license. They do not recreate named Counter-Strike or Valorant maps. No new downloaded assets are used for the military scenery; the existing crate model retains its CC0 credit above.

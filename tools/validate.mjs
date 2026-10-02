@@ -5,6 +5,7 @@ process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 import * as RealThree from '../vendor/three.module.js';
 import {WEAPONS} from '../weapons.js';
 import {WeaponAudio,SOUND_BANK} from '../audio.js';
+import {MAPS,mapKey,normalizeBotCount,MAX_BOTS,DEFAULT_BOTS} from '../maps.js';
 // Exercise the bundled loader against the actual new asset, without a GPU.
 const engineURL=new URL('../vendor/three.module.js',import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
@@ -41,7 +42,7 @@ for(const name of ['ak47','mp5','c9','h45']){
 const noop=()=>{};
 const context=new Proxy({},{get:()=>noop,set:()=>true});
 class Element {
-  constructor(id=''){this.id=id;this.children=[];this.hidden=true;this.style={setProperty:noop};this.value='';this.textContent='';this.className='';this.dataset={};this.innerHTML='';this.classList={toggle:noop,add:noop,remove:noop};}
+  constructor(id=''){this.id=id;this.children=[];this.hidden=true;this.scrollTop=0;this.style={setProperty:noop};this.value='';this.textContent='';this.className='';this.dataset={};this.innerHTML='';this.classList={toggle:noop,add:noop,remove:noop};}
   get firstElementChild(){return this.children[0]??(this.children[0]=new Element());}
   get lastChild(){return this.children.at(-1);}
   getContext(){return context;}
@@ -59,10 +60,10 @@ class FakeRenderer{constructor(){this.shadowMap={};}setPixelRatio(){}setSize(){}
 const THREE={...RealThree,WebGLRenderer:FakeRenderer};
 class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');return actualAssets[name]?{scene:actualAssets[name].scene.clone(true)}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial())};}}
 const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
-const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol'};
+const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:3};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
-new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio','SOUND_BANK',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio,SOUND_BANK);
+new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio','SOUND_BANK','MAPS','mapKey','normalizeBotCount',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount);
 await new Promise(r=>setTimeout(r,0));
 console.log('Checking integrated gameplay...');
 const g=window.__game,{state,player}=g;
@@ -221,6 +222,53 @@ const botPause=JSON.stringify([movingBot.clock,movingBot.walk,movingBot.rig.posi
 movingBot.alive=false;for(let i=0;i<120;i++)g.updateBotPresentation(1/60);assert.ok(movingBot.fall>.99&&movingBot.rig.position.y>0,'corpse settles above the floor');
 g.nextRound();assert.equal(g.weaponMotion.landing,0);assert.equal(player.moving,0);assert.ok(state.bots.every(b=>b.fall===0&&b.alive),'new round clears motion state');
 console.log('PASS: all eight hand/reload rigs, normalized magazine travel, pause/round/switch resets, actual-distance gait, landing recovery, inspect/throw/objective states, flash/casings, bot joints/reactions/death, finite transforms, and independent combat state.');
+// Real map switching/collision/navigation and variable hostiles, on both sides.
+assert.equal(Object.keys(MAPS).length,3);assert.equal(DEFAULT_BOTS,6);assert.equal(MAX_BOTS,16);
+for(const value of [undefined,null,NaN,Infinity,'bad'])assert.equal(normalizeBotCount(value),6);
+assert.equal(normalizeBotCount(-3),1);assert.equal(normalizeBotCount(99),16);assert.equal(normalizeBotCount('8'),8);assert.equal(mapKey('constructor'),'helix');
+const mapWallSignatures=new Set();
+for(const [key,m] of Object.entries(MAPS)){
+ g.loadMap(key);assert.equal(state.map,key);assert.equal(state.bots.length,0);assert.ok(g.siteA.equals(new THREE.Vector3(m.sites[0][0],0,m.sites[0][1])));
+ assert.equal(g.walls.length,4+m.walls.length+m.covers.length+m.crates.length,'map collider arrays are replaced, not accumulated');
+ mapWallSignatures.add(JSON.stringify(g.walls));const geometryCount=g.mapRoot.children.length;g.loadMap(key);assert.equal(g.mapRoot.children.length,geometryCount,'repeated loading does not stack map objects');
+ for(const side of ['attack','defend'])for(const count of [1,3,6,16]){
+  state.side=side;state.botCount=count;g.nextRound();assert.equal(state.bots.length,count);assert.ok(g.canStand(player.pos.x,player.pos.z,.43),key+' '+side+' clear player spawn');
+  assert.equal(new Set(state.bots.map(b=>b.name)).size,count,'every hostile has a unique name');assert.ok(state.bots.every(b=>typeof b.name==='string'));
+  for(const [i,b] of state.bots.entries()){
+   assert.ok(g.canStand(b.pos.x,b.pos.z,.43),key+' clear bot spawn');assert.ok(b.pos.distanceTo(player.pos)>20,'opponents spawn across the map');
+   for(const other of state.bots.slice(i+1))assert.ok(b.pos.distanceTo(other.pos)>=1.25,'separated spawns');
+   for(const site of [g.siteA,g.siteB]){const path=g.pathTo(b.pos,site);assert.ok(path.length,key+' bot route exists');assert.ok(path.every(p=>g.canStand(p.x,p.z,.43)),key+' bot route stays clear');assert.ok(path.at(-1).distanceTo(site)<4.5,key+' bot route reaches each objective');}
+  }
+  for(const site of [g.siteA,g.siteB]){const path=g.pathTo(player.pos,site);assert.ok(path.length&&path.at(-1).distanceTo(site)<4.5,key+' player entry connects to both objectives');}
+  g.scoreboard();assert.equal(elements.get('scoreRows').children.length,count+1,'report includes every bot');assert.equal(elements.get('scoreTitle').textContent,m.name.toUpperCase());
+  if(count===16){inputHandlers.get('keydown')({code:'Tab',preventDefault:noop});inputHandlers.get('wheel')({deltaY:120,preventDefault:noop});assert.ok(elements.get('scoreboard').scrollTop>=120,'full report can scroll while the mouse is captured');inputHandlers.get('keyup')({code:'Tab'});}
+  g.updateHUD();assert.equal(elements.get('hostileCount').textContent,count);
+ }
+ // Maximum-size attacker group must reach and arm a real core, despite separation.
+ state.side='defend';state.botCount=16;g.nextRound();state.phase='live';g.camera.position.set(0,80,0);g.scene.updateMatrixWorld(true);
+ for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateBots(.04);g.scene.updateMatrixWorld(true);}
+ assert.ok(state.plant&&state.plant.owner==='bot',key+' sixteen attackers navigate and plant');
+ // Defenders traverse the selected map and finish a single seven-second defuse.
+ state.side='attack';g.nextRound();state.phase='live';g.camera.position.set(0,80,0);
+ const plantPoint=g.pathTo(player.pos,g.siteA).at(-1);g.plant(plantPoint,'player');g.scene.updateMatrixWorld(true);
+ for(let i=0;i<1800&&state.phase!=='ended';i++){state.t+=.04;g.updateBots(.04);g.scene.updateMatrixWorld(true);}
+ assert.equal(state.phase,'ended',key+' sixteen defenders reach and defuse');assert.ok(state.plant.defuse>=7&&state.plant.defuse<7.05,'bot count does not accelerate defusing');
+ assert.ok(fs.existsSync('./assets/'+m.image),'selected map plan is bundled');
+}
+assert.equal(mapWallSignatures.size,3,'three distinct collision layouts');
+// Normal Deploy consumes saved choices; changes stay locked until a new match.
+const unlock=weaponAudio.unlock;weaponAudio.unlock=async()=>false;
+settings.map='ironwood';settings.botCount=12;document.getElementById('side').value='defend';document.getElementById('difficulty').value='hard';elements.get('start').onclick();
+assert.equal(state.map,'ironwood');assert.equal(state.botCount,12);assert.equal(state.bots.length,12);assert.equal(state.difficulty,'hard');
+settings.map='bastion';settings.botCount=4;g.nextRound();assert.equal(state.map,'ironwood');assert.equal(state.bots.length,12,'next round keeps match configuration');
+elements.get('quit').onclick();elements.get('start').onclick();assert.equal(state.map,'bastion');assert.equal(state.bots.length,4,'a new match uses the new choices');weaponAudio.unlock=unlock;
+// A higher bot count only wins after the final hostile is eliminated.
+g.loadMap('helix');state.side='attack';state.botCount=6;state.primary='rifle';state.owned=true;g.nextRound();state.phase='live';state.cooldown=0;player.moving=0;
+state.bots.forEach((b,i)=>{b.alive=i===0||i===5;b.pos.set(i===0?0:i===5?3:18,0,i===0||i===5?20:-24);});
+g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;g.shoot();assert.equal(state.phase,'live','one remaining enemy prevents a win');
+state.cooldown=0;g.camera.position.x=3;g.camera.updateMatrixWorld(true);g.shoot();Math.random=random;assert.equal(state.phase,'ended');
+state.botCount=3;g.nextRound();
+console.log('PASS: three distinct maps, all 1/3/6/16-bot spawn/route combinations on both sides, unique names, full reports, sixteen-bot plant/defuse simulation, match selection/reset, and last-enemy victory.');
 for(const name of ['m4a1','sv98','m82','ak47','mp5','c9','h45','blaster-b','crate-medium']){const data=fs.readFileSync('./assets/'+name+'.glb');assert.equal(data.toString('ascii',0,4),'glTF');assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);const json=JSON.parse(data.toString('utf8',20,20+data.readUInt32LE(12)));assert.ok(json.meshes.length);for(const image of json.images??[])if(image.uri)assert.ok(fs.existsSync('./assets/'+image.uri),'external model texture exists');console.log(name+': '+json.meshes.length+' meshes');}
 for(const w of Object.values(WEAPONS))assert.ok(fs.existsSync('./assets/ui/'+w.image+'.svg'));
 console.log('PASS: seven actual imported weapon assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.');

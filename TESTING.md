@@ -2,6 +2,12 @@
 
 ## Completed
 
+- v0.6.0: three distinct playable map collision layouts. Both player sides and 1/3/6/16 hostiles per map have clear spawns, unique bot names, separation at spawn, and traversable routes to both objective sites.
+- Sixteen attackers actually reach and plant a core on each map; sixteen defenders actually traverse each map and finish a seven-second defuse. Additional bots do not shorten objective timers.
+- Repeated map switches replace geometry/colliders, refresh cached navigation, remove previous round objects, and update HUD/report labels. Selected map/count are read by normal deployment, retained between rounds, and replaced on a new match.
+- Higher counts populate the full scoreboard and remaining-hostile counter; eliminating one enemy does not win while another survives, and the final kill does win.
+- Saved counts normalize to 1–16, invalid values default to six, and invalid map names fall back to Helix.
+
 - v0.5.0 motion checks with real model geometry: two articulated hands on all eight weapons; staged reload hands/magazines return to their rest transforms; recoil, casing/muzzle effects, jump/landing, actual-distance movement and strafe bank, inspection, throw and objective poses.
 - Zero elapsed time freezes all presentation transforms. Weapon switches and round resets remove stale handling state. All transforms remain finite through action overlaps.
 - Bot legs/ankles and torso animate during actual movement; walking phase stops while stationary. Firing, blind, objective, and corpse states use distinct poses; gameplay hit-volume local transforms remain unchanged.
@@ -49,7 +55,8 @@ GPU rendering, mouse capture, sound playback, frame rate, and cross-browser beha
 
 ## First browser playtest
 
-1. Serve with `python3 -m http.server 8000` and open `http://localhost:8000`.
+1. Choose each map and hostile count on Deploy; reload to confirm both choices persist. Start games with 1, 6, and 16 enemies on each side. Check names/counts, routes, firing, objectives, deaths, and frame rate in both graphics settings.
+2. Serve with `python3 -m http.server 8000` and open `http://localhost:8000`.
 2. Confirm the menu, weapon models, map, and shadows appear without console errors.
 3. Start Easy / Breach. Hold V to inspect each weapon, and compare idle/walk/run/strafe/jump/landing animations. Test mouse capture, Escape / Resume, WASD, crouch, jump, reloading, magazine travel, weapon switching, and muted palette shading.
 4. Open B during buy time; buy armor, close the panel, and confirm the clock resumes.

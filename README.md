@@ -2,9 +2,19 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## BlackSite — Helix Compound / v0.5.0
+## BlackSite — Tactical Operations / v0.6.0
 
-An original, open-source tactical FPS for a desktop browser. A muted desert research compound, two objective sites, and offline matches against three bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
+An original, open-source tactical FPS for a desktop browser. Three muted tactical maps, two objective sites per map, and offline matches against 1–16 bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
+
+Version 0.6.0 adds two original military maps and a saved hostile-count selector. Choose **Operation map** and **Hostile count** on Deploy, then select your role and difficulty. Every integer from 1 to 16 is available; the default is six. A match keeps its selected map/count for all rounds. Returning to the menu and deploying again applies new choices.
+
+| Map | Setting |
+| --- | --- |
+| Helix Compound | Existing desert research compound, solar court, and reactor hall. |
+| Bastion Depot | Fortified supply base with barracks, ammunition bays, blast walls, guard posts, and cargo siding. |
+| Ironwood Garrison | Overcast air station with cargo lanes, a maintenance hangar, helicopter apron, trees, and signal relay. |
+
+Bots have clear, separated spawns, unique names, routes to both objectives, and local separation while moving. Navigation uses a cached collision grid and staggered route refreshes for larger groups. Map previews come directly from the playable wall, cover, crate, spawn, and site data. These maps are original project geometry, bundled with the source.
 
 This is a **playable prototype**. M4A1, SV98, and M82 models are modified assets by chasieboy317 from Free3D, optimized into four meshes each with original PBR materials and animated magazines. The pistol and crates use Kenney's CC0 Blaster Kit, with a desaturated palette. Map geometry, articulated bot characters, and first-person gloves are original. See `ATTRIBUTION.md` for the separate asset licenses.
 
@@ -36,7 +46,7 @@ Choose your side and difficulty, then click **Deploy to compound**. Your mouse i
 
 ## Match rules
 
-- One human against three bots. First to four round wins.
+- One human against 1–16 bots (six by default). First to four round wins.
 - Attack: plant at A (solar court) or B (reactor hall), then protect the core.
 - Defend: stop the attackers or defuse their core.
 - Buy phase: 12 seconds. Live round: 90 seconds. Core timer: 40 seconds.
@@ -129,6 +139,7 @@ audio.js          Cached weapon recordings, playback, timing and cancellation
 game.js           World, gunplay, bots, match rules, controls
 assets/           GLB models, vector UI previews, map plan, local WAVs and licenses
 tools/            Reproducible converters, vector previews and validation
+maps.js           Original map layouts, themes, sites, spawns, and bot-count limits
 vendor/           Three.js 0.170.0, loader, utility, MIT license
 LICENSE           MIT license for original code
 ATTRIBUTION.md    Third-party sources and licenses
@@ -150,4 +161,4 @@ and MLA references are in `assets/audio/LICENSE.md`. Run audio checks with
 
 ## Current limits
 
-This release uses procedural articulated bot silhouettes, distinct recorded weapon sounds and synthetic objective cues, procedural visual grenade arcs and smoke expansion, and a compact original map. It has no online multiplayer, physical grenade collisions, imported skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons and crates; the map and bots remain procedural. See `TESTING.md` for what was checked and what still needs a browser playtest.
+This release uses procedural articulated bot silhouettes, distinct recorded weapon sounds and synthetic objective cues, procedural visual grenade arcs and smoke expansion, and three compact original maps. It has no online multiplayer, physical grenade collisions, imported skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons and crates; the map and bots remain procedural. See `TESTING.md` for what was checked and what still needs a browser playtest.

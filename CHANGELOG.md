@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0 — Military Maps & Hostile Counts / 2 October 2026
+
+- Added Bastion Depot and Ironwood Garrison as distinct original military maps; Helix Compound remains available.
+- Saved map and 1–16 hostile selectors on Deploy, with six bots by default. Match choices persist between rounds and change on the next deployment.
+- Separate collision layouts, cover, objectives, patrol routes, map palettes, military scenery, and plans generated from actual layout data.
+- Clear, spaced spawns on both sides, sixteen unique bot names, alternating objective assignments, and local movement separation.
+- Cached navigation occupancy and staggered route refreshes for larger bot groups.
+- Radar, location, pause, and scoreboard labels follow the selected map; reports scroll to fit every hostile.
+- Validated all three maps and both sides with 1/3/6/16 bots: clear spawns, routes to both sites, sixteen-bot planting/defusing, match resets, and final-enemy victory. Existing weapon, animation, economy, and audio checks remain in place.
+
 ## 0.5.0 — Motion & Handling / 2 October 2026
 
 - Articulated first-person hands and forearms for every weapon, with magazine withdrawal/reinsertion, charging gestures, and a manual SV98 bolt gesture.
