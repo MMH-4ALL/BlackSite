@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.5.0 — Motion & Handling / 2 October 2026
+
+- Articulated first-person hands and forearms for every weapon, with magazine withdrawal/reinsertion, charging gestures, and a manual SV98 bolt gesture.
+- Distance-driven walking/running motion, strafing lean, breathing, crouch transitions, jumping and landing recovery, equip raise, and damage flinch.
+- Recoil, moving slide/bolt parts where available, muzzle flashes, bounded casing effects, smooth scope zoom, and hold-V inspection.
+- Utility hand throws and visual grenade arcs, smoke expansion, and animated handheld objective handling. Utility hit/visibility timing remains unchanged.
+- Bots animate hips, knees, ankles, torso, head, and arms; movement/turning, firing, blindness, planting/defusing, and settling deaths have distinct poses.
+- Menu, panel, kill-feed, toast, scope, health-bar, and button transitions. Interface animations respect reduced-motion preferences.
+- Presentation freezes on pause, resets between loadouts/rounds, and leaves authoritative aim, damage, hit volumes, economy, and ammo untouched.
+- All eight weapons checked for reload restoration, pause/reset behavior, landing and movement, finite transforms, plus real-model/gameplay/audio regressions.
+
+## 0.4.0 — Expanded Arsenal / 1 October 2026
+
+- Added AK-47, MP5, C-9, and H-45 using distinct adapted CC0 models. Five primaries and three sidearms.
+- Separate primary/sidearm opening selections, ownership, purchases, survival retention, and free P-9 after elimination.
+- Each addition has its own recorded shots and handling audio; 60 distinct CC0 sound files total.
+- Expanded armory/buy layouts, model/audio provenance, and validation.
+
 ## 0.3.1 — Weapon Audio / 1 October 2026
 
 - Replaced every generated weapon report with distinct, freely licensed firearm recordings; two different recorded shots per gun, with no shared files or source excerpts between guns/actions.

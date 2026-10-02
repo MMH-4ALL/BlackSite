@@ -1,8 +1,13 @@
-# Validation — 1 October 2026
+# Validation — 2 October 2026
 
 ## Completed
 
-- v0.3.1 audio checks: all 32 actual WAVs have valid mono 44.1 kHz / 16-bit PCM data, audible content, immediate attacks, and normalized peaks with headroom. File hashes and source ranges are distinct; no file or source excerpt is shared between actions/guns. Total WAV size: 1,598,662 bytes.
+- v0.5.0 motion checks with real model geometry: two articulated hands on all eight weapons; staged reload hands/magazines return to their rest transforms; recoil, casing/muzzle effects, jump/landing, actual-distance movement and strafe bank, inspection, throw and objective poses.
+- Zero elapsed time freezes all presentation transforms. Weapon switches and round resets remove stale handling state. All transforms remain finite through action overlaps.
+- Bot legs/ankles and torso animate during actual movement; walking phase stops while stationary. Firing, blind, objective, and corpse states use distinct poses; gameplay hit-volume local transforms remain unchanged.
+- Animation checks leave the authoritative camera, ammunition and health unchanged. Existing raycast kills, recoil mechanics, scope FOV, purchase/ownership, difficulty, navigation, objectives, and all 60 distinct audio assets are covered by regressions.
+
+- v0.3.1 audio checks: all 60 actual WAVs have valid mono 44.1 kHz / 16-bit PCM data, audible content, immediate attacks, and normalized peaks with headroom. File hashes and source ranges are distinct; no file or source excerpt is shared between actions/guns. Total WAV size is recorded by the audio validator.
 - Audio scheduling regression checks use real local PCM bytes and the real `WeaponAudio` class, with Web Audio nodes stubbed: per-gun shot variants, staged reloads within actual gameplay durations, pause/switch cancellation, remaining-stage resume, separate bot rifle recordings, pan/distance attenuation, volume/mute, single-download caching, missing-file behavior, sustained automatic fire, and ended-node cleanup.
 - Integrated game logic dispatches each gun to its own bank and reload duration; exhausted guns click at most once per fire interval, without consuming ammunition; ending a round cancels handling audio.
 
@@ -21,6 +26,7 @@
 - Quantized normals have unit length within rounding tolerance; zero normals in the original OBJ were repaired.
 - Imported rifle PBR materials survive loading.
 - Reload animation lowers and restores the magazine; the weapon settles after reload and switching. Presentation does not alter ammunition.
+- Actual MP5 reload and bot walking poses inspected in a CPU projection of the loaded models and game transforms; reload framing keeps magazine handling on screen. This does not verify GPU lighting.
 - Corpse animation changes the visual rig rather than the gameplay hit volumes.
 - Binary integrity and mesh data for the active GLB assets; all external texture references resolve to bundled files.
 - Weapon framing inspected in a CPU projection of the actual loaded geometry and game transforms. This verifies orientation and screen coverage, not browser lighting or frame rate.
@@ -35,7 +41,7 @@
 - Combat interfaces reviewed through explicit preview mode: HUD, buy screen, round report, pause, and scoreboard. Preview values are samples, not a recorded match.
 - The cloud review browser cannot create a WebGL context. Menus still work and compatibility feedback appears; 3D rendering/input/performance require a real desktop playtest.
 
-Run the checks with `node tools/validate.mjs` and `node tools/validate-audio.mjs`. Rendering, DOM, and Web Audio nodes are stubbed, but the three Free3D model loaders, scene graph, geometry, materials, raycaster, gameplay logic, weapon-audio class, and local PCM data are real. No network or installed npm packages are required.
+Run the checks with `node tools/validate.mjs` and `node tools/validate-audio.mjs`. Rendering, DOM, and Web Audio nodes are stubbed, but the seven imported model loaders, scene graph, geometry, materials, raycaster, gameplay logic, weapon-audio class, and local PCM data are real. No network or installed npm packages are required.
 
 ## Not completed in this environment
 
@@ -45,18 +51,18 @@ GPU rendering, mouse capture, sound playback, frame rate, and cross-browser beha
 
 1. Serve with `python3 -m http.server 8000` and open `http://localhost:8000`.
 2. Confirm the menu, weapon models, map, and shadows appear without console errors.
-3. Start Easy / Breach. Test mouse capture, Escape / Resume, WASD, crouch, jump, reloading, magazine travel, weapon switching, and muted palette shading.
+3. Start Easy / Breach. Hold V to inspect each weapon, and compare idle/walk/run/strafe/jump/landing animations. Test mouse capture, Escape / Resume, WASD, crouch, jump, reloading, magazine travel, weapon switching, and muted palette shading.
 4. Open B during buy time; buy armor, close the panel, and confirm the clock resumes.
 5. Shoot a bot's head, then compare controlled bursts with moving fire.
 6. Plant at A and B in separate rounds; interrupt planting and verify progress resets.
 7. Play Contain, let bots plant, eliminate them, then defuse. The planted core must still require defusing after the final enemy dies.
 8. Test smoke, flash, all three difficulties, round restart, and full-match restart.
 9. Repeat after GitHub Pages publishing, especially under the repository subpath.
-10. Inspect all four armory entries, choose an opening primary, and verify it is carried after deployment. Buy a different primary and use keys 1/2.
+10. Inspect all eight armory entries, choose an opening primary, and verify it is carried after deployment. Buy a different primary and use keys 1/2.
 11. Compare stationary scoped sniper shots against moving/unscoped shots; test right-click scope, scope reset, torso kills, bolt/trigger behavior, and each reload.
 12. Save settings, reload the page, and confirm preferences remain. Compare standard/performance graphics and crosshair/FOV settings.
 13. Compare round-report eliminations, headshot eliminations, accuracy, and credits with the shots you actually fired.
-14. In Armory, preview Shot and Reload for all four guns. Compare all unique reports and handling sounds; test Master volume at zero, midway, and full.
+14. In Armory, preview Shot and Reload for all eight guns. Compare all unique reports and handling sounds; test Master volume at zero, midway, and full.
 15. In a match, hold M4A1 fire and compare with single-click pistol/snipers. Confirm the SV98 bolt cycle and directional distant bot fire. Interrupt a reload by switching, pause/resume midway, and end a round while reloading; no canceled cue should play later.
 
 Prototype difficulty values are not competitively balanced. No online multiplayer or synchronization is present.

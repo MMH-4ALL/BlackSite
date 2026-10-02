@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 process.chdir(fileURLToPath(new URL('../',import.meta.url)));
 import * as RealThree from '../vendor/three.module.js';
 import {WEAPONS} from '../weapons.js';
-import {WeaponAudio} from '../audio.js';
+import {WeaponAudio,SOUND_BANK} from '../audio.js';
 // Exercise the bundled loader against the actual new asset, without a GPU.
 const engineURL=new URL('../vendor/three.module.js',import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
@@ -41,7 +41,7 @@ for(const name of ['ak47','mp5','c9','h45']){
 const noop=()=>{};
 const context=new Proxy({},{get:()=>noop,set:()=>true});
 class Element {
-  constructor(id=''){this.id=id;this.children=[];this.hidden=true;this.style={setProperty:noop};this.value='';this.textContent='';this.className='';this.dataset={};this.innerHTML='';this.classList={toggle:noop,add:noop};}
+  constructor(id=''){this.id=id;this.children=[];this.hidden=true;this.style={setProperty:noop};this.value='';this.textContent='';this.className='';this.dataset={};this.innerHTML='';this.classList={toggle:noop,add:noop,remove:noop};}
   get firstElementChild(){return this.children[0]??(this.children[0]=new Element());}
   get lastChild(){return this.children.at(-1);}
   getContext(){return context;}
@@ -62,7 +62,7 @@ const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
 const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol'};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
-new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio);
+new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio','SOUND_BANK',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio,SOUND_BANK);
 await new Promise(r=>setTimeout(r,0));
 console.log('Checking integrated gameplay...');
 const g=window.__game,{state,player}=g;
@@ -76,9 +76,9 @@ assert.equal(state.bots.length,3);assert.equal(state.ammo.rifle.mag,30);
 // Presentation must settle and reloading must move and restore the magazine.
 for(let i=0;i<100;i++)g.updateWeaponPresentation(.016);
 const rest=g.gunRoot.position.clone();state.reload=1.1;g.updateWeaponPresentation(.016);
-assert.ok(g.weaponMotion.magazine.position.y<-.1);assert.ok(g.gunRoot.position.y<rest.y);
+assert.ok(g.weaponMotion.magazine.position.y<-.1);assert.ok(g.gunRoot.position.y>rest.y);
 state.reload=0;for(let i=0;i<100;i++)g.updateWeaponPresentation(.016);
-assert.ok(g.gunRoot.position.distanceTo(rest)<.001);assert.equal(g.weaponMotion.magazine.position.y,0);
+assert.ok(g.gunRoot.position.distanceTo(rest)<.006);assert.equal(g.weaponMotion.magazine.position.y,0);
 assert.equal(state.ammo.rifle.mag,30,'presentation never changes ammunition');
 g.equip('pistol');assert.equal(g.weaponMotion.magazine,null);g.equip('rifle');
 for(const p of [[-15,-18],[15,-18],[0,-24]]){const path=g.pathTo(player.pos,new THREE.Vector3(p[0],0,p[1]));assert.ok(path.length>10,'route exists');assert.ok(path.every(p=>g.canStand(p.x,p.z,.43)),'route stays out of walls');assert.ok(path.at(-1).distanceTo(new THREE.Vector3(p[0],0,p[1]))<4.5,'route reaches objective radius');}
@@ -171,12 +171,80 @@ const dryCount=soundEvents.filter(e=>e.action==='empty').length,shotCount=state.
 g.shoot();g.shoot();assert.equal(soundEvents.filter(e=>e.action==='empty').length,dryCount+1);assert.equal(state.shotsFired,shotCount);assert.equal(state.reload,0);
 // Scope/reload/switch cancellation removes stale handling audio on a round end.
 const cancelCount=soundEvents.filter(e=>e.action==='stopHandling').length;g.endRound(false,'Audio regression check');assert.equal(soundEvents.filter(e=>e.action==='stopHandling').length,cancelCount+1);
+// Motion exercises actual loaded meshes; presentation must not change combat state.
+state.side='attack';state.owned=true;state.primary='rifle';state.secondary='pistol';g.nextRound();state.phase='live';state.paused=false;
+const cameraPose=g.camera.matrixWorld.clone(),ammoBefore=JSON.stringify(state.ammo),healthBefore=player.health;
+for(const key of Object.keys(WEAPONS)){
+ if(WEAPONS[key].slot==='primary')state.primary=key;else state.secondary=key;
+ g.equip(key);assert.equal(g.weaponMotion.hands.length,2,key+' has both hands');
+ for(let i=0;i<120;i++)g.updateWeaponPresentation(1/60);
+ const left=g.weaponMotion.hands[1],home=left.home.clone(),m=g.weaponMotion;
+ state.reload=WEAPONS[key].reload*(1-(SOUND_BANK[key].reloadAt[0]+SOUND_BANK[key].reloadAt[1])/2);for(let i=0;i<10;i++)g.updateWeaponPresentation(1/60);
+ assert.ok(left.palm.position.distanceTo(home)>.045,key+' reload moves support hand');
+ if(m.magazine){const displacement=(m.magazineHome.y-m.magazine.position.y)*m.magazineScale;assert.ok(displacement>.17&&displacement<.19,key+' magazine travel is in normalized world units');}
+ state.reload=0;for(let i=0;i<120;i++)g.updateWeaponPresentation(1/60);
+ assert.ok(left.palm.position.distanceTo(home)<1e-6,key+' hand returns to grip');
+ if(m.magazine){assert.ok(m.magazine.position.equals(m.magazineHome));assert.ok(m.magazine.quaternion.angleTo(m.magazineRotation)<1e-6);}
+ assert.ok(g.gunRoot.position.distanceTo(new THREE.Vector3(...WEAPONS[key].pose))<.008);
+ assert.ok(m.model.visible&&!m.device.visible&&!m.grenade.visible);
+ const snapshot=()=>JSON.stringify([m.clock,m.bob,m.landing,g.gunRoot.position,g.gunRoot.rotation,...m.hands.map(h=>[h.palm.position,h.palm.rotation])]);
+ const pausedPose=snapshot();g.updateWeaponPresentation(0);assert.equal(snapshot(),pausedPose,key+' pause freezes presentation');
+ g.gunRoot.traverse(o=>assert.ok([...o.position.toArray(),...o.quaternion.toArray(),...o.scale.toArray()].every(Number.isFinite),key+' finite transforms'));
+}
+assert.equal(JSON.stringify(state.ammo),ammoBefore);assert.equal(player.health,healthBefore);assert.ok(g.camera.matrixWorld.equals(cameraPose),'visual motion leaves aiming camera unchanged');
+state.primary='mp5';g.equip('mp5');player.grounded=true;player.vel.set(4.8,0,0);player.yaw=0;
+for(let i=0;i<60;i++){player.pos.x+=.08;g.updateWeaponPresentation(1/60);}
+assert.ok(g.weaponMotion.stride>.9&&g.weaponMotion.bank>.9,'walking and lateral bank follow real movement');
+const stridePhase=g.weaponMotion.bob;player.vel.set(0,0,0);for(let i=0;i<90;i++)g.updateWeaponPresentation(1/60);
+assert.equal(g.weaponMotion.bob,stridePhase,'feet do not advance while stationary');assert.ok(g.weaponMotion.stride<.001);
+g.weaponMotion.lastGrounded=false;g.weaponMotion.lastVy=-6;g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.landing>.6);
+for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.landing<.001,'landing recovers');
+g.keys.add('KeyV');for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.inspect>.99);g.keys.clear();
+state.interact=1;for(let i=0;i<30;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.device.visible&&!g.weaponMotion.model.visible);
+state.interact=0;for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.model.visible&&!g.weaponMotion.device.visible);
+state.smoke=1;g.utility('smoke');g.updateWeaponPresentation(.10);assert.ok(g.weaponMotion.grenade.visible&&!g.weaponMotion.model.visible);
+for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.model.visible&&!g.weaponMotion.grenade.visible);
+state.cooldown=0;g.camera.position.set(0,30,26);g.shoot();g.updateWeaponPresentation(.016);
+assert.ok(g.weaponMotion.muzzle.visible&&g.weaponMotion.shells.some(s=>s.mesh.visible),'shot shows flash and casing');
+state.secondary='c9';g.equip('c9');assert.equal(g.weaponMotion.throwTime,0);assert.equal(g.weaponMotion.objective,0);assert.ok(g.weaponMotion.shells.every(s=>s.life===0));
+const movingBot=state.bots[0];movingBot.pos.set(0,0,0);movingBot.previous.copy(movingBot.pos);movingBot.group.rotation.y=0;movingBot.viewYaw=0;
+const headHome=movingBot.head.position.clone();let legTravel=0,ankleTravel=0;
+for(let i=0;i<60;i++){movingBot.pos.z-=.05;g.updateBotPresentation(1/60);legTravel=Math.max(legTravel,Math.abs(movingBot.legs[0].rotation.x));ankleTravel=Math.max(ankleTravel,Math.abs(movingBot.legs[0].userData.ankle.rotation.x));}
+assert.ok(legTravel>.3&&ankleTravel>.1,'bot hips, knees, and feet move');
+const botPhase=movingBot.walk;for(let i=0;i<120;i++)g.updateBotPresentation(1/60);assert.equal(movingBot.walk,botPhase);assert.ok(movingBot.visualSpeed<.001);
+movingBot.fireKick=1;movingBot.flashTime=.05;g.updateBotPresentation(.016);assert.ok(movingBot.gun.rotation.x<0&&movingBot.muzzle.visible);
+movingBot.blind=3;for(let i=0;i<30;i++)g.updateBotPresentation(1/60);assert.ok(!movingBot.gun.visible&&movingBot.arms[0].rotation.x>2);
+movingBot.blind=0;movingBot.planting=1;for(let i=0;i<30;i++)g.updateBotPresentation(1/60);assert.ok(movingBot.workDevice.visible&&!movingBot.gun.visible);
+movingBot.planting=0;movingBot.defusing=true;g.updateBotPresentation(.016);assert.ok(movingBot.workDevice.visible);
+assert.ok(movingBot.head.position.equals(headHome),'animated rig does not move gameplay hit volumes');
+const botPause=JSON.stringify([movingBot.clock,movingBot.walk,movingBot.rig.position,movingBot.rig.rotation,movingBot.arms.map(a=>a.rotation)]);g.updateBotPresentation(0);assert.equal(JSON.stringify([movingBot.clock,movingBot.walk,movingBot.rig.position,movingBot.rig.rotation,movingBot.arms.map(a=>a.rotation)]),botPause);
+movingBot.alive=false;for(let i=0;i<120;i++)g.updateBotPresentation(1/60);assert.ok(movingBot.fall>.99&&movingBot.rig.position.y>0,'corpse settles above the floor');
+g.nextRound();assert.equal(g.weaponMotion.landing,0);assert.equal(player.moving,0);assert.ok(state.bots.every(b=>b.fall===0&&b.alive),'new round clears motion state');
+console.log('PASS: all eight hand/reload rigs, normalized magazine travel, pause/round/switch resets, actual-distance gait, landing recovery, inspect/throw/objective states, flash/casings, bot joints/reactions/death, finite transforms, and independent combat state.');
 for(const name of ['m4a1','sv98','m82','ak47','mp5','c9','h45','blaster-b','crate-medium']){const data=fs.readFileSync('./assets/'+name+'.glb');assert.equal(data.toString('ascii',0,4),'glTF');assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);const json=JSON.parse(data.toString('utf8',20,20+data.readUInt32LE(12)));assert.ok(json.meshes.length);for(const image of json.images??[])if(image.uri)assert.ok(fs.existsSync('./assets/'+image.uri),'external model texture exists');console.log(name+': '+json.meshes.length+' meshes');}
 for(const w of Object.values(WEAPONS))assert.ok(fs.existsSync('./assets/ui/'+w.image+'.svg'));
 console.log('PASS: seven actual imported weapon assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.');
 if(process.env.BLACKSITE_RENDER_EXPORT){
  state.owned=true;state.primary='rifle';state.weapon='rifle';g.equip('rifle');for(let i=0;i<150;i++)g.updateWeaponPresentation(.016);
  g.gunRoot.updateMatrixWorld(true);const meshes=[];
- g.gunRoot.traverse(o=>{if(o.isMesh){const a=o.geometry.attributes.position,n=o.geometry.attributes.normal,p=[],norm=[],v=new THREE.Vector3(),m=new THREE.Matrix3().getNormalMatrix(o.matrixWorld);for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);p.push(v.toArray());v.fromBufferAttribute(n,i).applyMatrix3(m).normalize();norm.push(v.toArray());}meshes.push({name:o.name,positions:p,normals:norm,indices:Array.from(o.geometry.index.array),color:o.material.color.toArray()});}});
+ g.gunRoot.traverse(o=>{if(o.isMesh){const a=o.geometry.attributes.position,n=o.geometry.attributes.normal,p=[],norm=[],v=new THREE.Vector3(),m=new THREE.Matrix3().getNormalMatrix(o.matrixWorld);for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);p.push(v.toArray());v.fromBufferAttribute(n,i).applyMatrix3(m).normalize();norm.push(v.toArray());}meshes.push({name:o.name,positions:p,normals:norm,indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:a.count},(_,i)=>i),color:o.material.color.toArray()});}});
  fs.writeFileSync(process.env.BLACKSITE_RENDER_EXPORT,JSON.stringify(meshes));
+}
+// Optional, compact real-geometry export for CPU visual review without WebGL.
+if(process.env.BLACKSITE_ANIMATION_EXPORT){
+ const geometries=[],cache=new Map(),frames=[];
+ const capture=root=>{root.updateWorldMatrix(true,true);const meshes=[];root.traverseVisible(o=>{if(!o.isMesh)return;
+  if(!cache.has(o.geometry)){const a=o.geometry.attributes.position,n=o.geometry.attributes.normal,v=new THREE.Vector3();cache.set(o.geometry,geometries.length);geometries.push({positions:Array.from({length:a.count},(_,i)=>v.fromBufferAttribute(a,i).toArray()),normals:Array.from({length:n.count},(_,i)=>v.fromBufferAttribute(n,i).toArray()),indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:a.count},(_,i)=>i)});}
+  const material=Array.isArray(o.material)?o.material[0]:o.material;meshes.push({geometry:cache.get(o.geometry),matrix:o.matrixWorld.toArray(),color:material.color.toArray()});
+ });return meshes;};
+ state.primary='mp5';state.owned=true;g.equip('mp5');g.viewCamera.aspect=16/9;g.viewCamera.updateProjectionMatrix();state.phase='live';state.interact=0;player.vel.set(0,0,0);player.grounded=true;
+ const bot=state.bots[0];bot.pos.set(0,0,0);bot.previous.copy(bot.pos);bot.group.rotation.y=0;bot.viewYaw=0;
+ for(let i=0;i<90;i++)g.updateWeaponPresentation(1/60);
+ for(let f=0;f<15;f++){
+  const progress=f/14;state.reload=f===14?0:WEAPONS.mp5.reload*(1-progress);
+  for(let i=0;i<9;i++){bot.pos.z-=3/60;g.updateBotPresentation(1/60);g.updateWeaponPresentation(1/60);}
+  const camera=new THREE.PerspectiveCamera(42,16/9,.01,20);camera.position.copy(bot.pos).add(new THREE.Vector3(2.6,1.9,-4));camera.lookAt(bot.pos.clone().add(new THREE.Vector3(0,.95,0)));camera.updateMatrixWorld(true);
+  frames.push({weapon:capture(g.gunRoot),bot:capture(bot.rig),weaponCamera:{view:g.viewCamera.matrixWorldInverse.toArray(),projection:g.viewCamera.projectionMatrix.toArray()},botCamera:{view:camera.matrixWorldInverse.toArray(),projection:camera.projectionMatrix.toArray()}});
+ }
+ fs.writeFileSync(process.env.BLACKSITE_ANIMATION_EXPORT,JSON.stringify({geometries,frames}));
 }

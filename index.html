@@ -4,8 +4,8 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#101313">
   <title>BLACKSITE — Tactical Operations</title>
-  <meta name="description" content="An original tactical browser FPS. Precision gunplay, three bot difficulties, and four weapons at Helix Compound.">
-  <link rel="icon" href="assets/mark.svg"><link rel="stylesheet" href="style.css?v=0.4.0-layout">
+  <meta name="description" content="An original tactical browser FPS. Precision gunplay, three bot difficulties, and eight weapons at Helix Compound.">
+  <link rel="icon" href="assets/mark.svg"><link rel="stylesheet" href="style.css?v=0.5.0">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -15,7 +15,7 @@
   <header class="mast">
     <a class="brand" href="#deploy" aria-label="BlackSite home"><img src="assets/mark.svg" alt=""><span>BLACK<span class="brand-light">SITE</span><small>TACTICAL OPERATIONS</small></span></a>
     <nav aria-label="Main menu"><button data-view="deploy" class="nav-link active" aria-current="page">DEPLOY</button><button data-view="armory" class="nav-link">ARMORY</button><button data-view="manual" class="nav-link">FIELD MANUAL</button><button data-view="settings" class="nav-link">SETTINGS</button></nav>
-    <div class="build"><span class="status-dot"></span> OFFLINE OPERATIONS <small>BUILD 0.4.0</small></div>
+    <div class="build"><span class="status-dot"></span> OFFLINE OPERATIONS <small>BUILD 0.5.0</small></div>
   </header>
   <div class="menu-body">
     <section id="view-deploy" class="menu-view deploy-grid">
@@ -44,7 +44,7 @@
     <section id="view-manual" class="menu-view" hidden>
       <div class="view-heading"><div><span class="eyebrow">OPERATOR HANDBOOK / HELIX</span><h1 class="view-title">HOLD THE ANGLE<span>.</span></h1><p>Learn the essentials before entering the compound.</p></div><span class="section-index">03 / 04</span></div>
       <div class="manual-grid"><article class="manual-card"><span class="manual-number">01</span><h2>Stop. Aim. Fire.</h2><p>Movement and jumping widen your spread. Release the keys to settle your aim. Control automatic recoil with short bursts and downward mouse movement.</p><div class="manual-callout">M4A1 HEADSHOT / ONE HIT<br><small>Snipers also defeat a target with one torso hit.</small></div></article><article class="manual-card"><span class="manual-number">02</span><h2>Play the objective.</h2><p>Attack: reach A or B, stay still, and hold E for 3 seconds to plant. Defend: reach the armed core and hold E for 5 seconds to defuse.</p><div class="manual-callout">90 SECOND ROUND / 40 SECOND CORE<br><small>First to four rounds wins the operation.</small></div></article><article class="manual-card"><span class="manual-number">03</span><h2>Build your advantage.</h2><p>Press B near spawn during the 12-second buy phase. Use armor to absorb body damage, smoke to block sight, and flash to blind exposed bots.</p><div class="manual-callout">WIN +$3,000 / LOSS +$1,900<br><small>Weapons survive a round if you stay alive.</small></div></article></div>
-      <div class="controls-card"><h2>Controls</h2><div class="controls-grid"><span><kbd>W A S D</kbd> Move</span><span><kbd>MOUSE</kbd> Aim / fire</span><span><kbd>RMB</kbd> Sniper scope</span><span><kbd>R</kbd> Reload</span><span><kbd>SHIFT</kbd> Walk</span><span><kbd>CTRL</kbd> Crouch</span><span><kbd>SPACE</kbd> Jump</span><span><kbd>E</kbd> Plant / defuse</span><span><kbd>1 / 2</kbd> Weapons</span><span><kbd>G / F</kbd> Smoke / flash</span><span><kbd>B</kbd> Buy equipment</span><span><kbd>TAB / ESC</kbd> Score / pause</span></div></div>
+      <div class="controls-card"><h2>Controls</h2><div class="controls-grid"><span><kbd>W A S D</kbd> Move</span><span><kbd>MOUSE</kbd> Aim / fire</span><span><kbd>RMB</kbd> Sniper scope</span><span><kbd>R</kbd> Reload</span><span><kbd>V</kbd> Hold to inspect</span><span><kbd>SHIFT</kbd> Walk</span><span><kbd>CTRL</kbd> Crouch</span><span><kbd>SPACE</kbd> Jump</span><span><kbd>E</kbd> Plant / defuse</span><span><kbd>1 / 2</kbd> Weapons</span><span><kbd>G / F</kbd> Smoke / flash</span><span><kbd>B</kbd> Buy equipment</span><span><kbd>TAB / ESC</kbd> Score / pause</span></div></div>
     </section>
     <section id="view-settings" class="menu-view" hidden>
       <div class="view-heading"><div><span class="eyebrow">OPERATOR PREFERENCES</span><h1 class="view-title">MAKE IT YOURS<span>.</span></h1><p>Settings are saved on this browser.</p></div><span class="section-index">04 / 04</span></div>
@@ -67,5 +67,5 @@
 <section id="scoreboard" class="panel score-panel" aria-labelledby="scoreTitle" hidden><span class="eyebrow">LIVE OPERATION REPORT</span><div class="report-heading"><h2 id="scoreTitle">HELIX COMPOUND</h2><strong id="reportScore">0 — 0</strong></div><div class="score-columns"><span>OPERATOR</span><span>COMBAT STATUS</span></div><div id="scoreRows"></div><p class="panel-note">HOLD TAB TO VIEW / RELEASE TO RETURN</p></section>
 <section id="result" class="panel result-panel" aria-labelledby="resultTitle" hidden><span id="resultLabel" class="eyebrow">ROUND COMPLETE</span><div class="result-symbol" aria-hidden="true">⌁</div><h2 id="resultTitle">SECTOR SECURED<span>.</span></h2><p id="resultDetail"></p><div class="result-score"><div><span>OPERATOR</span><strong id="resultYou">1</strong></div><small>FIRST TO 4</small><div><span>HOSTILES</span><strong id="resultBot">0</strong></div></div><div id="resultStats" class="result-stats"></div><button id="next" class="primary">NEXT ROUND <span>↗</span></button><button id="resultQuit" class="secondary">RETURN TO MAIN MENU</button></section>
 <div id="unsupported" class="panel" hidden><span class="eyebrow">BROWSER COMPATIBILITY</span><h2>WebGL is required.</h2><p>Use a desktop browser with graphics acceleration, keyboard, and mouse.</p></div>
-<script type="module" src="app.js?v=0.4.0"></script>
+<script type="module" src="app.js?v=0.5.0"></script>
 </body></html>

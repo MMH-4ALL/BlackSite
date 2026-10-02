@@ -2,7 +2,7 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## BlackSite — Helix Compound / v0.4.0
+## BlackSite — Helix Compound / v0.5.0
 
 An original, open-source tactical FPS for a desktop browser. A muted desert research compound, two objective sites, and offline matches against three bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
 
@@ -10,7 +10,9 @@ This is a **playable prototype**. M4A1, SV98, and M82 models are modified assets
 
 Version 0.3.0 redesigns deployment, the armory, field manual, settings, HUD, buy menu, pause screen, scoreboard, and round results in a muted charcoal/olive style. Model-derived vector previews show the actual weapons. Choose an opening primary in the armory; it is issued at deployment. Snipers have scoped aiming, distinct recoil, heavier movement, and lethal torso hits. M4A1 recoil and objective/bot rules retain the previous behavior. Sidearm and sniper fire is now trigger-based; hold left mouse for automatic M4A1 fire.
 
-Version 0.4.0 adds AK-47, MP5, C-9 and H-45: five primaries and three sidearms in total. Each new weapon uses a distinct internet-sourced CC0 model adapted with muted PBR materials, an animated magazine and bolt/slide. Choose both opening slots in Armory. Buy primary and sidearm replacements separately; both persist when you survive, while elimination removes them and issues the free P-9.
+Version 0.5.0 adds procedural motion throughout the game: articulated first-person hands, actual-distance walking/running sway, crouch transitions, jump/landing recovery, recoil, muzzle flashes, casing ejection, staged magazine handling, slide/bolt motion where the model has separate parts, smooth scope zoom, utility throws, objective device handling, and hold-V inspection. Bots have jointed legs/feet and arms, breathing, turning/strafe lean, firing recoil, flash reactions, objective handling, and settling deaths. Interface panels and combat feedback have short transitions, with reduced-motion support for the interface. Aiming, damage, ammunition, and gameplay hit volumes remain independent of the presentation.
+
+Version 0.4.0 added AK-47, MP5, C-9 and H-45: five primaries and three sidearms in total. Each new weapon uses a distinct internet-sourced CC0 model adapted with muted PBR materials, an animated magazine and bolt/slide. Choose both opening slots in Armory. Buy primary and sidearm replacements separately; both persist when you survive, while elimination removes them and issues the free P-9.
 
 This update replaces all weapon audio with 60 distinct CC0 recordings. Every gun has
 separate shots, reload stages, equip sounds, and empty-trigger clicks; SV98 has a
@@ -52,6 +54,7 @@ Choose your side and difficulty, then click **Deploy to compound**. Your mouse i
 | Left mouse | Fire |
 | Right mouse | Toggle sniper scope |
 | R | Reload |
+| V (hold) | Inspect weapon |
 | Shift | Walk |
 | Ctrl or C | Crouch |
 | Space | Jump |
@@ -147,4 +150,4 @@ and MLA references are in `assets/audio/LICENSE.md`. Run audio checks with
 
 ## Current limits
 
-This release uses procedural articulated bot silhouettes, synthetic sound effects, basic utility effects, and a compact original map. It has no online multiplayer, physical grenade arcs, advanced skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons and crates; the map and bots remain procedural. See `TESTING.md` for what was checked and what still needs a browser playtest.
+This release uses procedural articulated bot silhouettes, distinct recorded weapon sounds and synthetic objective cues, procedural visual grenade arcs and smoke expansion, and a compact original map. It has no online multiplayer, physical grenade collisions, imported skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons and crates; the map and bots remain procedural. See `TESTING.md` for what was checked and what still needs a browser playtest.
