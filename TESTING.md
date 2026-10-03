@@ -1,7 +1,8 @@
-# Validation — 2 October 2026
+# Validation — 3 October 2026
 
 ## Completed
 
+- v0.6.1: WASD, jump, both crouch keys, combined inputs, and leftover momentum cannot move the player during buy time on any map or side. Shopping works, the countdown advances, bots stay frozen, and held movement/jump inputs resume when the round goes live.
 - v0.6.0: three distinct playable map collision layouts. Both player sides and 1/3/6/16 hostiles per map have clear spawns, unique bot names, separation at spawn, and traversable routes to both objective sites.
 - Sixteen attackers actually reach and plant a core on each map; sixteen defenders actually traverse each map and finish a seven-second defuse. Additional bots do not shorten objective timers.
 - Repeated map switches replace geometry/colliders, refresh cached navigation, remove previous round objects, and update HUD/report labels. Selected map/count are read by normal deployment, retained between rounds, and replaced on a new match.
@@ -59,7 +60,7 @@ GPU rendering, mouse capture, sound playback, frame rate, and cross-browser beha
 2. Serve with `python3 -m http.server 8000` and open `http://localhost:8000`.
 2. Confirm the menu, weapon models, map, and shadows appear without console errors.
 3. Start Easy / Breach. Hold V to inspect each weapon, and compare idle/walk/run/strafe/jump/landing animations. Test mouse capture, Escape / Resume, WASD, crouch, jump, reloading, magazine travel, weapon switching, and muted palette shading.
-4. Open B during buy time; buy armor, close the panel, and confirm the clock resumes.
+4. During buy time, try WASD, Space, Control, and C: position and height must stay fixed, even with the shop closed. Open B, buy armor, and close the panel; confirm the clock resumes and movement stays locked until it reaches zero. Hold W and Space across the transition and confirm movement/jumping unlock.
 5. Shoot a bot's head, then compare controlled bursts with moving fire.
 6. Plant at A and B in separate rounds; interrupt planting and verify progress resets.
 7. Play Contain, let bots plant, eliminate them, then defuse. The planted core must still require defusing after the final enemy dies.

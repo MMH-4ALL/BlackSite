@@ -2,9 +2,11 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## BlackSite — Tactical Operations / v0.6.0
+## BlackSite — Tactical Operations / v0.6.1
 
 An original, open-source tactical FPS for a desktop browser. Three muted tactical maps, two objective sites per map, and offline matches against 1–16 bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
+
+Version 0.6.1 locks walking, strafing, jumping, and crouching during the 12-second buy phase. Look around and buy equipment while waiting; movement unlocks when the live round begins.
 
 Version 0.6.0 adds two original military maps and a saved hostile-count selector. Choose **Operation map** and **Hostile count** on Deploy, then select your role and difficulty. Every integer from 1 to 16 is available; the default is six. A match keeps its selected map/count for all rounds. Returning to the menu and deploying again applies new choices.
 
@@ -49,7 +51,7 @@ Choose your side and difficulty, then click **Deploy to compound**. Your mouse i
 - One human against 1–16 bots (six by default). First to four round wins.
 - Attack: plant at A (solar court) or B (reactor hall), then protect the core.
 - Defend: stop the attackers or defuse their core.
-- Buy phase: 12 seconds. Live round: 90 seconds. Core timer: 40 seconds.
+- Buy phase: 12 seconds, with player movement locked. Live round: 90 seconds. Core timer: 40 seconds.
 - Hold E while stationary: plant in 3 seconds; player defuse in 5 seconds.
 - Defending bots take 7 seconds to defuse. Multiple bots do not accelerate it.
 - Eliminating all attackers does not win a defending round if their core is still active. You must defuse it.

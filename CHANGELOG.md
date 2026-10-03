@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 — Buy-Phase Movement Lock / 3 October 2026
+
+- Walking, strafing, jumping, and crouching are locked throughout the buy phase, including with the shop closed. Leftover velocity is cleared.
+- The countdown, looking around, loadout changes, and shopping remain available. Held movement keys work when the round goes live.
+- Checked every movement input on all three maps and both sides, plus shopping, countdown, bot freezing, and the live-round transition.
+
 ## 0.6.0 — Military Maps & Hostile Counts / 2 October 2026
 
 - Added Bastion Depot and Ironwood Garrison as distinct original military maps; Helix Compound remains available.

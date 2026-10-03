@@ -74,6 +74,38 @@ assert.ok(receiver.material.metalness>.5,'imported PBR materials preserved');
 assert.ok(g.weaponMotion.magazine,'view-model uses separated magazine');
 state.active=true;state.side='attack';g.nextRound();
 assert.equal(state.bots.length,3);assert.equal(state.ammo.rifle.mag,30);
+// Buy time freezes every movement input and clears leftover momentum on every map/side.
+for(const map of Object.keys(MAPS))for(const side of ['attack','defend']){
+ g.loadMap(map);state.side=side;g.nextRound();
+ const origin=player.pos.clone(),height=player.height;
+ for(const pressed of [['KeyW'],['KeyS'],['KeyA'],['KeyD'],['Space'],['ControlLeft'],['KeyC'],['KeyW','KeyD','ShiftLeft','Space','ControlLeft']]){
+  g.keys.clear();pressed.forEach(code=>g.keys.add(code));player.vel.set(3,.5,-4);player.vy=5;
+  for(let i=0;i<10;i++)g.updatePlayer(.04);
+  assert.ok(player.pos.equals(origin),map+'/'+side+' buy phase freezes position');
+  assert.equal(player.height,height,'buy phase freezes crouch height');assert.equal(player.crouch,false);
+  assert.equal(player.vel.length(),0,'buy phase clears all momentum');assert.equal(player.vy,0);assert.equal(player.moving,0);
+ }
+}
+g.keys.clear();g.loadMap('helix');state.side='attack';g.nextRound();
+const buyOrigin=player.pos.clone();
+assert.ok(g.buyItem('armor'),'shopping still works while movement is locked');
+g.keys.add('KeyW');g.keys.add('Space');
+let buyClock=performance.now()+40;
+const buyTime=state.time,botPositions=state.bots.map(b=>b.pos.clone());frame(buyClock);
+assert.ok(state.time<buyTime,'buy countdown keeps ticking');
+assert.ok(state.bots.every((b,i)=>b.pos.equals(botPositions[i])),'bots stay frozen during buy time');
+inputHandlers.get('keydown')({code:'KeyB',repeat:false,preventDefault:noop});
+assert.equal(elements.get('buy').hidden,false,'buy panel can open');assert.equal(state.paused,true);
+const pausedBuyTime=state.time;frame(buyClock+=40);assert.equal(state.time,pausedBuyTime,'shopping retains offline pause behavior');
+elements.get('closeBuy').onclick();inputHandlers.get('pointerlockchange')();
+assert.equal(elements.get('buy').hidden,true);assert.equal(state.paused,false);
+g.keys.add('KeyW');g.keys.add('Space');
+for(let i=0;i<400&&state.phase==='buy';i++){frame(buyClock+=40);assert.ok(player.pos.equals(buyOrigin),'player stays frozen until buy time expires');}
+assert.equal(state.phase,'live','buy countdown starts the live round');
+frame(buyClock+=40);assert.ok(player.pos.distanceTo(buyOrigin)>0,'held movement resumes when round goes live');
+assert.ok(player.pos.y>0&&!player.grounded,'jumping resumes when round goes live');
+g.keys.clear();state.money=3400;g.nextRound();
+console.log('Buy-phase movement lock and live-round release passed.');
 // Presentation must settle and reloading must move and restore the magazine.
 for(let i=0;i<100;i++)g.updateWeaponPresentation(.016);
 const rest=g.gunRoot.position.clone();state.reload=1.1;g.updateWeaponPresentation(.016);

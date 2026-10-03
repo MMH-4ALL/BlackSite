@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
-import { WEAPONS } from './weapons.js?v=0.6.0';
-import { settings, refreshShop, showReport, showView } from './ui.js?v=0.6.0';
-import { weaponAudio, SOUND_BANK } from './audio.js?v=0.6.0';
-import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.6.0';
+import { WEAPONS } from './weapons.js?v=0.6.1';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.6.1';
+import { weaponAudio, SOUND_BANK } from './audio.js?v=0.6.1';
+import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.6.1';
 
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
@@ -258,7 +258,7 @@ function prepareModel(g,targetLength,muted=false){
     o.material=Array.isArray(o.material)?o.material.map(prepare):prepare(o.material);
   }});return wrapper;
 }
-async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.6.0')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);addMapCrates();rebuildNavigation();mapRoot.updateMatrixWorld(true);loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY OPERATION <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The game could not load. Reload the page, or check that the complete game folder is hosted.';}}
+async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.6.1')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);addMapCrates();rebuildNavigation();mapRoot.updateMatrixWorld(true);loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY OPERATION <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The game could not load. Reload the page, or check that the complete game folder is hosted.';}}
 loadMap(settings.map);loadAssets();
 window.addEventListener('blacksite:map',()=>{if(!state.active)loadMap(settings.map);});
 
@@ -398,12 +398,16 @@ function utility(kind){
   else{for(const b of state.bots){const eye=b.pos.clone().add(V(0,1.5,0));if(b.alive&&eye.distanceTo(dest)<16&&!blocked(dest,eye,false))b.blind=4;}const to=dest.clone().sub(camera.position).normalize(),look=V(0,0,-1).applyQuaternion(camera.quaternion);if(camera.position.distanceTo(dest)<14&&!blocked(camera.position,dest,false)&&look.dot(to)>.15)state.flashTime=2.3;tone(1800,.2,'sine',.08);toast('Flash deployed · looking away reduces exposure');}
 }
 function updatePlayer(dt){
-  player.crouch=keys.has('ControlLeft')||keys.has('KeyC');const targetHeight=player.crouch?1.08:1.68;player.height+=(targetHeight-player.height)*Math.min(1,dt*12);
-  const walk=keys.has('ShiftLeft'),speed=(player.crouch?1.65:walk?2.2:4.8)*WEAPONS[state.weapon].speed*(state.scoped?.75:1);
-  let f=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0),r=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0);const length=Math.hypot(f,r)||1;f/=length;r/=length;
-  const tx=(-Math.sin(player.yaw)*f+Math.cos(player.yaw)*r)*speed,tz=(-Math.cos(player.yaw)*f-Math.sin(player.yaw)*r)*speed;
-  const accel=(f||r)?13:19;player.vel.x+=(tx-player.vel.x)*Math.min(1,dt*accel);player.vel.z+=(tz-player.vel.z)*Math.min(1,dt*accel);player.moving=Math.hypot(player.vel.x,player.vel.z);
-  move(player.pos,player.vel.x*dt,player.vel.z*dt);if(keys.has('Space')&&player.grounded&&!player.crouch){player.vy=5;player.grounded=false;}player.vy-=15*dt;player.pos.y=Math.max(0,player.pos.y+player.vy*dt);if(player.pos.y===0){player.grounded=true;player.vy=0;}
+  if(state.phase==='buy'){
+    player.vel.set(0,0,0);player.vy=0;player.moving=0;player.crouch=false;player.grounded=true;
+  }else{
+    player.crouch=keys.has('ControlLeft')||keys.has('KeyC');const targetHeight=player.crouch?1.08:1.68;player.height+=(targetHeight-player.height)*Math.min(1,dt*12);
+    const walk=keys.has('ShiftLeft'),speed=(player.crouch?1.65:walk?2.2:4.8)*WEAPONS[state.weapon].speed*(state.scoped?.75:1);
+    let f=(keys.has('KeyW')?1:0)-(keys.has('KeyS')?1:0),r=(keys.has('KeyD')?1:0)-(keys.has('KeyA')?1:0);const length=Math.hypot(f,r)||1;f/=length;r/=length;
+    const tx=(-Math.sin(player.yaw)*f+Math.cos(player.yaw)*r)*speed,tz=(-Math.cos(player.yaw)*f-Math.sin(player.yaw)*r)*speed;
+    const accel=(f||r)?13:19;player.vel.x+=(tx-player.vel.x)*Math.min(1,dt*accel);player.vel.z+=(tz-player.vel.z)*Math.min(1,dt*accel);player.moving=Math.hypot(player.vel.x,player.vel.z);
+    move(player.pos,player.vel.x*dt,player.vel.z*dt);if(keys.has('Space')&&player.grounded&&!player.crouch){player.vy=5;player.grounded=false;}player.vy-=15*dt;player.pos.y=Math.max(0,player.pos.y+player.vy*dt);if(player.pos.y===0){player.grounded=true;player.vy=0;}
+  }
   camera.position.copy(player.pos).y+=player.height;camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   if(firing)shoot();
   if(state.phase==='live'&&keys.has('KeyE')&&player.grounded&&player.moving<.5){
@@ -447,7 +451,7 @@ function updateHUD(){
   $('reloadTrack').hidden=state.reload<=0;$('reloadTrack').firstElementChild.style.width=(100*(1-state.reload/WEAPONS[state.weapon].reload))+'%';
   $('crosshair').style.setProperty('--gap',(4+player.moving*3+(!player.grounded?12:0)+Math.min(state.shots,10))+'px');
   const nearby=state.plant?player.pos.distanceTo(state.plant.pos)<2.7:inSite(player.pos);
-  $('objective').textContent=state.phase==='buy'?'B · BUY EQUIPMENT / '+state.difficulty.toUpperCase()+' BOTS':state.plant?(state.side==='attack'?'DEFEND THE CORE':nearby?'HOLD E · DEFUSE (5s)':'RETAKE THE SITE · DEFUSE THE CORE'):(state.side==='attack'?(nearby?'HOLD E · PLANT (3s)':'PLANT AT A OR B'):'DEFEND A AND B');
+  $('objective').textContent=state.phase==='buy'?'MOVEMENT LOCKED · B TO BUY / '+state.difficulty.toUpperCase()+' BOTS':state.plant?(state.side==='attack'?'DEFEND THE CORE':nearby?'HOLD E · DEFUSE (5s)':'RETAKE THE SITE · DEFUSE THE CORE'):(state.side==='attack'?(nearby?'HOLD E · PLANT (3s)':'PLANT AT A OR B'):'DEFEND A AND B');
   $('progress').style.display=state.interact>0?'block':'none';$('progress').firstElementChild.style.width=(state.interact/(state.side==='attack'?3:5)*100)+'%';
   $('location').textContent=player.pos.z>18?'APPROACH':player.pos.z<-11?(player.pos.x<0?'A / '+MAPS[state.map].siteNames[0]:'B / '+MAPS[state.map].siteNames[1]):Math.abs(player.pos.x)<8?'MID / SERVICE ROUTE':player.pos.x<0?'WEST ACCESS':'EAST ACCESS';
   $('damage').style.opacity=state.damages;$('flash').style.opacity=Math.min(1,state.flashTime);$('hitmarker').style.opacity=state.hit>0?1:0;$('toast').style.opacity=state.notice>0?1:0;
