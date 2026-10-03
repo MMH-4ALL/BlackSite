@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2 — Paused Buy Countdown / 3 October 2026
+
+- Opening equipment with B preserves all remaining buy time until the shop is closed. The open shop independently blocks simulation updates, including during delayed mouse-capture events.
+- The equipment panel clearly states that the timer is paused. Closing with Return to Game or Escape resumes the countdown without deducting shopping time.
+- Checked thirty seconds of shopping, purchases, repeated visits, delayed mouse-capture events, both close paths, and the live-round transition.
+
 ## 0.6.1 — Buy-Phase Movement Lock / 3 October 2026
 
 - Walking, strafing, jumping, and crouching are locked throughout the buy phase, including with the shop closed. Leftover velocity is cleared.

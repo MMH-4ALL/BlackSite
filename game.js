@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
-import { WEAPONS } from './weapons.js?v=0.6.1';
-import { settings, refreshShop, showReport, showView } from './ui.js?v=0.6.1';
-import { weaponAudio, SOUND_BANK } from './audio.js?v=0.6.1';
-import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.6.1';
+import { WEAPONS } from './weapons.js?v=0.6.2';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.6.2';
+import { weaponAudio, SOUND_BANK } from './audio.js?v=0.6.2';
+import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.6.2';
 
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
@@ -258,7 +258,7 @@ function prepareModel(g,targetLength,muted=false){
     o.material=Array.isArray(o.material)?o.material.map(prepare):prepare(o.material);
   }});return wrapper;
 }
-async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.6.1')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);addMapCrates();rebuildNavigation();mapRoot.updateMatrixWorld(true);loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY OPERATION <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The game could not load. Reload the page, or check that the complete game folder is hosted.';}}
+async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.6.2')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);addMapCrates();rebuildNavigation();mapRoot.updateMatrixWorld(true);loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY OPERATION <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The game could not load. Reload the page, or check that the complete game folder is hosted.';}}
 loadMap(settings.map);loadAssets();
 window.addEventListener('blacksite:map',()=>{if(!state.active)loadMap(settings.map);});
 
@@ -463,7 +463,7 @@ $('start').onclick=startMatch;$('resume').onclick=()=>{ $('pause').hidden=true;l
 $('next').onclick=()=>{if(state.wins===4||state.losses===4)startMatch();else{nextRound();lock();}};
 $('closeBuy').onclick=()=>{$('buy').hidden=true;lock();};
 document.querySelectorAll('[data-buy]').forEach(button=>button.onclick=()=>buyItem(button.dataset.buy));
-document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===$('world');state.paused=!locked;keys.clear();firing=false;if(locked){try{weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));}catch{}if(state.reload>0)weaponAudio.reload(state.weapon,WEAPONS[state.weapon].reload,WEAPONS[state.weapon].reload-state.reload);else if(state.weapon==='sv98'&&state.lastShotWeapon==='sv98'&&state.t-state.lastShot<1.35)weaponAudio.bolt('sv98',state.t-state.lastShot);$('pause').hidden=true;$('buy').hidden=true;}else{weaponAudio.stopHandling();setScoped(false);$('scoreboard').hidden=true;if(state.active&&state.phase!=='ended'&&$('buy').hidden){$('pause').hidden=false;$('resume').focus();}}});
+document.addEventListener('pointerlockchange',()=>{const locked=document.pointerLockElement===$('world'),shopping=!$('buy').hidden;state.paused=!locked||shopping;keys.clear();firing=false;if(locked&&!shopping){try{weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));}catch{}if(state.reload>0)weaponAudio.reload(state.weapon,WEAPONS[state.weapon].reload,WEAPONS[state.weapon].reload-state.reload);else if(state.weapon==='sv98'&&state.lastShotWeapon==='sv98'&&state.t-state.lastShot<1.35)weaponAudio.bolt('sv98',state.t-state.lastShot);$('pause').hidden=true;}else{weaponAudio.stopHandling();setScoped(false);$('scoreboard').hidden=true;if(locked&&shopping)document.exitPointerLock();if(state.active&&state.phase!=='ended'&&!shopping){$('pause').hidden=false;$('resume').focus();}}});
 document.addEventListener('mousemove',e=>{if(document.pointerLockElement!==$('world')||state.paused)return;const sensitivity=settings.sensitivity*(state.scoped?WEAPONS[state.weapon].scope/settings.fov:1);player.yaw-=e.movementX*.002*sensitivity;player.pitch=clamp(player.pitch-e.movementY*.002*sensitivity,-1.45,1.45);weaponMotion.swayX=clamp(weaponMotion.swayX+e.movementX*.00045*sensitivity,-.045,.045);weaponMotion.swayY=clamp(weaponMotion.swayY+e.movementY*.00045*sensitivity,-.035,.035);});
 document.addEventListener('mousedown',e=>{if(state.paused||!state.active)return;if(e.button===0){if(WEAPONS[state.weapon].automatic)firing=true;else shoot();}if(e.button===2)setScoped(!state.scoped);});document.addEventListener('mouseup',()=>firing=false);
 document.addEventListener('contextmenu',e=>{if(state.active)e.preventDefault();});
@@ -473,16 +473,16 @@ document.addEventListener('keydown',e=>{
   if(!state.active)return;if(!state.paused&&['Space','Tab','ControlLeft'].includes(e.code))e.preventDefault();if(e.repeat)return;
   if(e.code==='Escape'&&state.paused&&state.phase!=='ended'){for(const id of ['buy','pause'])$(id).hidden=true;lock();return;}
   if(e.code==='Tab'&&!state.paused){scoreboard();$('scoreboard').hidden=false;return;}
-  if(e.code==='KeyB'&&!state.paused){const spawn=spawnPoint(state.side);if(state.phase==='buy'&&player.pos.distanceTo(spawn)<8){refreshShop(state,player);$('buy').hidden=false;document.exitPointerLock();state.paused=true;$('closeBuy').focus();}else toast('Buy only near spawn during the buy phase');return;}
+  if(e.code==='KeyB'&&!state.paused){const spawn=spawnPoint(state.side);if(state.phase==='buy'&&player.pos.distanceTo(spawn)<8){state.paused=true;keys.clear();firing=false;weaponAudio.stopHandling();setScoped(false);$('scoreboard').hidden=true;refreshShop(state,player,'BUY TIMER PAUSED · Close equipment to resume.');$('buy').hidden=false;document.exitPointerLock();$('closeBuy').focus();}else toast('Buy only near spawn during the buy phase');return;}
   if(state.paused)return;keys.add(e.code);if(e.code==='KeyR')reload();if(e.code==='Digit1')equip(state.primary);if(e.code==='Digit2')equip(state.secondary);if(e.code==='KeyG')utility('smoke');if(e.code==='KeyF')utility('flash');
 });
 document.addEventListener('keyup',e=>{keys.delete(e.code);if(e.code==='Tab')$('scoreboard').hidden=true;});
 window.addEventListener('blur',()=>{keys.clear();firing=false;if(document.pointerLockElement)document.exitPointerLock();});
 window.addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();viewCamera.aspect=camera.aspect;viewCamera.updateProjectionMatrix();});
 let last=performance.now(),menuT=0,beep=0;
-function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/1000,.04);last=now;
+function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/1000,.04),paused=state.paused||!$('buy').hidden;last=now;
   if(!state.active){menuT+=dt;camera.position.set(19+Math.sin(menuT*.07)*2,10,24);camera.lookAt(-2,1,-10);}
-  else if(!state.paused&&state.phase!=='ended'){
+  else if(!paused&&state.phase!=='ended'){
     state.t+=dt;state.cooldown=Math.max(0,state.cooldown-dt);state.notice=Math.max(0,state.notice-dt);state.damages=Math.max(0,state.damages-dt);state.hit=Math.max(0,state.hit-dt);state.flashTime=Math.max(0,state.flashTime-dt);if(state.t-state.lastShot>.25)state.shots=Math.max(0,state.shots-dt*24);
     if(state.reload>0){state.reload-=dt;if(state.reload<=0){state.reload=0;const a=state.ammo[state.weapon],take=Math.min(WEAPONS[state.weapon].capacity-a.mag,a.reserve);a.mag+=take;a.reserve-=take;}}
     updatePlayer(dt);state.time-=dt;
@@ -495,8 +495,8 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/10
     for(let i=smokes.length-1;i>=0;i--){const s=smokes[i];s.life-=dt;s.mesh.scale.setScalar(s.radius*(.15+.85*ease(0,.38,14-s.life)));s.mesh.material.opacity=Math.min(.94,s.life/2);if(s.life<=0){scene.remove(s.mesh);s.mesh.geometry.dispose();s.mesh.material.dispose();smokes.splice(i,1);}}
     for(let i=effects.length-1;i>=0;i--){const e=effects[i];e.life-=dt;if(e.from){const travel=clamp(1-e.life/e.max,0,1);e.mesh.position.lerpVectors(e.from,e.to,travel).y+=Math.sin(travel*Math.PI)*1.1;e.mesh.rotation.x+=dt*12;e.mesh.rotation.z+=dt*7;}if(e.life<=0){scene.remove(e.mesh);e.mesh.traverse(o=>{if(o.isMesh||o.isLine){o.geometry.dispose();if(o.isLine)o.material.dispose();}});effects.splice(i,1);}}
   }
-  if(state.active){updateHUD();radar();const visualDt=state.paused&&state.phase!=='ended'?0:dt;updateWeaponPresentation(visualDt);updateBotPresentation(visualDt);}
-  renderCamera.position.copy(camera.position);renderCamera.quaternion.copy(camera.quaternion);renderCamera.aspect=camera.aspect;renderCamera.fov=state.active?damp(renderCamera.fov,camera.fov,20,state.paused&&state.phase!=='ended'?0:dt):camera.fov;renderCamera.updateProjectionMatrix();
+  if(state.active){updateHUD();radar();const visualDt=paused&&state.phase!=='ended'?0:dt;updateWeaponPresentation(visualDt);updateBotPresentation(visualDt);}
+  renderCamera.position.copy(camera.position);renderCamera.quaternion.copy(camera.quaternion);renderCamera.aspect=camera.aspect;renderCamera.fov=state.active?damp(renderCamera.fov,camera.fov,20,paused&&state.phase!=='ended'?0:dt):camera.fov;renderCamera.updateProjectionMatrix();
   renderer.autoClear=true;renderer.render(scene,renderCamera);if(state.active&&player.health>0&&!state.scoped){renderer.autoClear=false;renderer.clearDepth();renderer.render(viewScene,viewCamera);}
 }
 requestAnimationFrame(frame);

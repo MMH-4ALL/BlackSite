@@ -96,9 +96,25 @@ assert.ok(state.time<buyTime,'buy countdown keeps ticking');
 assert.ok(state.bots.every((b,i)=>b.pos.equals(botPositions[i])),'bots stay frozen during buy time');
 inputHandlers.get('keydown')({code:'KeyB',repeat:false,preventDefault:noop});
 assert.equal(elements.get('buy').hidden,false,'buy panel can open');assert.equal(state.paused,true);
-const pausedBuyTime=state.time;frame(buyClock+=40);assert.equal(state.time,pausedBuyTime,'shopping retains offline pause behavior');
+const pausedBuyTime=state.time,pausedSimulationTime=state.t;
+state.paused=false;frame(buyClock+=40);assert.equal(state.time,pausedBuyTime,'open shop independently freezes countdown');
+inputHandlers.get('pointerlockchange')();
+assert.equal(state.paused,true,'late mouse capture cannot unpause shopping');assert.equal(elements.get('buy').hidden,false,'late mouse capture cannot close equipment');
+document.pointerLockElement=null;inputHandlers.get('pointerlockchange')();
+for(let i=0;i<750;i++)frame(buyClock+=40);
+assert.equal(state.time,pausedBuyTime,'thirty seconds of shopping costs no buy time');assert.equal(state.t,pausedSimulationTime,'shopping freezes simulation time');
+assert.equal(state.phase,'buy');assert.ok(player.pos.equals(buyOrigin));assert.ok(state.bots.every((b,i)=>b.pos.equals(botPositions[i])));
+assert.ok(g.buyItem('smoke'),'purchases still work while countdown is frozen');assert.equal(state.time,pausedBuyTime,'buying costs credits without costing time');
 elements.get('closeBuy').onclick();inputHandlers.get('pointerlockchange')();
 assert.equal(elements.get('buy').hidden,true);assert.equal(state.paused,false);
+frame(buyClock+=40);assert.ok(state.time<pausedBuyTime&&state.time>=pausedBuyTime-.041,'closing resumes without deducting shopping time');
+for(let visit=0;visit<3;visit++){
+ inputHandlers.get('keydown')({code:'KeyB',repeat:false,preventDefault:noop});const remaining=state.time;
+ for(let i=0;i<100;i++)frame(buyClock+=40);
+ assert.equal(state.time,remaining,'each shop visit preserves the remaining buy time');
+ if(visit===2)inputHandlers.get('keydown')({code:'Escape',repeat:false,preventDefault:noop});else elements.get('closeBuy').onclick();
+ inputHandlers.get('pointerlockchange')();assert.equal(state.paused,false);assert.equal(elements.get('buy').hidden,true);
+}
 g.keys.add('KeyW');g.keys.add('Space');
 for(let i=0;i<400&&state.phase==='buy';i++){frame(buyClock+=40);assert.ok(player.pos.equals(buyOrigin),'player stays frozen until buy time expires');}
 assert.equal(state.phase,'live','buy countdown starts the live round');
