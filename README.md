@@ -2,9 +2,11 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## BlackSite — Tactical Operations / v0.6.2
+## BlackSite — Tactical Operations / v0.7.0
 
 An original, open-source tactical FPS for a desktop browser. Three muted tactical maps, two objective sites per map, and offline matches against 1–16 bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
+
+Version 0.7.0 replaces all three block-based maps with new textured military environments: imported brick warehouses, barracks, radio stations, guard towers, corrugated containers, fuel tanks, and Hesco barriers. Asphalt, concrete, and metal use bundled color/normal/roughness maps. Models are CC0 or CC-BY-4.0 with full credits in `assets/environment/LICENSE.md`. Buildings have closed exteriors; objectives and routes stay outside.
 
 Version 0.6.2 preserves the buy countdown whenever equipment is open. Press B to shop for as long as you need; close with Return to Game or Escape to resume from the remaining time.
 
@@ -14,11 +16,11 @@ Version 0.6.0 adds two original military maps and a saved hostile-count selector
 
 | Map | Setting |
 | --- | --- |
-| Helix Compound | Existing desert research compound, solar court, and reactor hall. |
-| Bastion Depot | Fortified supply base with barracks, ammunition bays, blast walls, guard posts, and cargo siding. |
-| Ironwood Garrison | Overcast air station with cargo lanes, a maintenance hangar, helicopter apron, trees, and signal relay. |
+| Helix Compound | Desert communications compound with barracks, radio station, and service warehouse. |
+| Bastion Depot | Military logistics depot with twin warehouses, cargo stacks, fortified cover, and loading yards. |
+| Ironwood Garrison | Overcast motor pool with a central maintenance warehouse, barracks flanks, and signal relay. |
 
-Bots have clear, separated spawns, unique names, routes to both objectives, and local separation while moving. Navigation uses a cached collision grid and staggered route refreshes for larger groups. Map previews come directly from the playable wall, cover, crate, spawn, and site data. These maps are original project geometry, bundled with the source.
+Bots have clear, separated spawns, unique names, routes to both objectives, and local separation while moving. Navigation uses a cached collision grid and staggered route refreshes for larger groups. Menu previews render the actual map meshes and textures with simple CPU lighting; bundled SVG plans come from the playable collision and site data. Layout data is original project work; imported geometry and textures are bundled with their source credits.
 
 This is a **playable prototype**. M4A1, SV98, and M82 models are modified assets by chasieboy317 from Free3D, optimized into four meshes each with original PBR materials and animated magazines. The pistol and crates use Kenney's CC0 Blaster Kit, with a desaturated palette. Map geometry, articulated bot characters, and first-person gloves are original. See `ATTRIBUTION.md` for the separate asset licenses.
 
@@ -143,13 +145,14 @@ audio.js          Cached weapon recordings, playback, timing and cancellation
 game.js           World, gunplay, bots, match rules, controls
 assets/           GLB models, vector UI previews, map plan, local WAVs and licenses
 tools/            Reproducible converters, vector previews and validation
-maps.js           Original map layouts, themes, sites, spawns, and bot-count limits
+maps.js           Original layouts, imported prop placements, collision footprints and sites
+environment.js    Imported environment loading and shared PBR surface materials
 vendor/           Three.js 0.170.0, loader, utility, MIT license
 LICENSE           MIT license for original code
 ATTRIBUTION.md    Third-party sources and licenses
 ```
 
-Edit `DIFFICULTY` in `game.js` and `WEAPONS` in `weapons.js` to tune the game. Edit `buildMap()` for layout. Collision and bot navigation are generated from the solid map boxes. Imported models are replaceable via the weapon metadata; check license and orientation.
+Edit `DIFFICULTY` in `game.js` and `WEAPONS` in `weapons.js` to tune the game. Edit `MAPS` in `maps.js` for layouts. Collision footprints follow solid imported props; bot navigation is rebuilt from those footprints and boundary walls. Imported models are replaceable via the weapon metadata; check license and orientation.
 
 An opt-in `?test` URL exposes local state for development and testing. This is an offline game and it is not designed to prevent players from changing their own client.
 
@@ -165,4 +168,4 @@ and MLA references are in `assets/audio/LICENSE.md`. Run audio checks with
 
 ## Current limits
 
-This release uses procedural articulated bot silhouettes, distinct recorded weapon sounds and synthetic objective cues, procedural visual grenade arcs and smoke expansion, and three compact original maps. It has no online multiplayer, physical grenade collisions, imported skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons and crates; the map and bots remain procedural. See `TESTING.md` for what was checked and what still needs a browser playtest.
+This release uses procedural articulated bot silhouettes, distinct recorded weapon sounds and synthetic objective cues, procedural visual grenade arcs and smoke expansion, and three compact original maps. It has no online multiplayer, physical grenade collisions, imported skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons, crates, buildings, military props, and PBR surface textures. Map arrangements and articulated bots are original. See `TESTING.md` for what was checked and what still needs a browser playtest.

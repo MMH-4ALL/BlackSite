@@ -75,3 +75,11 @@ GPU rendering, mouse capture, sound playback, frame rate, and cross-browser beha
 15. In a match, hold M4A1 fire and compare with single-click pistol/snipers. Confirm the SV98 bolt cycle and directional distant bot fire. Interrupt a reload by switching, pause/resume midway, and end a round while reloading; no canceled cue should play later.
 
 Prototype difficulty values are not competitively balanced. No online multiplayer or synchronization is present.
+
+## v0.7.0 environment validation
+
+- All ten bundled environment GLBs parse with the real Three.js loader: normalized floor origin, unit width, normals, UVs, and referenced JPGs. Texture decoding is stubbed in Node; Pillow decodes the actual textures for CPU scene previews.
+- Solid imported mesh bounds match their rotated collision footprints. Barracks, warehouses, radio station, cargo, barriers, and tanks block actual bullet/vision raycasts.
+- Both sides and 1/3/6/16 bots on all three replacement layouts have clear spawns, connected objectives, and sixteen-bot plant/defuse simulations.
+- Existing buy lock, shopping timer pause, gun/animation/audio regressions pass.
+- CPU scene previews show actual geometry, UVs and textures with simple lighting. GPU rendering, shaders, sound playback and frame rate still require a desktop browser playtest.

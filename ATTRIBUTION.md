@@ -78,3 +78,14 @@ GitHub. “Configuring a Publishing Source for Your GitHub Pages Site.” *GitHu
 ## Original military maps (v0.6.0)
 
 Helix Compound, Bastion Depot, and Ironwood Garrison layout data, procedural scenery, and generated SVG site plans are original project work under the project MIT license. They do not recreate named Counter-Strike or Valorant maps. No new downloaded assets are used for the military scenery; the existing crate model retains its CC0 credit above.
+
+## Textured military environments (v0.7.0)
+
+The three original military layouts have been replaced with new arrangements of
+32kda's CC0 textured warehouse, Yughues/Nobiax's CC0 Hesco barrier, Zsky's CC-BY-4.0
+military buildings/props, and ambientCG CC0 concrete, asphalt, and metal PBR
+textures. Credit: **Zsky — https://www.patreon.com/Zsky**. All source links,
+modifications, license links, preserved author notices, and MLA references are in
+`assets/environment/LICENSE.md`. Original layout/code licensing remains MIT;
+these third-party assets retain their separate licenses. No named CS/Valorant
+map is copied.

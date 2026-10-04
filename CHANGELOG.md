@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 — Textured military environments
+
+- Replaced all three block layouts with new military compounds built around imported textured structures and props.
+- Added brick warehouses, barracks, radio stations, guard towers, corrugated cargo, fuel tanks, and Hesco barriers; all runtime assets are bundled.
+- Added real concrete, asphalt, and metal color/normal/roughness maps, loading pads, road markings, curbs, drains, and perimeter details.
+- Rebuilt matching collision footprints, bullet/vision blockers, bot navigation, objective sites, and tactical plans.
+- Added attributed CC0/CC-BY notices, source hashes, conversion tooling, and actual-scene CPU previews.
+- Preserved 1–16 bots, difficulties, buy movement lock, and shopping timer pause.
+
+
 ## 0.6.2 — Paused Buy Countdown / 3 October 2026
 
 - Opening equipment with B preserves all remaining buy time until the shop is closed. The open shop independently blocks simulation updates, including during delayed mouse-capture events.

@@ -5,33 +5,45 @@ export function normalizeBotCount(value){
   if(!['number','string'].includes(typeof value)||value==='')return DEFAULT_BOTS;
   const n=Number(value);return Number.isFinite(n)?Math.min(MAX_BOTS,Math.max(1,Math.round(n))):DEFAULT_BOTS;
 }
+// Closed imported buildings are solid footprints; sites and routes stay outside.
+const prop=(asset,x,z,w,d,h,turn=0,solid=true)=>({asset,x,z,w,d,h,turn,solid});
+const common=[prop('snipertower',-27,-26,4,4,8,0,false),prop('snipertower',27,25,4,4,8,2,false),...[-22,22].flatMap(x=>[-23,-7,11,25].map(z=>prop('lightpole',x,z,1,1,7,0,false)))];
+function map(data){
+  data.props.push(...common);
+  // Every solid prop has one matching axis-aligned footprint after rotation.
+  data.covers=data.props.filter(p=>p.solid).map(p=>[p.x,p.z,p.turn%2?p.d:p.w,p.turn%2?p.w:p.d,p.h]);
+  return data;
+}
 export const MAPS=Object.freeze({
-  helix:{id:'helix',number:'01',tag:'HELIX',name:'Helix Compound',subtitle:'Restricted territory.',theme:'Desert research facility',
-    description:'Solar court, reactor hall, and three connecting routes.',image:'helix-map.svg',
-    palette:{sky:0xb3aca0,ground:0x948771,floor:0x8f8c80,wall:0x9e9889,trim:0x656b67,cover:0x676d60},
-    sites:[[-15,-18],[15,-18]],siteNames:['SOLAR COURT','REACTOR HALL'],spawns:{attack:[0,26],defend:[-3,-26]},
-    botAnchors:{attack:[[-14,-24],[14,-24],[0,-16]],defend:[[-15,25],[0,25],[15,25]]},
-    patrol:[[-16,-12],[16,-12],[0,-4],[-16,9],[16,9]],
-    walls:[[-8,7,1,20,4.4],[8,7,1,20,4.4],[-8,-15,1,12,4.4],[8,-15,1,12,4.4],[-16,16,9,1,4.4],[16,16,9,1,4.4],[0,-9,9,1,4.4],[-16,-8,9,1,4.4],[16,-8,9,1,4.4],[0,18,7,1,4.4]],
-    covers:[[-16,-19,3,3,2.3],[15,-19,3,3,2.3],[-18,4,3,3,1.5],[18,3,3,3,1.5],[-3,1,2,3,2.2],[3,-4,2,2,1.4],[-18,-2,2,2,2],[13,9,2,2,2],[0,-22,4,2,2.1]],
-    crates:[[-21,12],[21,12],[-11,-26],[11,-26]]},
-  bastion:{id:'bastion',number:'02',tag:'BASTION',name:'Bastion Depot',subtitle:'Secure the stockpile.',theme:'Fortified military supply base',
-    description:'Blast walls, barracks, ammunition bunkers, and an exposed supply yard.',image:'bastion-map.svg',
-    palette:{sky:0xa9a38f,ground:0x8e836d,floor:0x898779,wall:0x858776,trim:0x484f47,cover:0x58604f},
-    sites:[[-16,-18],[15,-18]],siteNames:['AMMUNITION BUNKER','COMMAND YARD'],spawns:{attack:[0,26],defend:[-3,-26]},
-    botAnchors:{attack:[[-16,-25],[16,-25],[0,-20]],defend:[[-16,25],[0,25],[16,25]]},
-    patrol:[[-16,7],[15,2],[0,15],[-15,-12],[16,-16]],
-    walls:[[-9,3,1,22,3.8],[9,11,1,14,3.8],[-20,14,4,1,3.4],[-12,14,4,1,3.4],[-21,7,1,13,3.4],[-16,1,10,1,3.4],[0,-1,10,1,3.1],[5,-12,1,16,3.8],[-9,-19,1,12,3.8],[17,-9,11,1,3.4]],
-    covers:[[-3,12,4,.8,.9],[15,2,4,8,2.5],[-17,-17,3,2,1.3],[15,-20,4,2,1.5],[1,-14,3,3,2.2],[-15,20,2,3,1.5],[16,18,3,4,1.7],[11,-16,3,.9,.9]],
-    crates:[[-18,5],[-14,9],[18,-14],[-3,-22]]},
-  ironwood:{id:'ironwood',number:'03',tag:'IRONWOOD',name:'Ironwood Garrison',subtitle:'Retake the forward base.',theme:'Overcast military air station',
-    description:'Cargo lanes, a maintenance hangar, motor pool, and helicopter apron.',image:'ironwood-map.svg',
-    palette:{sky:0x88928b,ground:0x647061,floor:0x737d73,wall:0x626f64,trim:0x35443e,cover:0x45584a},
-    sites:[[-16,-19],[16,-19]],siteNames:['SIGNAL RELAY','MAINTENANCE HANGAR'],spawns:{attack:[0,26],defend:[-3,-26]},
-    botAnchors:{attack:[[-16,-26],[16,-26],[0,-22]],defend:[[-16,25],[0,25],[16,25]]},
-    patrol:[[-15,19],[5,12],[17,1],[-15,-14],[16,-16]],
-    walls:[[-5,14,1,18,4],[13,3,1,20,4],[-18,5,6,1,3.8],[-10,5,4,1,3.8],[-20,-2,1,13,3.8],[0,-6,14,1,4],[-9,-15,1,12,4],[10,-23,1,12,4],[17,-10,12,1,4]],
-    covers:[[-15,-1,4,9,2.6],[4,6,3.6,8,2.6],[-17,-18,3,3,1.7],[17,-20,4,3,1.8],[17,17,3,5,1.7],[2,-18,3,3,2],[-11,11,2,3,1.3],[18,-3,2,.8,.9]],
-    crates:[[-18,9],[8,13],[17,-15],[-3,-24]]}
+  helix:map({id:'helix',number:'01',tag:'HELIX',name:'Helix Compound',subtitle:'Restricted territory.',theme:'Desert communications facility',
+    description:'Barracks lanes, a fortified radio station, and a brick service warehouse.',image:'helix-map.svg',preview:'environment/helix-scene.jpg',
+    palette:{sky:0xb3afa4,ground:0x8e8875,floor:0x909386,wall:0xa0a394,trim:0x59615a,cover:0x6a7464},
+    sites:[[-15,-18],[15,-18]],siteNames:['SIGNAL COURT','SERVICE YARD'],spawns:{attack:[0,26],defend:[-3,-26]},
+    botAnchors:{attack:[[-15,-25],[15,-25],[0,-24]],defend:[[-15,25],[0,25],[15,25]]},
+    patrol:[[-16,-12],[16,-12],[0,13],[-16,15],[16,15]],
+    walls:[[-4,12,6,.7,2.8],[8,-15,.7,7,3.2],[-16,-8,8,.7,2.8]],crates:[[-21,18],[21,-25],[-20,-23]],
+    props:[prop('quarter',-15,3,12,7,4.3),prop('warehouse',16,4,11,15,5),prop('radiostation',0,-5,9,7,8.4),
+      prop('container_01',-16,15,7,2.5,2.5),prop('container_01',7,15,7,2.5,2.5,1),prop('hesco',-18,-18,3,1.6,1.4),prop('hesco',17,-18,3,1.6,1.4),
+      prop('gastank',0,-19,5,2.6,2.6),prop('gatekeeperstation',-15,32,5,5,3.6,0,false),prop('quarter',-34,7,16,9,5,0,false),prop('warehouse',35,-15,17,23,7,0,false)]}),
+  bastion:map({id:'bastion',number:'02',tag:'BASTION',name:'Bastion Depot',subtitle:'Secure the stockpile.',theme:'Fortified military logistics depot',
+    description:'Two brick warehouses, corrugated cargo stacks, and fortified loading yards.',image:'bastion-map.svg',preview:'environment/bastion-scene.jpg',
+    palette:{sky:0xaaa99e,ground:0x838677,floor:0x858b83,wall:0x989e91,trim:0x535e54,cover:0x66725d},
+    sites:[[-16,-19],[16,-19]],siteNames:['ORDNANCE YARD','FUEL DEPOT'],spawns:{attack:[0,26],defend:[-3,-26]},
+    botAnchors:{attack:[[-16,-26],[16,-26],[0,-24]],defend:[[-16,25],[0,25],[16,25]]},
+    patrol:[[-16,17],[16,17],[0,13],[-16,-14],[16,-14]],
+    walls:[[0,10,6,.7,2.8],[0,-16,6,.7,2.8]],crates:[[-20,-26],[20,-26],[-4,19],[4,19]],
+    props:[prop('warehouse',-16,2,10,17,4.8),prop('warehouse',16,4,10,17,4.8),prop('container_01',-5,-5,7,2.5,2.5,1),prop('container_01',5,0,7,2.5,2.5,1),
+      prop('container_01',-16,17,7,2.5,2.5),prop('container_01',16,19,7,2.5,2.5),prop('hesco',-18,-18,3,1.6,1.4),prop('hesco',18,-18,3,1.6,1.4),prop('gastank',15,-25,5,2.6,2.6),
+      prop('quarter',0,36,18,10,5,0,false),prop('warehouse',-35,-13,17,28,7,0,false),prop('warehouse',36,0,19,28,8,0,false)]}),
+  ironwood:map({id:'ironwood',number:'03',tag:'IRONWOOD',name:'Ironwood Garrison',subtitle:'Retake the forward base.',theme:'Overcast military motor pool',
+    description:'A central maintenance warehouse, guardhouse flank, and radio relay yard.',image:'ironwood-map.svg',preview:'environment/ironwood-scene.jpg',
+    palette:{sky:0x929b95,ground:0x667268,floor:0x7f8a80,wall:0x89988c,trim:0x45594b,cover:0x566b55},
+    sites:[[-16,-19],[16,-19]],siteNames:['SIGNAL RELAY','MOTOR POOL'],spawns:{attack:[0,26],defend:[-3,-26]},
+    botAnchors:{attack:[[-16,-26],[16,-26],[0,-24]],defend:[[-16,25],[0,25],[16,25]]},
+    patrol:[[-16,17],[16,17],[-16,-13],[16,-13],[0,-19]],
+    walls:[[-12,10,.7,5,3.1],[12,-11,.7,5,3.1]],crates:[[-20,22],[20,22],[-4,-23],[4,-23]],
+    props:[prop('warehouse',0,1,13,17,5.5),prop('quarter',-17,-2,8,6,3.8),prop('quarter',17,-3,6,4.5,3.3),prop('radiostation',-16,-27,6,4.2,6),
+      prop('container_01',16,12,7,2.5,2.5),prop('container_01',-16,17,7,2.5,2.5),prop('hesco',-18,-18,3,1.6,1.4),prop('hesco',18,-18,3,1.6,1.4),prop('gastank',17,-11,4,2.5,2.5),
+      prop('warehouse',34,-13,17,25,7,0,false),prop('quarter',-34,1,18,10,5,0,false),prop('snipertower',27,-25,4,4,8,0,false),prop('gatekeeperstation',7,35,5,5,3.3,0,false)]})
 });
 export function mapKey(value){return Object.hasOwn(MAPS,value)?value:'helix';}

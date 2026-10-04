@@ -21,6 +21,23 @@ assert.ok(rifleAsset.scene.getObjectByName('Magazine'),'magazine available for a
 let triangles=0;rifleAsset.scene.traverse(o=>{if(o.isMesh){triangles+=o.geometry.index.count/3;const n=o.geometry.attributes.normal;assert.ok(n.normalized);for(let i=0;i<n.count;i++)assert.ok(Math.abs(Math.hypot(n.getX(i),n.getY(i),n.getZ(i))-1)<.02,'unit normals');}});
 assert.equal(triangles,32980);assert.ok(rifleBytes.length<900000);
 const actualAssets={m4a1:rifleAsset};
+const environmentSource=fs.readFileSync('./environment.js','utf8').replace("from 'three'",`from '${engineURL}'`);
+const {loadEnvironment,textureBox,placeEnvironment,ENVIRONMENT_ASSETS}=await import(moduleURL(environmentSource));
+// Decode checks use Pillow in the conversion step; the Node loader checks real
+// geometry/UVs/materials with texture decoding replaced (there is no DOM/GPU).
+RealThree.TextureLoader.prototype.loadAsync=async function(path){
+ assert.ok(fs.existsSync(path.split('?')[0]),'bundled surface texture exists');const t=new RealThree.Texture();t.userData.file=path.split('?')[0];return t;
+};
+for(const name of ENVIRONMENT_ASSETS){
+ const bytes=fs.readFileSync('./assets/environment/'+name+'.glb');
+ const loader=new RealLoader().register(parser=>({name:'local-test-textures',loadTexture(index){
+  const uri=parser.json.images[parser.json.textures[index].source].uri;
+  assert.ok(fs.existsSync('./assets/environment/'+uri));const t=new RealThree.Texture();t.flipY=false;t.userData.file='./assets/environment/'+uri;return Promise.resolve(t);
+ }}));
+ const asset=await loader.parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');actualAssets[name]=asset;
+ const bounds=new RealThree.Box3().setFromObject(asset.scene);assert.ok(Math.abs(bounds.min.y)<1e-5,'environment stands at Y=0');assert.ok(Math.abs(bounds.max.x-bounds.min.x-1)<1e-5,'unit width');
+ asset.scene.traverse(o=>{if(o.isMesh){assert.ok(o.geometry.attributes.uv,'textured environment UVs');assert.ok(o.geometry.attributes.normal);}});
+}
 for(const name of ['sv98','m82']){
  const bytes=fs.readFileSync('./assets/'+name+'.glb');
  const asset=await new RealLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');actualAssets[name]=asset;
@@ -63,11 +80,13 @@ const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
 const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:3};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
-new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio','SOUND_BANK','MAPS','mapKey','normalizeBotCount',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount);
+new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio','SOUND_BANK','MAPS','mapKey','normalizeBotCount','loadEnvironment','textureBox','placeEnvironment',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment);
 await new Promise(r=>setTimeout(r,0));
 console.log('Checking integrated gameplay...');
 const g=window.__game,{state,player}=g;
 assert.ok(g.models.rifle,'async asset integration completed');
+assert.equal(Object.keys(g.environment.models).length,10,'all imported environment templates loaded');
+assert.ok(g.environment.surfaces.asphalt.map&&g.environment.surfaces.asphalt.normalMap&&g.environment.surfaces.asphalt.roughnessMap,'real PBR ground textures');
 assert.ok(g.models.sv98&&g.models.m82,'both new Free3D models load into the game');
 const receiver=g.models.rifle.getObjectByName('Receiver');
 assert.ok(receiver.material.metalness>.5,'imported PBR materials preserved');
@@ -131,7 +150,7 @@ assert.ok(g.gunRoot.position.distanceTo(rest)<.006);assert.equal(g.weaponMotion.
 assert.equal(state.ammo.rifle.mag,30,'presentation never changes ammunition');
 g.equip('pistol');assert.equal(g.weaponMotion.magazine,null);g.equip('rifle');
 for(const p of [[-15,-18],[15,-18],[0,-24]]){const path=g.pathTo(player.pos,new THREE.Vector3(p[0],0,p[1]));assert.ok(path.length>10,'route exists');assert.ok(path.every(p=>g.canStand(p.x,p.z,.43)),'route stays out of walls');assert.ok(path.at(-1).distanceTo(new THREE.Vector3(p[0],0,p[1]))<4.5,'route reaches objective radius');}
-assert.ok(!g.canStand(24,0));assert.ok(!g.canStand(-8,7));
+assert.ok(!g.canStand(24,0));assert.ok(!g.canStand(-15,3),'imported barracks blocks movement');
 state.phase='live';state.paused=false;
 // Make a stationary, isolated headshot on an actual Three.js scene/raycaster.
 const b=state.bots[0];b.pos.set(0,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
@@ -141,7 +160,7 @@ assert.equal(b.alive,false,'rifle headshot kills armored bot');assert.equal(stat
 assert.equal(state.headshots,1);assert.equal(state.shotsFired,1);assert.equal(state.hits,1);
 g.updateBotPresentation(.04);assert.ok(b.rig.rotation.x<0,'corpse settles through the visual rig');
 // Smoke occludes shared visibility queries.
-state.smoke=1;g.utility('smoke');assert.equal(state.smoke,0);assert.equal(g.blocked(new THREE.Vector3(0,1,25),new THREE.Vector3(0,1,20)),true);
+state.smoke=1;g.utility('smoke');assert.equal(state.smoke,0);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14),false),false);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14)),true);
 // Attackers can navigate from spawn to a plant with player perception disabled.
 state.side='defend';g.nextRound();state.phase='live';g.camera.position.set(0,80,0);g.scene.updateMatrixWorld(true);
 for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateBots(.04);g.scene.updateMatrixWorld(true);}
@@ -278,6 +297,7 @@ const mapWallSignatures=new Set();
 for(const [key,m] of Object.entries(MAPS)){
  g.loadMap(key);assert.equal(state.map,key);assert.equal(state.bots.length,0);assert.ok(g.siteA.equals(new THREE.Vector3(m.sites[0][0],0,m.sites[0][1])));
  assert.equal(g.walls.length,4+m.walls.length+m.covers.length+m.crates.length,'map collider arrays are replaced, not accumulated');
+ for(const prop of m.props.filter(p=>p.solid)){assert.equal(g.canStand(prop.x,prop.z),false,key+' imported footprint blocks movement');const imported=g.mapRoot.children.find(o=>o.name===prop.asset&&Math.abs(o.position.x-prop.x)<.01&&Math.abs(o.position.z-prop.z)<.01);assert.ok(imported);const bounds=new THREE.Box3().setFromObject(imported),size=bounds.getSize(new THREE.Vector3());assert.ok(Math.abs(size.x-(prop.turn%2?prop.d:prop.w))<.001&&Math.abs(size.z-(prop.turn%2?prop.w:prop.d))<.001,'mesh bounds match collision footprint');assert.equal(g.blocked(new THREE.Vector3(prop.x-size.x/2-1,1,prop.z),new THREE.Vector3(prop.x+size.x/2+1,1,prop.z),false),true,key+'/'+prop.asset+' imported cover blocks bullets/vision');}
  mapWallSignatures.add(JSON.stringify(g.walls));const geometryCount=g.mapRoot.children.length;g.loadMap(key);assert.equal(g.mapRoot.children.length,geometryCount,'repeated loading does not stack map objects');
  for(const side of ['attack','defend'])for(const count of [1,3,6,16]){
   state.side=side;state.botCount=count;g.nextRound();assert.equal(state.bots.length,count);assert.ok(g.canStand(player.pos.x,player.pos.z,.43),key+' '+side+' clear player spawn');
@@ -343,4 +363,20 @@ if(process.env.BLACKSITE_ANIMATION_EXPORT){
   frames.push({weapon:capture(g.gunRoot),bot:capture(bot.rig),weaponCamera:{view:g.viewCamera.matrixWorldInverse.toArray(),projection:g.viewCamera.projectionMatrix.toArray()},botCamera:{view:camera.matrixWorldInverse.toArray(),projection:camera.projectionMatrix.toArray()}});
  }
  fs.writeFileSync(process.env.BLACKSITE_ANIMATION_EXPORT,JSON.stringify({geometries,frames}));
+}
+
+if(process.env.BLACKSITE_MAP_EXPORT){
+ const geometryIds=new Map(),geometries=[],maps=[];
+ for(const [key,m] of Object.entries(MAPS)){
+  g.loadMap(key);g.mapRoot.updateMatrixWorld(true);const meshes=[];
+  g.mapRoot.traverse(o=>{if(!o.isMesh||!o.visible)return;const material=o.material;if(Array.isArray(material))throw new Error('preview requires per-primitive meshes');
+   if(!geometryIds.has(o.geometry)){const p=o.geometry.attributes.position,n=o.geometry.attributes.normal,uv=o.geometry.attributes.uv;const read=(a,dim)=>Array.from({length:a.count},(_,i)=>Array.from({length:dim},(_,k)=>[a.getX,a.getY,a.getZ][k].call(a,i)));geometryIds.set(o.geometry,geometries.length);geometries.push({positions:read(p,3),normals:n?read(n,3):null,uv:uv?read(uv,2):null,indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:p.count},(_,i)=>i)});}
+   if(material.map?.isCanvasTexture)return;
+   meshes.push({geometry:geometryIds.get(o.geometry),matrix:o.matrixWorld.toArray(),color:material.color.toArray(),texture:material.map?.userData.file,flipY:material.map?.flipY??true,repeat:material.map?.repeat.toArray()??[1,1]});
+  });
+  const overview=new THREE.OrthographicCamera(-42,42,30,-30,.1,240);overview.position.set(52,68,70);overview.lookAt(0,0,-1);overview.updateMatrixWorld(true);
+  const street=new THREE.PerspectiveCamera(72,16/9,.1,180);street.position.set(key==='ironwood'?12:7,1.8,22);street.lookAt(key==='ironwood'?16:10,2,-7);street.updateMatrixWorld(true);
+  maps.push({key,name:m.name,sky:new THREE.Color(m.palette.sky).toArray(),meshes,overview:{view:overview.matrixWorldInverse.toArray(),projection:overview.projectionMatrix.toArray()},street:{view:street.matrixWorldInverse.toArray(),projection:street.projectionMatrix.toArray()}});
+ }
+ fs.writeFileSync(process.env.BLACKSITE_MAP_EXPORT,JSON.stringify({geometries,maps}));
 }

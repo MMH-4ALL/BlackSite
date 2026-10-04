@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
-import { WEAPONS } from './weapons.js?v=0.6.2';
-import { settings, refreshShop, showReport, showView } from './ui.js?v=0.6.2';
-import { weaponAudio, SOUND_BANK } from './audio.js?v=0.6.2';
-import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.6.2';
+import { WEAPONS } from './weapons.js?v=0.7.0';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.7.0';
+import { weaponAudio, SOUND_BANK } from './audio.js?v=0.7.0';
+import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.7.0';
+import { loadEnvironment, textureBox, placeEnvironment } from './environment.js?v=0.7.0';
 
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
@@ -46,6 +47,7 @@ function setScoped(value){state.scoped=!!value&&!!WEAPONS[state.weapon].scope&&s
 const sun=new THREE.DirectionalLight(0xffe9c1,3.3);sun.position.set(-24,37,15);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-40,right:40,top:40,bottom:-40,near:1,far:100});sun.shadow.bias=-.0004;scene.add(sun);
 scene.add(new THREE.HemisphereLight(0xd1d5cd,0x665e4b,1.6));
+let environment=null;
 const matCache=new Map();
 function mat(color,roughness=.88){const k=color+':'+roughness;if(!matCache.has(k))matCache.set(k,new THREE.MeshStandardMaterial({color,roughness}));return matCache.get(k);}
 function box(x,y,z,w,h,d,color,solid=false,parent=mapRoot){const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);if(solid){walls.push({x,z,w,d,minY:y-h/2,maxY:y+h/2});hitWalls.push(mesh);}return mesh;}
@@ -56,72 +58,20 @@ function sign(text,x,y,z,rot=0,width=3,height=1,color='#c7c1ac'){
   const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
   const m=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshStandardMaterial({map:tex,roughness:1}));m.userData.ownMaterial=true;m.userData.ownTexture=true;m.position.set(x,y,z);m.rotation.y=rot;mapRoot.add(m);return m;
 }
-function concreteTexture(){
-  const canvas=document.createElement('canvas');canvas.width=canvas.height=256;const ctx=canvas.getContext('2d');ctx.fillStyle='#ededeb';ctx.fillRect(0,0,256,256);
-  let seed=721;const random=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
-  for(let i=0;i<5500;i++){const shade=205+Math.floor(random()*44);ctx.fillStyle=`rgb(${shade},${shade},${shade})`;ctx.fillRect(random()*256,random()*256,1+random()*2,1+random()*2);}
-  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(6,6);texture.anisotropy=4;return texture;
-}
-const concrete=concreteTexture(),floorTexture=concrete.clone();floorTexture.repeat.set(32,40);
-function weathered(mesh,floor=false){mesh.material=mesh.material.clone();mesh.userData.ownMaterial=true;mesh.material.map=floor?floorTexture:concrete;mesh.material.roughness=.96;return mesh;}
 const siteA=V(-15,0,-18),siteB=V(15,0,-18);
-function buildHelixDetails(){
-  // Reactor hall beams, upper clerestory, rooftop service units.
-  box(16,5.2,-18,14,.35,20,0x737b77);
-  [-23,-12].forEach(z=>[-22,10,22].forEach(x=>box(x,2.6,z,.28,5.2,.28,0x535e5b)));
-  box(16,6.1,-20,7,1.5,4,0x5d6664);box(16,7,-20,6,.3,3,0x384345);
-  for(let z=-27;z<25;z+=4){box(-23.4,1.1,z,.06,.09,2,0x655b47);box(23.4,1.1,z,.06,.09,2,0x655b47);}
-  // Solar canopy and panel divisions.
-  for(let x=-21;x<-10;x+=3.8){box(x,3.8,-26,3.5,.16,5,0x343f45);for(let z=-28;z<-23;z+=.6)box(x,3.89,z,3.5,.02,.03,0x718084);box(x,1.8,-27,.15,3.6,.15,0x505b59);}
-  sign('HELIX / RESEARCH',0,3.4,-29.44,0,7,1.1);sign('01  /  SOLAR',-23.44,3,-13,Math.PI/2,5,.8);sign('02  /  REACTOR',23.44,3,-13,-Math.PI/2,5,.8);
-  sign('AUTHORIZED PERSONNEL',0,2.6,18.56,0,3,.48);
-  [-21,21].forEach(x=>{cylinder(x,1,-25,.65,2,0x7d7a69);cylinder(x,1,-23,.65,2,0x7d7a69);});
-  for(let z=-26;z<26;z+=8){box(-23.4,4.5,z,.15,.25,1.4,0xb6ad84);box(23.4,4.5,z,.15,.25,1.4,0xb6ad84);}
-  // Desert backdrop: low geometry, stable across runs.
-  for(let i=0;i<25;i++){const a=i*.68,r=55+(i%4)*8;const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(1,0),mat(i%2?0x9b8a70:0x877d67));rock.position.set(Math.cos(a)*r,2,Math.sin(a)*r);rock.scale.set(6+i%5,5+i%8,7+i%3);rock.rotation.set(.2*i,i,.3);mapRoot.add(rock);}
-  for(let i=0;i<12;i++)box(-22+i*4,.014,26,1.8,.02,.12,0xb9ad85);
-}
-function roof(x,z,w,d,y,color){const mesh=box(x,y,z,w,.22,d,color);hitWalls.push(mesh);return mesh;}
-function tower(x,z,color){
-  for(const dx of [-.65,.65])for(const dz of [-.65,.65])box(x+dx,2.8,z+dz,.16,5.6,.16,color);
-  box(x,5.6,z,2,.25,2,color);box(x,6.8,z,2.5,.2,2.5,color);
-  for(const dx of [-.9,.9])box(x+dx,6.15,z,.10,1,.10,color);
-  box(x,6,z-.9,1.9,.65,.08,0x4d594b);cylinder(x,7.35,z,.04,1,0x38443b);
-}
-function sandbags(x,z,w,color){
-  for(let row=0;row<2;row++)for(let i=0;i<Math.floor(w/.6);i++){const mesh=box(x-w/2+.32+i*.6+(row?.13:0),.24+row*.35,z,.57,.33,.7,color);mesh.rotation.y=(i%2?.035:-.035);}
-}
-function radarDish(x,z){
-  cylinder(x,1.6,z,.09,3.2,0x37463e);box(x,1,z,1.2,1.6,1.2,0x596653);
-  const dish=new THREE.Mesh(new THREE.SphereGeometry(.9,16,8,0,Math.PI*2,0,Math.PI/2),mat(0x778270));dish.position.set(x,3.4,z);dish.rotation.x=.8;mapRoot.add(dish);
-  box(x,3.6,z,.06,1.2,.06,0x39483f);
-}
-function buildBastionDetails(){
-  // Barracks with a doorway, covered ammo bays, guard posts, and cargo siding.
-  roof(-16,7,12,13,3.65,0x50594a);roof(-16,-23,12,8,3.9,0x4b5347);
-  for(const x of [-20,-12])box(x,2,13.44,1.2,1.2,.04,0x1e2a26);
-  sign('BARRACKS / 04',-16,2.8,14.53,0,4,.6);sign('ORDNANCE / A',-16,2.9,-29.44,0,6,.8);
-  sign('BASTION / SUPPLY COMMAND',1,2.1,-29.44,0,8,.7);sign('COMMAND / B',19,2.8,-9.55,Math.PI,4,.65);
-  tower(-25.8,-26,0x485348);tower(25.8,24,0x485348);
-  sandbags(-3,12,4,0x8b8870);sandbags(11,-16,3,0x8b8870);
-  for(const x of [13.1,16.9])for(let z=-1.5;z<6;z+=.55)box(x,1.3,z,.03,2.4,.06,0x3a493d);
-  // Parked armored utility truck is contained by the cover's collision box.
-  box(16,1.65,17.5,2.5,.75,2.5,0x4b5849);box(16,1.87,18.8,2,.3,.06,0x24322c);
-  for(const x of [14.7,17.3])for(const z of [16.8,19.2]){const tire=cylinder(x,.46,z,.42,.2,0x26312b);tire.rotation.z=Math.PI/2;}
-  radarDish(27,-19);
-  for(let i=0;i<18;i++){const a=i*.76;const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(1,0),mat(0x877c64));rock.position.set(Math.cos(a)*58,1,Math.sin(a)*62);rock.scale.set(7,4+i%3,8);mapRoot.add(rock);}
-}
-function buildIronwoodDetails(){
-  roof(-15,-2,12,13,4.15,0x354b40);roof(17,-20,13,18,4.6,0x3e5147);
-  for(const x of [12,22])box(x,2,-10.55,.45,4,.5,0x394c41);
-  sign('IRONWOOD / AIR STATION',-1,2.2,-29.44,0,8,.7);sign('SIGNAL RELAY / A',-17,2.9,-29.44,0,7,.7);sign('MAINTENANCE / B',17,3.2,-10.56,Math.PI,6,.8);
-  tower(-25.8,24,0x35473d);tower(25.8,-25,0x35473d);radarDish(-26,-20);
-  for(const [x,z,w,d,h] of MAPS.ironwood.covers.filter(c=>c[3]>=8))for(let a=-w/2+.25;a<w/2;a+=.45)box(x+a,h/2,z+d/2+.025,.03,h-.12,.035,0x2e4539);
-  const ring=new THREE.Mesh(new THREE.RingGeometry(3.4,3.52,48),mat(0xa2ac92));ring.rotation.x=-Math.PI/2;ring.position.set(-15,.018,19);mapRoot.add(ring);
-  box(-15,.025,19,2,.02,.24,0xa2ac92);box(-15.9,.025,19,.24,.02,2,0xa2ac92);box(-14.1,.025,19,.24,.02,2,0xa2ac92);
-  box(17,1.6,17,2.6,.55,3.9,0x405748);box(17,1.87,18,2.3,.2,.05,0x263c31);
-  sandbags(18,-3,2,0x788575);
-  for(let i=0;i<24;i++){const a=i*.68,r=45+i%4*6,x=Math.cos(a)*r,z=Math.sin(a)*r;cylinder(x,2,z,.22,4,0x3d4f40);const tree=new THREE.Mesh(new THREE.ConeGeometry(2.6,8+i%3,7),mat(i%2?0x344a3c:0x3d5140));tree.position.set(x,6,z);mapRoot.add(tree);}
+function surface(x,y,z,w,h,d,kind='concrete',solid=false){const mesh=box(x,y,z,w,h,d,0x949b8f,solid);return environment?textureBox(mesh,environment.surfaces[kind]):mesh;}
+function buildEnvironment(m){
+  // Keep staging lanes legible with curbs, loading pads, markings and drains.
+  for(const x of [-16,16])surface(x,-.015,-19,12,.05,13,'concrete');
+  for(const x of [-22,22]){surface(x,.08,0,.3,.16,58,'concrete');for(let z=-25;z<27;z+=3)box(x,.165,z,.31,.02,.8,0xaaa994);}
+  for(let z=-25;z<28;z+=5)box(0,.013,z,.12,.018,2,0xa2a693);
+  for(const z of [-28,23]){surface(0,.011,z,9,.025,.32,'metal');for(let x=-4.3;x<4.4;x+=.2)box(x,.032,z,.045,.015,.28,0x3e4941);}
+  for(const x of [-23.4,23.4])for(let z=-28;z<29;z+=4){surface(x,3.6,z,.10,1.2,.10,'metal');surface(x,3.75,z+2,.04,.04,4,'metal');surface(x,4.1,z+2,.04,.04,4,'metal');}
+  if(environment)placeEnvironment(mapRoot,environment,m.props,hitWalls);
+  for(const p of m.props.filter(p=>p.solid)){walls.push({x:p.x,z:p.z,w:p.turn%2?p.d:p.w,d:p.turn%2?p.w:p.d,minY:0,maxY:p.h});}
+  sign(m.tag+' / MILITARY OPERATIONS',0,2.4,-29.44,0,9,.8);
+  sign('RESTRICTED AREA',0,2.4,29.44,Math.PI,7,.8);
+  for(let i=0;i<18;i++){const angle=i*Math.PI*2/18,r=70+i%3*6,rock=new THREE.Mesh(new THREE.DodecahedronGeometry(1,0),mat(m.palette.ground));rock.position.set(Math.cos(angle)*r,1,Math.sin(angle)*r);rock.scale.set(7,3+i%3,9);mapRoot.add(rock);}
 }
 function addMapCrates(){if(!models.crate)return;for(const [x,z] of MAPS[state.map].crates){const m=models.crate.clone(true);m.position.set(x,.9,z);mapRoot.add(m);walls.push({x,z,w:1.8,d:1.8});m.traverse(o=>{if(o.isMesh)hitWalls.push(o);});}}
 function loadMap(key){
@@ -129,13 +79,11 @@ function loadMap(key){
   mapRoot.traverse(o=>{if(o.isMesh&&!o.userData.asset){o.geometry.dispose();if(o.userData.ownMaterial){if(o.userData.ownTexture)o.material.map.dispose();o.material.dispose();}}});mapRoot.clear();walls.length=0;hitWalls.length=0;
   state.map=mapKey(key);const m=MAPS[state.map],p=m.palette;siteA.set(m.sites[0][0],0,m.sites[0][1]);siteB.set(m.sites[1][0],0,m.sites[1][1]);state.plant=null;state.interact=0;
   scene.background.set(p.sky);scene.fog.color.set(p.sky);sun.color.set(state.map==='ironwood'?0xd5dfd8:0xffe9c1);sun.intensity=state.map==='ironwood'?2.2:3.3;
-  box(0,-.3,0,130,.6,140,p.ground);weathered(box(0,-.045,0,47,.09,59,p.floor),true);
-  const height=state.map==='helix'?6:3;
-  for(const x of [-24,24])weathered(box(x,height/2,0,1,height,61,p.wall,true));
-  for(const z of [-30,30])weathered(box(0,height/2,z,49,height,1,p.wall,true));
-  for(const [x,z,w,d,h] of m.walls){weathered(box(x,h/2,z,w,h,d,p.wall,true));box(x,h+.05,z,w+.12,.12,d+.12,p.trim);}
-  for(const [x,z,w,d,h] of m.covers){box(x,h/2,z,w,h,d,p.cover,true);for(let y=.15;y<h;y+=.5)box(x,y,z+d/2+.01,w-.12,.035,.035,p.trim);box(x,h+.07,z,w+.12,.14,d+.12,p.trim);}
-  if(state.map==='helix')buildHelixDetails();else if(state.map==='bastion')buildBastionDetails();else buildIronwoodDetails();
+  surface(0,-.3,0,130,.6,140,'concrete');surface(0,-.045,0,47,.09,59,'asphalt');
+  for(const x of [-24,24])surface(x,1.5,0,1,3,61,'concrete',true);
+  for(const z of [-30,30])surface(0,1.5,z,49,3,1,'concrete',true);
+  for(const [x,z,w,d,h] of m.walls){surface(x,h/2,z,w,h,d,'concrete',true);surface(x,h+.05,z,w+.12,.12,d+.12,'metal');}
+  buildEnvironment(m);
   for(const [site,letter] of [[siteA,'A'],[siteB,'B']]){const ring=new THREE.Mesh(new THREE.RingGeometry(3.2,3.28,48),new THREE.MeshBasicMaterial({color:0xc3ae7a,side:THREE.DoubleSide}));ring.userData.ownMaterial=true;ring.rotation.x=-Math.PI/2;ring.position.copy(site).y=.01;mapRoot.add(ring);sign(letter,site.x,2.45,-29.44,0,2.4,1.1);}
   addMapCrates();rebuildNavigation();mapRoot.updateMatrixWorld(true);
   $('pauseMap').textContent=m.name.toUpperCase();$('scoreTitle').textContent=m.name.toUpperCase();$('radarMap').textContent=m.tag+' / '+m.number;
@@ -258,7 +206,7 @@ function prepareModel(g,targetLength,muted=false){
     o.material=Array.isArray(o.material)?o.material.map(prepare):prepare(o.material);
   }});return wrapper;
 }
-async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.6.2')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);addMapCrates();rebuildNavigation();mapRoot.updateMatrixWorld(true);loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY OPERATION <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The game could not load. Reload the page, or check that the complete game folder is hosted.';}}
+async function loadAssets(){const loader=new GLTFLoader();try{const entries=Object.entries(WEAPONS);const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.7.0')));entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);environment=await loadEnvironment(loader);loadMap(settings.map);loadGun('rifle');$('start').disabled=false;$('start').innerHTML='DEPLOY OPERATION <span>↗</span>';}catch(e){console.error(e);$('start').textContent='ASSET LOAD FAILED';$('compatibility').hidden=false;$('compatibility').textContent='The game could not load. Reload the page, or check that the complete game folder is hosted.';}}
 loadMap(settings.map);loadAssets();
 window.addEventListener('blacksite:map',()=>{if(!state.active)loadMap(settings.map);});
 
@@ -501,4 +449,4 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/10
 }
 requestAnimationFrame(frame);
 // Local development hook is opt-in and not enabled on a normal published URL.
-if(new URLSearchParams(location.search).has('test'))window.__game={state,player,DIFFICULTY,WEAPONS,pathTo,canStand,blocked,shoot,plant,endRound,nextRound,equip,reload,buyItem,setScoped,utility,updateBots,updatePlayer,updateWeaponPresentation,updateBotPresentation,scene,camera,viewCamera,models,gunRoot,weaponMotion,keys,MAPS,loadMap,botSpawnPositions,spawnPoint,siteA,siteB,mapRoot,walls,hitWalls,updateHUD,scoreboard,moveBot};
+if(new URLSearchParams(location.search).has('test'))window.__game={state,player,DIFFICULTY,WEAPONS,pathTo,canStand,blocked,shoot,plant,endRound,nextRound,equip,reload,buyItem,setScoped,utility,updateBots,updatePlayer,updateWeaponPresentation,updateBotPresentation,scene,camera,viewCamera,models,gunRoot,weaponMotion,keys,MAPS,loadMap,botSpawnPositions,spawnPoint,siteA,siteB,mapRoot,walls,hitWalls,get environment(){return environment;},updateHUD,scoreboard,moveBot};

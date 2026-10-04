@@ -1,0 +1,97 @@
+{
+  "version": "0.7.0",
+  "files": {
+    "snipertower.glb": {
+      "bytes": 47492,
+      "sha256": "dec95fd9b1a8e91a0b80ea3a8e3255fc55d455f8ef6e86817009d5bbcda70756"
+    },
+    "asphalt010-roughness.jpg": {
+      "bytes": 330532,
+      "sha256": "b08ef72d282dd49a9b69a767d5d5081bd53689b033300a1b5c6ab50231da814a"
+    },
+    "asphalt010-color.jpg": {
+      "bytes": 273387,
+      "sha256": "e6fdfcfec7be2fa9f2fd0fa6fdcf5ffbdc03f471ae75a6c2d9344d141e05ae1a"
+    },
+    "hesco.glb": {
+      "bytes": 30672,
+      "sha256": "b7fd555128bb2e0f55cdd45818a0db9ffa08e040e8a37601bba4ee0ccf691ea1"
+    },
+    "container_01.glb": {
+      "bytes": 176688,
+      "sha256": "5e12932df76ef68f8f0d78282de8d4d37f31ec40172a3e1daa354aa5804c7eed"
+    },
+    "concrete034-normal.jpg": {
+      "bytes": 107166,
+      "sha256": "ba24cb983dce7f7920d8250ffc325cf5f0c8646aeedd9b854d4a394090e9ce90"
+    },
+    "concrete034-roughness.jpg": {
+      "bytes": 61895,
+      "sha256": "051a39b25e570788682206905c1e5e8074eff7568fd8b1d2390cb364095ef6da"
+    },
+    "hesco-normal.jpg": {
+      "bytes": 322449,
+      "sha256": "8045bae561d2f65b3df9d33a922dbd4313df53dc7d225c4ab883c0e5d5f1eb0d"
+    },
+    "gastank.glb": {
+      "bytes": 23760,
+      "sha256": "09d28c4fd5bdc9931914b8da0f03499d7d59b237c747764b840e279078fe0122"
+    },
+    "metal032-normal.jpg": {
+      "bytes": 6604,
+      "sha256": "f6899508648041ff333517e362fc7a4b39a1036f99a5ccc0cd1aa5e7d30ea141"
+    },
+    "lightpole.glb": {
+      "bytes": 12808,
+      "sha256": "522ab86ed739e5b8eb5359682090fd5da71c0a0d285e722d831f6ba742f6ef82"
+    },
+    "sandssack.glb": {
+      "bytes": 19668,
+      "sha256": "4b3b1d9095dde471999e29a43b258aaa5689747311a0c9baef6a53ba39976773"
+    },
+    "gatekeeperstation.glb": {
+      "bytes": 25604,
+      "sha256": "1b82132f7c6399a67e2cb5f6a17e658d3dc48714fe4243da60e352e6057320d1"
+    },
+    "concrete034-color.jpg": {
+      "bytes": 75072,
+      "sha256": "1bd8423a1e7668103b45950309dee63353e9a3012fb7c74843cbe73a3ef775fb"
+    },
+    "hesco-color.jpg": {
+      "bytes": 297773,
+      "sha256": "32c877f0d4f4dd5bf71cb12a71aa98a55cd03a49d04549b791659cb746b3897e"
+    },
+    "metal032-roughness.jpg": {
+      "bytes": 79268,
+      "sha256": "cd3031d9f0b4decb9c92200b3c7d29ff599ff9338253b8a047a4bcfa0e21f084"
+    },
+    "metal032-color.jpg": {
+      "bytes": 74370,
+      "sha256": "3750949cace6c6c0431ac2facbf1ab7bc9f96dabb598af2ee9bf0b777d05d0d3"
+    },
+    "warehouse.glb": {
+      "bytes": 22088,
+      "sha256": "4ddb1bebd29278abc6429b5de624f8092604618dcd00d02e640caffa7454251c"
+    },
+    "radiostation.glb": {
+      "bytes": 85504,
+      "sha256": "faad4a1962d025613d5ab2af89308b7e9572ab3e150f9d5e4e40eee3190e22f5"
+    },
+    "warehouse-color.jpg": {
+      "bytes": 1064387,
+      "sha256": "4de0773036bf75002bcdb656abdc9b872ae8ba3b78ab1c6f076af1970901c0f9"
+    },
+    "asphalt010-normal.jpg": {
+      "bytes": 348041,
+      "sha256": "fda11620c7a21edd5ec904fb7e273eef1964934304b0fbe505b6be4f67ad7585"
+    },
+    "quarter.glb": {
+      "bytes": 80000,
+      "sha256": "4c3047b332cf54026c24a5205472f8f929d66d2b15fe09c07498fa2ebc6dc33a"
+    },
+    "helix-scene.jpg": {
+      "bytes": 120400,
+      "sha256": "4316d8bad7aaeacff5cc3920a53216a99f30f3d20205d4f122021df12f1f490e"
+    }
+  }
+}

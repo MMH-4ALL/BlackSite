@@ -5,7 +5,7 @@
   <meta name="theme-color" content="#101313">
   <title>BLACKSITE — Tactical Operations</title>
   <meta name="description" content="An original tactical browser FPS. Three maps, 1–16 bots, three difficulty levels, and eight weapons.">
-  <link rel="icon" href="assets/mark.svg"><link rel="stylesheet" href="style.css?v=0.6.2">
+  <link rel="icon" href="assets/mark.svg"><link rel="stylesheet" href="style.css?v=0.7.0">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body>
@@ -15,7 +15,7 @@
   <header class="mast">
     <a class="brand" href="#deploy" aria-label="BlackSite home"><img src="assets/mark.svg" alt=""><span>BLACK<span class="brand-light">SITE</span><small>TACTICAL OPERATIONS</small></span></a>
     <nav aria-label="Main menu"><button data-view="deploy" class="nav-link active" aria-current="page">DEPLOY</button><button data-view="armory" class="nav-link">ARMORY</button><button data-view="manual" class="nav-link">FIELD MANUAL</button><button data-view="settings" class="nav-link">SETTINGS</button></nav>
-    <div class="build"><span class="status-dot"></span> OFFLINE OPERATIONS <small>BUILD 0.6.2</small></div>
+    <div class="build"><span class="status-dot"></span> OFFLINE OPERATIONS <small>BUILD 0.7.0</small></div>
   </header>
   <div class="menu-body">
     <section id="view-deploy" class="menu-view deploy-grid">
@@ -35,7 +35,7 @@
         <p id="compatibility" class="compatibility" hidden></p>
       </div>
       <aside class="mission-column">
-        <div class="map-card"><div class="card-top"><span>OPERATION / BLACKSITE</span><span id="mapTag" class="tag">HELIX</span></div><div class="map-image"><img id="mapImage" src="assets/helix-map.svg" alt="Helix Compound layout with objective sites A and B"><span class="map-coordinates">48M × 60M<br>TACTICAL SECTOR</span><span id="mapPlan" class="map-label">SITE PLAN / 01</span></div><div class="map-caption"><div><span id="mapName" class="eyebrow">HELIX COMPOUND</span><h2 id="mapTitle">Restricted territory.</h2></div><span id="mapNumber" class="map-number">01</span></div><div class="map-detail"><span id="mapTheme">DESERT RESEARCH FACILITY</span><span>TWO OBJECTIVE SITES</span></div><p id="mapDescription" class="map-description">Solar court, reactor hall, and three connecting routes.</p></div>
+        <div class="map-card"><div class="card-top"><span>OPERATION / BLACKSITE</span><span id="mapTag" class="tag">HELIX</span></div><div class="map-image"><img id="mapImage" src="assets/environment/helix-scene.jpg" alt="Helix Compound textured military environment"><span class="map-coordinates">48M × 60M<br>TACTICAL SECTOR</span><span id="mapPlan" class="map-label">SECTOR OVERVIEW / 01</span></div><div class="map-caption"><div><span id="mapName" class="eyebrow">HELIX COMPOUND</span><h2 id="mapTitle">Restricted territory.</h2></div><span id="mapNumber" class="map-number">01</span></div><div class="map-detail"><span id="mapTheme">DESERT COMMUNICATIONS FACILITY</span><span>TWO OBJECTIVE SITES</span></div><p id="mapDescription" class="map-description">Barracks lanes, a fortified radio station, and a brick service warehouse.</p></div>
         <button class="loadout-shortcut" data-view="armory"><span class="loadout-thumb"><img id="startingImage" src="assets/ui/m4a1.svg" alt=""></span><span><small>YOUR OPENING LOADOUT</small><strong id="startingName">M4A1 <em>+ P-9</em></strong><small>INSPECT & CHANGE WEAPON</small></span><b>↗</b></button>
       </aside>
     </section>
@@ -69,5 +69,5 @@
 <section id="scoreboard" class="panel score-panel" aria-labelledby="scoreTitle" hidden><span class="eyebrow">LIVE OPERATION REPORT</span><div class="report-heading"><h2 id="scoreTitle">HELIX COMPOUND</h2><strong id="reportScore">0 — 0</strong></div><div class="score-columns"><span>OPERATOR</span><span>COMBAT STATUS</span></div><div id="scoreRows"></div><p class="panel-note">HOLD TAB / WHEEL TO SCROLL / RELEASE TO RETURN</p></section>
 <section id="result" class="panel result-panel" aria-labelledby="resultTitle" hidden><span id="resultLabel" class="eyebrow">ROUND COMPLETE</span><div class="result-symbol" aria-hidden="true">⌁</div><h2 id="resultTitle">SECTOR SECURED<span>.</span></h2><p id="resultDetail"></p><div class="result-score"><div><span>OPERATOR</span><strong id="resultYou">1</strong></div><small>FIRST TO 4</small><div><span>HOSTILES</span><strong id="resultBot">0</strong></div></div><div id="resultStats" class="result-stats"></div><button id="next" class="primary">NEXT ROUND <span>↗</span></button><button id="resultQuit" class="secondary">RETURN TO MAIN MENU</button></section>
 <div id="unsupported" class="panel" hidden><span class="eyebrow">BROWSER COMPATIBILITY</span><h2>WebGL is required.</h2><p>Use a desktop browser with graphics acceleration, keyboard, and mouse.</p></div>
-<script type="module" src="app.js?v=0.6.2"></script>
+<script type="module" src="app.js?v=0.7.0"></script>
 </body></html>
