@@ -2,7 +2,7 @@
 
 Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
 
-## BlackSite — Tactical Operations / v0.7.0
+## BlackSite — Tactical Operations / v0.7.1
 
 An original, open-source tactical FPS for a desktop browser. Three muted tactical maps, two objective sites per map, and offline matches against 1–16 bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
 

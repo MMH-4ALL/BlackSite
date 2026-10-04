@@ -2,6 +2,7 @@
 
 ## Completed
 
+- v0.7.1: actual world-space floor geometry on all three maps has separated top faces wherever slabs overlap, and both objective rings sit above the underlying loading pads.
 - v0.6.2: thirty seconds in the shop preserves the exact remaining buy and simulation time, including a delayed mouse-capture event and stale pause flag. Purchases and repeated visits work; Return to Game and Escape resume without subtracting shopping time.
 - v0.6.1: WASD, jump, both crouch keys, combined inputs, and leftover momentum cannot move the player during buy time on any map or side. Shopping works, the countdown advances, bots stay frozen, and held movement/jump inputs resume when the round goes live.
 - v0.6.0: three distinct playable map collision layouts. Both player sides and 1/3/6/16 hostiles per map have clear spawns, unique bot names, separation at spawn, and traversable routes to both objective sites.

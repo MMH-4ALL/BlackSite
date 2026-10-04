@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1 — Floor flicker fix
+
+- Separated overlapping concrete and asphalt top faces on every map and lifted objective rings above the loading pads to prevent z-fighting.
+
 ## 0.7.0 — Textured military environments
 
 - Replaced all three block layouts with new military compounds built around imported textured structures and props.

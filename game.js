@@ -79,12 +79,13 @@ function loadMap(key){
   mapRoot.traverse(o=>{if(o.isMesh&&!o.userData.asset){o.geometry.dispose();if(o.userData.ownMaterial){if(o.userData.ownTexture)o.material.map.dispose();o.material.dispose();}}});mapRoot.clear();walls.length=0;hitWalls.length=0;
   state.map=mapKey(key);const m=MAPS[state.map],p=m.palette;siteA.set(m.sites[0][0],0,m.sites[0][1]);siteB.set(m.sites[1][0],0,m.sites[1][1]);state.plant=null;state.interact=0;
   scene.background.set(p.sky);scene.fog.color.set(p.sky);sun.color.set(state.map==='ironwood'?0xd5dfd8:0xffe9c1);sun.intensity=state.map==='ironwood'?2.2:3.3;
-  surface(0,-.3,0,130,.6,140,'concrete');surface(0,-.045,0,47,.09,59,'asphalt');
+  // Separate the ground tops so the overlapping slabs cannot z-fight.
+  surface(0,-.35,0,130,.6,140,'concrete');surface(0,-.045,0,47,.09,59,'asphalt');
   for(const x of [-24,24])surface(x,1.5,0,1,3,61,'concrete',true);
   for(const z of [-30,30])surface(0,1.5,z,49,3,1,'concrete',true);
   for(const [x,z,w,d,h] of m.walls){surface(x,h/2,z,w,h,d,'concrete',true);surface(x,h+.05,z,w+.12,.12,d+.12,'metal');}
   buildEnvironment(m);
-  for(const [site,letter] of [[siteA,'A'],[siteB,'B']]){const ring=new THREE.Mesh(new THREE.RingGeometry(3.2,3.28,48),new THREE.MeshBasicMaterial({color:0xc3ae7a,side:THREE.DoubleSide}));ring.userData.ownMaterial=true;ring.rotation.x=-Math.PI/2;ring.position.copy(site).y=.01;mapRoot.add(ring);sign(letter,site.x,2.45,-29.44,0,2.4,1.1);}
+  for(const [site,letter] of [[siteA,'A'],[siteB,'B']]){const ring=new THREE.Mesh(new THREE.RingGeometry(3.2,3.28,48),new THREE.MeshBasicMaterial({color:0xc3ae7a,side:THREE.DoubleSide}));ring.userData.ownMaterial=true;ring.rotation.x=-Math.PI/2;ring.position.copy(site).y=.025;mapRoot.add(ring);sign(letter,site.x,2.45,-29.44,0,2.4,1.1);}
   addMapCrates();rebuildNavigation();mapRoot.updateMatrixWorld(true);
   $('pauseMap').textContent=m.name.toUpperCase();$('scoreTitle').textContent=m.name.toUpperCase();$('radarMap').textContent=m.tag+' / '+m.number;
 }

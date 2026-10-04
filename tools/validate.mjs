@@ -296,6 +296,13 @@ assert.equal(normalizeBotCount(-3),1);assert.equal(normalizeBotCount(99),16);ass
 const mapWallSignatures=new Set();
 for(const [key,m] of Object.entries(MAPS)){
  g.loadMap(key);assert.equal(state.map,key);assert.equal(state.bots.length,0);assert.ok(g.siteA.equals(new THREE.Vector3(m.sites[0][0],0,m.sites[0][1])));
+ // Check actual world-space floor faces, including pads, markings and drains.
+ const floors=g.mapRoot.children.filter(o=>o.isMesh&&o.geometry.type==='BoxGeometry').map(o=>new THREE.Box3().setFromObject(o)).filter(b=>b.min.y<=.02&&b.max.y<=.2);
+ const overlaps=(a,b)=>Math.min(a.max.x,b.max.x)-Math.max(a.min.x,b.min.x)>.001&&Math.min(a.max.z,b.max.z)-Math.max(a.min.z,b.min.z)>.001;
+ assert.ok(floors.length>=4,key+' ground, pavement and pads present');
+ for(let i=0;i<floors.length;i++)for(const other of floors.slice(i+1))if(overlaps(floors[i],other))assert.ok(Math.abs(floors[i].max.y-other.max.y)>.002,key+' overlapping floor tops have depth separation');
+ const rings=g.mapRoot.children.filter(o=>o.isMesh&&o.geometry.type==='RingGeometry');assert.equal(rings.length,2);
+ for(const ring of rings){const bounds=new THREE.Box3().setFromObject(ring);for(const floor of floors.filter(b=>overlaps(bounds,b)))assert.ok(bounds.min.y-floor.max.y>.002,key+' objective ring sits above its floor');}
  assert.equal(g.walls.length,4+m.walls.length+m.covers.length+m.crates.length,'map collider arrays are replaced, not accumulated');
  for(const prop of m.props.filter(p=>p.solid)){assert.equal(g.canStand(prop.x,prop.z),false,key+' imported footprint blocks movement');const imported=g.mapRoot.children.find(o=>o.name===prop.asset&&Math.abs(o.position.x-prop.x)<.01&&Math.abs(o.position.z-prop.z)<.01);assert.ok(imported);const bounds=new THREE.Box3().setFromObject(imported),size=bounds.getSize(new THREE.Vector3());assert.ok(Math.abs(size.x-(prop.turn%2?prop.d:prop.w))<.001&&Math.abs(size.z-(prop.turn%2?prop.w:prop.d))<.001,'mesh bounds match collision footprint');assert.equal(g.blocked(new THREE.Vector3(prop.x-size.x/2-1,1,prop.z),new THREE.Vector3(prop.x+size.x/2+1,1,prop.z),false),true,key+'/'+prop.asset+' imported cover blocks bullets/vision');}
  mapWallSignatures.add(JSON.stringify(g.walls));const geometryCount=g.mapRoot.children.length;g.loadMap(key);assert.equal(g.mapRoot.children.length,geometryCount,'repeated loading does not stack map objects');
