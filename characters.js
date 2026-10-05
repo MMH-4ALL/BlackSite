@@ -57,10 +57,10 @@ export function updateOperator(bot,dt,cameraPosition,quality){
  const pitch=target?Math.atan2(target.y+1.25-(bot.pos.y+1.22),Math.max(.1,Math.hypot(target.x-bot.pos.x,target.z-bot.pos.z))):0;
  op.aim.rotation.x=THREE.MathUtils.damp(op.aim.rotation.x,pitch-bot.fireKick*.10,15,dt);
  bot.gun.position.z=-.22+bot.fireKick*.035;
- if(op.elapsed<period&&bot.alive)return;
+ if(op.elapsed<period||!bot.alive&&op.deathFinished)return;
  const elapsed=op.elapsed;op.elapsed=0;op.updates++;
  const moved=bot.pos.distanceTo(op.previous);const displacement=bot.pos.clone().sub(op.previous);op.previous.copy(bot.pos);bot.visualSpeed=moved/Math.max(.001,elapsed);
- if(!bot.alive){play(op,'Death01','lower',true);play(op,'Death01','upper',true);op.helmet.visible=false;op.marker.visible=false;bot.workDevice.visible=false;}
+ if(!bot.alive){op.deathTime=(op.deathTime||0)+elapsed;play(op,'Death01','lower',true);play(op,'Death01','upper',true);op.helmet.visible=false;op.marker.visible=false;bot.workDevice.visible=false;}
  else{
   const moving=bot.visualSpeed>.15,crouch=bot.crouched||work;
   const local=v.copy(displacement);bot.previous.copy(bot.pos);
@@ -71,7 +71,7 @@ export function updateOperator(bot,dt,cameraPosition,quality){
   op.rig.rotation.z=THREE.MathUtils.damp(op.rig.rotation.z,THREE.MathUtils.clamp(local.x*-.1,-.04,.04),10,elapsed);
   op.helmet.position.y=crouch?1.13:1.74;
  }
- op.mixer.update(elapsed);
+ op.mixer.update(elapsed);if(!bot.alive&&op.deathTime>3)op.deathFinished=true;
  if(bot.alive&&op.headBone){op.headBone.getWorldPosition(v);op.rig.worldToLocal(v);op.helmet.position.copy(v).y+=.10;}
 }
 export function disposeOperator(operator){if(!operator||operator.disposed)return;operator.mixer.stopAllAction();operator.mixer.uncacheRoot(operator.model);operator.disposed=true;}

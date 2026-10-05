@@ -27,6 +27,8 @@ const skeletonSource=fs.readFileSync('./vendor/utils/SkeletonUtils.js','utf8').r
 const charactersSource=fs.readFileSync('./characters.js','utf8').replace("from 'three'",`from '${engineURL}'`).replace("from './vendor/utils/SkeletonUtils.js'",`from '${moduleURL(skeletonSource)}'`);
 const characters=await import(moduleURL(charactersSource)),ai=await import('../ai.js'),navigation=await import('../navigation.js'),doors=await import(moduleURL(fs.readFileSync('./doors.js','utf8').replace("from 'three'",`from '${engineURL}'`)));
 const progression=await import('../progression.js'),crosshair=await import('../crosshair.js'),stats=await import('../stats.js'),skins=await import(moduleURL(fs.readFileSync('./skins.js','utf8').replace("from 'three'",`from '${engineURL}'`)));
+const effectsModule=await import(moduleURL(fs.readFileSync('./effects.js','utf8').replace("from 'three'",`from '${engineURL}'`))),performanceModule=await import(moduleURL(fs.readFileSync('./performance.js','utf8').replace("from 'three'",`from '${engineURL}'`).replace("from './vendor/utils/BufferGeometryUtils.js'",`from '${moduleURL(utility)}'`)));
+const {EnvironmentAudio}=await import('../environment-audio.js');
 const memoryStorage={value:null,getItem(){return this.value;},setItem(k,v){this.value=v;}};
 const operatorBytes=fs.readFileSync('./assets/operators/operator.glb');
 actualAssets.operator=await new RealLoader().parseAsync(operatorBytes.buffer.slice(operatorBytes.byteOffset,operatorBytes.byteOffset+operatorBytes.byteLength),'');
@@ -83,7 +85,7 @@ const inputHandlers=new Map();
 globalThis.document={getElementById:id=>{if(!elements.has(id))elements.set(id,new Element(id));return elements.get(id);},createElement:()=>new Element(),addEventListener:(type,fn)=>inputHandlers.set(type,fn),querySelectorAll:()=>[],exitPointerLock:noop};
 globalThis.window={addEventListener:noop};globalThis.innerWidth=1280;globalThis.innerHeight=720;globalThis.devicePixelRatio=1;globalThis.location={search:'?test'};
 let frame;globalThis.requestAnimationFrame=fn=>{frame=fn;};
-class FakeRenderer{constructor(){this.shadowMap={};}setPixelRatio(){}setSize(){}render(){}clearDepth(){}}
+class FakeRenderer{constructor(){this.shadowMap={};this.info={render:{calls:0,triangles:0},memory:{geometries:0,textures:0}};}setPixelRatio(){}setSize(){}render(){}clearDepth(){}}
 const THREE={...RealThree,WebGLRenderer:FakeRenderer};
 class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');if(name==='operator')return actualAssets.operator;return actualAssets[name]?{scene:actualAssets[name].scene.clone(true),animations:actualAssets[name].animations||[]}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial()),animations:[]};}}
 
@@ -91,7 +93,7 @@ const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
 const settings={...crosshair.CROSSHAIR_DEFAULTS,sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:3};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
-const deps={THREE,GLTFLoader:FakeLoader,WEAPONS,settings,refreshShop:noop,showReport:noop,showView:noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment,...characters,...ai,...navigation,...doors,...crosshair,...skins,...stats,career:new progression.Career(memoryStorage)};
+const deps={THREE,GLTFLoader:FakeLoader,WEAPONS,settings,refreshShop:noop,showReport:noop,showView:noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment,...characters,...ai,...navigation,...doors,...crosshair,...skins,...stats,...effectsModule,...performanceModule,EnvironmentAudio,career:new progression.Career(memoryStorage)};
 new Function(...Object.keys(deps),source)(...Object.values(deps));
 for(let i=0;i<20&&document.getElementById('start').disabled!==false;i++)await new Promise(r=>setTimeout(r,0));
 
@@ -403,6 +405,28 @@ if(process.env.BLACKSITE_RENDER_EXPORT){
  g.gunRoot.updateMatrixWorld(true);const meshes=[];
  g.gunRoot.traverse(o=>{if(o.isMesh){const a=o.geometry.attributes.position,n=o.geometry.attributes.normal,p=[],norm=[],v=new THREE.Vector3(),m=new THREE.Matrix3().getNormalMatrix(o.matrixWorld);for(let i=0;i<a.count;i++){v.fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld);p.push(v.toArray());v.fromBufferAttribute(n,i).applyMatrix3(m).normalize();norm.push(v.toArray());}meshes.push({name:o.name,positions:p,normals:norm,indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:a.count},(_,i)=>i),color:o.material.color.toArray()});}});
  fs.writeFileSync(process.env.BLACKSITE_RENDER_EXPORT,JSON.stringify(meshes));
+}
+
+console.log('Checking environment presentation and rendering budget...');
+for(const key of Object.keys(MAPS)){
+ g.loadMap(key);assert.ok(g.worldBatch.saved>150,key+' static draw calls reduced');assert.ok(g.destructibles.every(i=>g.canStand(i.group.position.x,i.group.position.z,.34)),key+' fragile props have clear positions');
+ const item=g.destructibles[0],center=item.mesh.getWorldPosition(new THREE.Vector3());const beforeWalls=g.walls.length;
+ state.phase='live';state.weapon=state.primary='rifle';state.owned=true;state.cooldown=0;state.reload=0;state.ammo.rifle={mag:30,reserve:90};player.health=100;g.camera.position.copy(center).z+=1;g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);
+ const savedRand=Math.random;Math.random=()=>.5;g.shoot();Math.random=savedRand;
+ assert.equal(item.broken,true,key+' actual bullet destroys lamp');assert.ok(!g.hitWalls.includes(item.mesh));assert.equal(g.walls.length,beforeWalls,'cosmetic destruction does not affect navigation/collision');g.nextRound();assert.ok(g.destructibles.every(i=>!i.broken));
+ settings.quality='low';g.applySettings();assert.equal(g.renderer.shadowMap.enabled,false);assert.equal(g.atmosphere.count,0);settings.quality='high';g.applySettings();assert.ok(g.renderer.shadowMap.enabled);assert.ok(g.atmosphere.count===0||g.atmosphere.count>=48);settings.quality='standard';g.applySettings();
+ const roots=g.scene.children.length,priorBots=state.bots.length,meshes=g.mapRoot.children.length;for(let i=0;i<4;i++)g.loadMap(key);assert.equal(g.scene.children.length,roots-priorBots);assert.equal(g.mapRoot.children.length,meshes,'map/world/debris resources do not stack');
+}
+console.log('PASS: actual raycast destruction, unchanged collision, round restoration, quality settings and batched maps.');
+if(process.argv.includes('--benchmark')){
+ const results=[];
+ for(const key of Object.keys(MAPS))for(const total of [16,23]){
+  settings.quality='low';state.side='attack';state.botCount=16;state.allyCount=total-16;state.roster=[];state.roundResults=[];state.sidesSwitched=false;g.loadMap(key);g.nextRound();state.phase='live';player.health=100;
+  const samples=[];for(let i=0;i<300;i++){const begin=performance.now();state.t+=.016;g.updateDoors(g.doors,.016,g.hitWalls,[]);g.updateBots(.016);g.updateBotPresentation(.016);g.scene.updateMatrixWorld(true);samples.push(performance.now()-begin);if(state.phase!=='live'){g.nextRound();state.phase='live';}}
+  samples.sort((a,b)=>a-b);const botTriangles=state.bots.reduce((n,b)=>{b.group.traverseVisible(o=>{if(o.isMesh)n+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3;});return n;},0);
+  results.push({map:key,total,aiAnimationP50ms:+samples[150].toFixed(2),aiAnimationP95ms:+samples[285].toFixed(2),visibleBotTriangles:Math.round(botTriangles),batch:g.worldBatch});
+ }
+ console.log('CPU_BENCHMARK '+JSON.stringify(results));
 }
 // Optional, compact real-geometry export for CPU visual review without WebGL.
 if(process.env.BLACKSITE_ANIMATION_EXPORT){

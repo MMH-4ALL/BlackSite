@@ -58,10 +58,7 @@ for(const [id,keys] of [['shopWeapons',PRIMARY_KEYS],['shopSidearms',SECONDARY_K
 document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>showView(button.dataset.view));
 document.querySelector('.brand').onclick=e=>{e.preventDefault();showView('deploy');};
 document.querySelectorAll('[data-weapon]').forEach(button=>button.onclick=()=>inspectWeapon(button.dataset.weapon));
-$('useWeapon').onclick=()=>{settings[WEAPONS[inspected].slot==='primary'?'primary':'secondary']=inspected;saveSettings();document.querySelectorAll('[data-squad]').forEach(b=>b.onclick=()=>{const [allies,enemies]=b.dataset.squad.split(',').map(Number);settings.allyCount=normalizeAllies(allies);settings.botCount=normalizeBotCount(enemies);syncSettings();saveSettings();});
-document.querySelectorAll('[data-cross-preset]').forEach(b=>b.onclick=()=>{Object.assign(settings,CROSSHAIR_PRESETS[b.dataset.crossPreset]);syncSettings();saveSettings();window.dispatchEvent(new CustomEvent('blacksite:settings'));});
-$('skinSelect').onchange=()=>{chooseSkin(inspected,$('skinSelect').value,career.data);refreshSkins(inspected);};$('emblemSelect').onchange=()=>{career.selectEmblem($('emblemSelect').value);refreshCareer();};window.addEventListener('blacksite:career',()=>{refreshCareer();refreshSkins(inspected);});
-syncSettings();inspectWeapon(inspected);refreshCareer();};
+$('useWeapon').onclick=()=>{settings[WEAPONS[inspected].slot==='primary'?'primary':'secondary']=inspected;saveSettings();syncSettings();inspectWeapon(inspected);};
 async function previewSound(kind){
   const request=++soundRequest,key=inspected;weaponAudio.stopAll();
   if(settings.volume===0){$('soundStatus').textContent='Sound is muted. Raise Master volume in Settings.';return;}

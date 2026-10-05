@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {createHash} from 'node:crypto';
+import * as THREE from '../vendor/three.module.js';
+import {EnvironmentAudio,ENVIRONMENT_SOUNDS} from '../environment-audio.js';
+const url=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
+const {createAtmosphere,createDestructibles,resetDestructibles,damageDestructible,Debris}=await import(url(fs.readFileSync(new URL('../effects.js',import.meta.url),'utf8').replace("from 'three'",`from '${new URL('../vendor/three.module.js',import.meta.url).href}'`)));
+const manifest=JSON.parse(fs.readFileSync(new URL('../assets/environment-audio/manifest.json',import.meta.url)));
+assert.equal(manifest.length,ENVIRONMENT_SOUNDS.length);const hashes=new Set();let bytes=0;
+for(const file of manifest){const data=fs.readFileSync(new URL('../assets/environment-audio/'+file.file,import.meta.url));assert.equal(data.toString('ascii',0,4),'RIFF');assert.equal(data.toString('ascii',8,12),'WAVE');assert.equal(data.readUInt16LE(22),1);assert.equal(data.readUInt32LE(24),22050);assert.equal(data.readUInt16LE(34),16);assert.equal(data.length,44+Math.floor(file.duration*22050)*2);const hash=createHash('sha256').update(data).digest('hex');assert.equal(hash,file.sha256);hashes.add(hash);assert.ok(data.subarray(44).some(b=>b>0));bytes+=data.length;}
+assert.equal(hashes.size,16,'no environment recording reused');
+const node=()=>({connect(){},disconnect(){this.disconnected=true;},gain:{value:0},pan:{value:0},start(){this.started=true;},stop(){this.stopped=true;}});
+const context={state:'running',createBufferSource:node,createGain:node,createStereoPanner:node,decodeAudioData:async data=>({bytes:data.byteLength})};
+const carrier={context,volume:.4,master:node(),unlock:async()=>{}};let downloads=0;
+const audio=new EnvironmentAudio(carrier,async url=>{downloads++;return {ok:true,arrayBuffer:async()=>new ArrayBuffer(100)};});
+await Promise.all([audio.preload(),audio.preload(),audio.unlock()]);assert.equal(downloads,16);assert.equal(audio.buffers.size,16);
+audio.sync('helix',true);assert.equal(audio.loops.size,1);audio.sync('helix',true);assert.equal(audio.loops.size,1);
+audio.sync('ironwood',true);assert.equal(audio.loops.size,2);assert.ok(audio.loops.has('rain'));audio.sync('zero',true);assert.deepEqual([...audio.loops.keys()],['machinery']);
+const left=audio.footstep('metal'),right=audio.footstep('metal');assert.notEqual(left.name,right.name);
+for(let i=0;i<30;i++)audio.play('door-open');assert.ok(audio.voices.size<=8);const voices=[...audio.voices];audio.sync('zero',false);assert.equal(audio.voices.size,0);assert.ok(voices.every(v=>v.source.stopped&&v.gain.disconnected&&v.pan.disconnected));
+carrier.volume=0;assert.equal(audio.play('wind'),null);carrier.volume=.4;
+const failing=new EnvironmentAudio(carrier,async()=>({ok:false,status:404}));await failing.unlock();assert.equal(failing.buffers.size,0);assert.equal(failing.failed.length,16);assert.equal(failing.play('door-open'),null);
+const scene=new THREE.Scene(),floor=()=>0,debris=new Debris(scene,'standard'),root=new THREE.Group(),walls=[];scene.add(root);
+const items=createDestructibles(root,{id:'helix'},floor,walls);assert.equal(items.length,4);const item=items[0],pos=new THREE.Vector3(-19,2.4,6);
+assert.ok(damageDestructible(item,walls,debris,pos));assert.equal(item.broken,true);assert.ok(!walls.includes(item.mesh));assert.equal(damageDestructible(item,walls,debris,pos),false);
+const box=items[1];assert.equal(damageDestructible(box,walls,debris,pos),false);assert.ok(damageDestructible(box,walls,debris,pos));assert.equal(box.mesh.visible,false);
+for(let i=0;i<20;i++)debris.spawn(pos);assert.equal(debris.items.length,8);debris.update(3.1,floor);assert.equal(debris.items.length,0);
+resetDestructibles(items,walls);assert.equal(walls.length,4);assert.ok(items.every(i=>!i.broken&&i.mesh.visible));resetDestructibles(items,walls);assert.equal(walls.length,4);
+debris.setQuality('low');debris.spawn(pos);assert.equal(debris.items.length,0);debris.setQuality('high');for(let i=0;i<20;i++)debris.spawn(pos);assert.equal(debris.items.length,16);debris.dispose();assert.equal(debris.items.length,0);
+for(const map of ['helix','bastion','ironwood','zero'])for(const quality of ['low','standard','high']){const before=scene.children.length,weather=createAtmosphere(scene,{id:map},quality);if(quality==='low')assert.equal(weather.count,0);if(map==='bastion'||map==='zero')assert.equal(weather.count,0);weather.update(.04);const values=weather.points.geometry.attributes.position.array;assert.ok([...values].every(Number.isFinite));weather.dispose();assert.equal(scene.children.length,before);}
+console.log('PASS: '+bytes+' bytes of 16 distinct local environment sounds; caching, missing audio, mute, bounded spatial voices, ambient/pause cleanup, weather quality/cleanup, cosmetic destruction, reset, finite and capped debris.');

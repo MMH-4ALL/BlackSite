@@ -104,3 +104,13 @@ Downloaded/accessed 5 October 2026. CC0 1.0, verified on creator pages and prese
 - Quaternius. “Modular Sci-Fi Megakit.” *Quaternius*, https://quaternius.com/packs/modularscifimegakit.html. CC0. Files: control-console.glb, access-terminal.glb, vent-unit.glb, fan-unit.glb, research-rail.glb. Notice: QUATERNIUS-SCIFI-LICENSE.txt.
 
 Build: tools/prepare-world-props.mjs using glTF Transform 4.2.1 and meshoptimizer 0.22.0 (MIT), development only. Existing map and surface licenses remain unchanged.
+
+## Original BlackSite environment sound bank (0.8.0)
+
+BlackSite contributors, CC0 1.0 Universal. Sixteen independently synthesized WAVs
+(741,582 bytes total) for surfaces, doors, impacts, wind, rain and machinery.
+Created 2026-10-05. Reproducible source: `tools/prepare-environment-audio.py`;
+included files and hashes: `assets/environment-audio/manifest.json`; dedication:
+`assets/environment-audio/LICENSE.md`. No third-party recordings were sampled.
+Original procedural cosmetic finishes, crosshairs, weather and fragile props
+are project code under the repository MIT license.

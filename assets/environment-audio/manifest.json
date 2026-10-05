@@ -1,0 +1,130 @@
+[
+  {
+    "file": "concrete-1.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "4caabe6f4e77337bcc4a61c79d3ef96a69619d7fed3d5e832b2532d37a2b8c54",
+    "seed": 80500
+  },
+  {
+    "file": "concrete-2.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "f6df05eaa0d4f3bb57b64e7624394b0ddd486ea13dddec5a99f47b4f3f3cb380",
+    "seed": 80617
+  },
+  {
+    "file": "metal-1.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "883c4d5f573e9112b16091fb85c94689e33ba6c89831ee4e2f49721295f5d36e",
+    "seed": 80734
+  },
+  {
+    "file": "metal-2.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "d31a8b3d98929a07a1da84b16f75fe80906f87b9887914161de77dbcee6e6f2a",
+    "seed": 80851
+  },
+  {
+    "file": "dirt-1.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "ee68d93354875cb161aa113e2b08df50f964266b3db949a5c7e31737cd0a0814",
+    "seed": 80968
+  },
+  {
+    "file": "dirt-2.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "752751fc9324bf95735ec3ac0279e3aefff241b75aa98351300829904df6ff60",
+    "seed": 81085
+  },
+  {
+    "file": "gravel-1.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "8eaf6d96336aabb36884ecb0dc8947f82d57f753b0a776bc3766b54440d25d29",
+    "seed": 81202
+  },
+  {
+    "file": "gravel-2.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "f8f50d600b02580915a3505fe1f296b335b77d4310b908ee29d12612361ecbe0",
+    "seed": 81319
+  },
+  {
+    "file": "door-open.wav",
+    "duration": 0.75,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "6dd9cfc4d70b3e70faac9f296a60db35d6cdca90f6fe55b4bf6201d5fe399c4e",
+    "seed": 81436
+  },
+  {
+    "file": "door-close.wav",
+    "duration": 0.75,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "0c8505489943eda74e90681763a0d880df42ed2e2feb3515105cbc6cc1dcdfd2",
+    "seed": 81553
+  },
+  {
+    "file": "metal-impact.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "fc5ad99c966bb6ac5444de42430fbb083bab94830023b100c1ecf179178c8a66",
+    "seed": 81670
+  },
+  {
+    "file": "crate-impact.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "fba4bfe8795c3a89c96c14cb4e1b3ce1d05e1978cc13ef874e9d63a010faea08",
+    "seed": 81787
+  },
+  {
+    "file": "equipment-impact.wav",
+    "duration": 0.3,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "ed7f2cd1b10d50cd01cd1eeb6fa69f335a59f1dee9873b2ae5096ca8321fb61d",
+    "seed": 81904
+  },
+  {
+    "file": "wind.wav",
+    "duration": 4,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "a892511e8b338159355b11c3aac41bbfff991b4cd6a10b6e648b6d80bb02d266",
+    "seed": 82021
+  },
+  {
+    "file": "rain.wav",
+    "duration": 4,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "fcba1e5a6ba958a8837bdb610771c1f46dde20a62a6b7ecdfd53381cf68915fb",
+    "seed": 82138
+  },
+  {
+    "file": "machinery.wav",
+    "duration": 4,
+    "sample_rate": 22050,
+    "channels": 1,
+    "sha256": "c46be8e9db91829dbec44fe50576fcee3341871157980a47dd4ce3fc6558a0c8",
+    "seed": 82255
+  }
+]
