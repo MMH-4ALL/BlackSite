@@ -1,0 +1,213 @@
+{
+  "version": "0.8.0",
+  "date": "2026-10-05",
+  "suites": {
+    "gameplay": {
+      "status": "passed",
+      "checks": [
+        "PASS: all eight hand/reload rigs, normalized magazine travel, pause/round/switch resets, actual-distance gait, landing recovery, inspect/throw/objective states, flash/casings, bot joints/reactions/death, finite transforms, and independent combat state.",
+        "PASS: four distinct maps, all 1/3/6/16-bot spawn/route combinations on both sides, unique names, full reports, sixteen-bot plant/defuse simulation, match selection/reset, and last-enemy victory.",
+        "PASS: real skeletal operators, presentation LOD and mixer cleanup; six personalities; 23-bot team configurations on all maps/sides/difficulties; friendly-fire protection; allied combat, post-death victory, plant/defuse; score/economy/equipment-safe halftime.",
+        "PASS: seven actual imported weapon assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.",
+        "PASS: doors block collision/sight/bullets, protect occupants and support bots; every elevated route is physically traversable.",
+        "PASS: actual raycast destruction, unchanged collision, round restoration, quality settings and batched maps."
+      ]
+    },
+    "career": {
+      "status": "passed",
+      "checks": [
+        "PASS: career persistence, duplicate prevention, partial matches, all ten challenges, unlocks, malformed/blocked/quota storage, all weapon skins without balance changes, crosshair settings, actual Career/Challenges/Armory/report DOM and team presets."
+      ]
+    },
+    "environment": {
+      "status": "passed",
+      "checks": [
+        "PASS: 741582 bytes of 16 distinct local environment sounds; caching, missing audio, mute, bounded spatial voices, ambient/pause cleanup, weather quality/cleanup, cosmetic destruction, reset, finite and capped debris."
+      ]
+    },
+    "audio": {
+      "status": "passed",
+      "checks": [
+        "PASS: 60 distinct PCM WAVs and source ranges, CC0 provenance, all action mappings, reload timing/cancellation/resume, shot variants, bot distance/pan, volume/mute, missing assets, caching, rapid fire and node cleanup."
+      ]
+    },
+    "browser": {
+      "status": "passed",
+      "checks": [
+        "PASS: real browser mouse capture, buy lock, paused shop timer, purchase and resume.",
+        "PASS: 24 browser configurations, all four maps/both sides/1,6,16 enemies and 2,7 allies, finite animated transforms.",
+        "PASS: all 72 weapon/finish combinations compiled with the actual WebGL renderer.",
+        "PASS: menus, saved settings/skins/career, report, graphics quality, optional operator fallback, denied storage, GitHub Pages subpath and no runtime external requests."
+      ]
+    }
+  },
+  "cpu": [
+    {
+      "map": "helix",
+      "total": 16,
+      "aiAnimationP50ms": 0.31,
+      "aiAnimationP95ms": 0.53,
+      "visibleBotTriangles": 156112,
+      "batch": {
+        "before": 334,
+        "after": 44,
+        "saved": 290
+      }
+    },
+    {
+      "map": "helix",
+      "total": 23,
+      "aiAnimationP50ms": 0.39,
+      "aiAnimationP95ms": 0.68,
+      "visibleBotTriangles": 224579,
+      "batch": {
+        "before": 334,
+        "after": 44,
+        "saved": 290
+      }
+    },
+    {
+      "map": "bastion",
+      "total": 16,
+      "aiAnimationP50ms": 0.24,
+      "aiAnimationP95ms": 0.41,
+      "visibleBotTriangles": 156112,
+      "batch": {
+        "before": 323,
+        "after": 33,
+        "saved": 290
+      }
+    },
+    {
+      "map": "bastion",
+      "total": 23,
+      "aiAnimationP50ms": 0.43,
+      "aiAnimationP95ms": 0.9,
+      "visibleBotTriangles": 224579,
+      "batch": {
+        "before": 323,
+        "after": 33,
+        "saved": 290
+      }
+    },
+    {
+      "map": "ironwood",
+      "total": 16,
+      "aiAnimationP50ms": 0.27,
+      "aiAnimationP95ms": 0.54,
+      "visibleBotTriangles": 156112,
+      "batch": {
+        "before": 343,
+        "after": 43,
+        "saved": 300
+      }
+    },
+    {
+      "map": "ironwood",
+      "total": 23,
+      "aiAnimationP50ms": 0.47,
+      "aiAnimationP95ms": 1.1,
+      "visibleBotTriangles": 224591,
+      "batch": {
+        "before": 343,
+        "after": 43,
+        "saved": 300
+      }
+    },
+    {
+      "map": "zero",
+      "total": 16,
+      "aiAnimationP50ms": 0.25,
+      "aiAnimationP95ms": 0.48,
+      "visibleBotTriangles": 156112,
+      "batch": {
+        "before": 289,
+        "after": 29,
+        "saved": 260
+      }
+    },
+    {
+      "map": "zero",
+      "total": 23,
+      "aiAnimationP50ms": 0.39,
+      "aiAnimationP95ms": 0.73,
+      "visibleBotTriangles": 224579,
+      "batch": {
+        "before": 289,
+        "after": 29,
+        "saved": 260
+      }
+    }
+  ],
+  "webgl": [
+    {
+      "map": "helix",
+      "world": {
+        "frame": 1,
+        "calls": 100,
+        "triangles": 173136,
+        "points": 0,
+        "lines": 0
+      },
+      "batch": {
+        "before": 337,
+        "after": 44,
+        "saved": 293
+      },
+      "softwareRenderSubmitMs": 470
+    },
+    {
+      "map": "bastion",
+      "world": {
+        "frame": 3,
+        "calls": 86,
+        "triangles": 175248,
+        "points": 0,
+        "lines": 0
+      },
+      "batch": {
+        "before": 327,
+        "after": 33,
+        "saved": 294
+      },
+      "softwareRenderSubmitMs": 52
+    },
+    {
+      "map": "ironwood",
+      "world": {
+        "frame": 5,
+        "calls": 92,
+        "triangles": 173598,
+        "points": 0,
+        "lines": 0
+      },
+      "batch": {
+        "before": 347,
+        "after": 43,
+        "saved": 304
+      },
+      "softwareRenderSubmitMs": 53
+    },
+    {
+      "map": "zero",
+      "world": {
+        "frame": 7,
+        "calls": 90,
+        "triangles": 170494,
+        "points": 0,
+        "lines": 0
+      },
+      "batch": {
+        "before": 293,
+        "after": 29,
+        "saved": 264
+      },
+      "softwareRenderSubmitMs": 51
+    }
+  ],
+  "browser": "Chrome for Testing 151.0.7922.34 / Linux headless / ANGLE SwiftShader",
+  "limits": [
+    "Software WebGL measurements are not Chromebook hardware FPS.",
+    "Cross-browser behavior and real speaker playback require human/device testing."
+  ]
+}

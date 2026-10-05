@@ -8,7 +8,7 @@ Creator: Quaternius. License: CC0 1.0 Universal. Accessed 5 October 2026.
 
 Included: `operator.glb`, derived from `Superhero_Male_FullBody.gltf` and `UAL1_Standard.glb`; the source license texts are preserved beside it.
 
-Changes: reduced 14,318 source triangles to 6,386; removed large appearance textures, unused UVs/morphs and finger animation tracks; created muted clothing vertex colors; retargeted relative bone rotations to the base model's proportions; preserved bone lengths; selected 13 clips, sampled at at most 24 Hz and removed repeated keys; packed a single self-contained GLB. Two shared appearance variants are created locally. Helmet, ally marker and carried equipment integration are original BlackSite code.
+Changes: reduced 14,318 source triangles to 6,386; removed large appearance textures, unused UVs/morphs and finger animation tracks; created muted clothing vertex colors; retargeted relative bone rotations to the base model's proportions; preserved bone lengths; selected 13 clips, sampled at at most 24 Hz and removed repeated keys; packed a single self-contained GLB (410,780 bytes); combined the three compatible skinned parts into one mesh/draw using their shared bind pose and skin. Two shared appearance variants are created locally. Helmet, ally marker and carried equipment integration are original BlackSite code.
 
 Clips: Idle_Loop, Walk_Loop, Jog_Fwd_Loop, Sprint_Loop, Crouch_Idle_Loop, Crouch_Fwd_Loop, Pistol_Aim_Neutral, Pistol_Shoot, Pistol_Reload, Fixing_Kneeling, Interact, Hit_Head, Death01. Locomotion and upper-body actions blend independently. The free library's pistol handling supplies the upper-body base pose; BlackSite adds the actual rifle aim/recoil presentation. Root motion never moves a gameplay actor.
 

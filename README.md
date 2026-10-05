@@ -1,171 +1,201 @@
 # BlackSite
 
-Open source, half vibecoded html game open for all students with a chromebook or anyone trying to have fun.
+Open source tactical browser FPS for Chromebook players and ordinary laptops.
 
-## BlackSite — Tactical Operations / v0.7.1
+**v0.8.0 — Squad Operations** expands the existing game with animated operators,
+allied squads, four original maps and an offline career. It remains a static
+HTML/CSS/JavaScript game using bundled Three.js r170: no account, paid API,
+backend, CDN or build step is required to play.
 
-An original, open-source tactical FPS for a desktop browser. Three muted tactical maps, two objective sites per map, and offline matches against 1–16 bots. Built with HTML, CSS, JavaScript, and Three.js. No account, backend, build step, or paid API is needed.
+[Play on GitHub Pages](https://mmh-4all.github.io/BlackSite/)
 
-Version 0.7.0 replaces all three block-based maps with new textured military environments: imported brick warehouses, barracks, radio stations, guard towers, corrugated containers, fuel tanks, and Hesco barriers. Asphalt, concrete, and metal use bundled color/normal/roughness maps. Models are CC0 or CC-BY-4.0 with full credits in `assets/environment/LICENSE.md`. Buildings have closed exteriors; objectives and routes stay outside.
+## Squad Operations
 
-Version 0.6.2 preserves the buy countdown whenever equipment is open. Press B to shop for as long as you need; close with Return to Game or Escape to resume from the remaining time.
+- Quaternius CC0 humanoid operators with 13 retargeted skeletal clips, separate
+  upper/lower blending, muted attacker/defender clothing and friendly markers.
+  Animation presents locomotion, aiming, firing, reloads, crouching, flash
+  reactions, objective work and death. Combat values are independent of animation.
+- Six persistent bot personalities: Aggressive, Cautious, Flanker, Objective,
+  Marksman and Support. Easy/Normal/Hard retain their reaction, aim and memory
+  differences. Personalities change decisions rather than weapon power.
+- Customize **0–7 allies** and **1–16 enemies**. Presets include solo 1v5, 3v5,
+  5v5 and 8v8. Allies fight, navigate, plant, hold and defuse. Friendly fire is
+  disabled, and surviving allies continue after the player dies.
+- First to four round wins, with a side switch after round three. Score, credits,
+  the roster and surviving weapons carry over. A banner announces the new role.
+- Strategic animated sliding doors block movement, bullets and sight while
+  closed. Players and bots can open them. Occupants prevent a door closing on
+  them. Holding E for a nearby objective takes priority over door interaction.
+- Accessible ramps and elevated gantries on the existing maps. BlackSite Zero
+  has a sunken interior, exterior checkpoint, three access ramps, control and
+  storage sites, roofed rooms, service routes and a raised overlook.
+- Armory finishes: Default, Tactical Black, Desert, Urban, Woodland, Carbon,
+  Worn Steel, BlackSite Elite and Field Honors. Four are available initially;
+  levels and a challenge badge unlock the others. Finishes never change stats.
+- Local XP/levels, career statistics, selected service badge, personal bests and
+  ten permanent challenges. Profile and reports show combat, accuracy, objectives,
+  map/difficulty wins, weapon usage, playtime and progression.
+- Expanded reports include team setup, score, round history, XP, level progress,
+  challenge progress and unlocks. Crosshair shape, length, thickness, gap, dot,
+  outline, opacity, color and recoil expansion are saved.
+- Quiet wind/rain/machinery, surface footsteps, doors and impacts supplement the
+  existing 60 distinct weapon recordings. Helix has subtle dust; Ironwood has
+  light rain/mist. Four small lights/equipment props per map can break without
+  changing routes, buildings or collision. They reset each round.
 
-Version 0.6.1 locks walking, strafing, jumping, and crouching during the 12-second buy phase. Look around and buy equipment while waiting; movement unlocks when the live round begins.
+## Maps
 
-Version 0.6.0 adds two original military maps and a saved hostile-count selector. Choose **Operation map** and **Hostile count** on Deploy, then select your role and difficulty. Every integer from 1 to 16 is available; the default is six. A match keeps its selected map/count for all rounds. Returning to the menu and deploying again applies new choices.
-
-| Map | Setting |
+| Map | Identity and additions |
 | --- | --- |
-| Helix Compound | Desert communications compound with barracks, radio station, and service warehouse. |
-| Bastion Depot | Military logistics depot with twin warehouses, cargo stacks, fortified cover, and loading yards. |
-| Ironwood Garrison | Overcast motor pool with a central maintenance warehouse, barracks flanks, and signal relay. |
+| Helix Compound | Desert communications facility; solar equipment, terminals, pipes, fuel equipment, signal access door and raised gantry. |
+| Bastion Depot | Military logistics facility; loading lift, conveyor, machinery, cargo yards, loading door and gantry. |
+| Ironwood Garrison | Overcast motor pool; machinery, pipes, chimney, cold atmosphere, rain, access door and gantry. |
+| BlackSite Zero | Original partially underground research installation; exterior security, sunken rooms, service tunnels, two sites, two doors and raised overlook. |
 
-Bots have clear, separated spawns, unique names, routes to both objectives, and local separation while moving. Navigation uses a cached collision grid and staggered route refreshes for larger groups. Menu previews render the actual map meshes and textures with simple CPU lighting; bundled SVG plans come from the playable collision and site data. Layout data is original project work; imported geometry and textures are bundled with their source credits.
-
-This is a **playable prototype**. M4A1, SV98, and M82 models are modified assets by chasieboy317 from Free3D, optimized into four meshes each with original PBR materials and animated magazines. The pistol and crates use Kenney's CC0 Blaster Kit, with a desaturated palette. Map geometry, articulated bot characters, and first-person gloves are original. See `ATTRIBUTION.md` for the separate asset licenses.
-
-Version 0.3.0 redesigns deployment, the armory, field manual, settings, HUD, buy menu, pause screen, scoreboard, and round results in a muted charcoal/olive style. Model-derived vector previews show the actual weapons. Choose an opening primary in the armory; it is issued at deployment. Snipers have scoped aiming, distinct recoil, heavier movement, and lethal torso hits. M4A1 recoil and objective/bot rules retain the previous behavior. Sidearm and sniper fire is now trigger-based; hold left mouse for automatic M4A1 fire.
-
-Version 0.5.0 adds procedural motion throughout the game: articulated first-person hands, actual-distance walking/running sway, crouch transitions, jump/landing recovery, recoil, muzzle flashes, casing ejection, staged magazine handling, slide/bolt motion where the model has separate parts, smooth scope zoom, utility throws, objective device handling, and hold-V inspection. Bots have jointed legs/feet and arms, breathing, turning/strafe lean, firing recoil, flash reactions, objective handling, and settling deaths. Interface panels and combat feedback have short transitions, with reduced-motion support for the interface. Aiming, damage, ammunition, and gameplay hit volumes remain independent of the presentation.
-
-Version 0.4.0 added AK-47, MP5, C-9 and H-45: five primaries and three sidearms in total. Each new weapon uses a distinct internet-sourced CC0 model adapted with muted PBR materials, an animated magazine and bolt/slide. Choose both opening slots in Armory. Buy primary and sidearm replacements separately; both persist when you survive, while elimination removes them and issues the free P-9.
-
-This update replaces all weapon audio with 60 distinct CC0 recordings. Every gun has
-separate shots, reload stages, equip sounds, and empty-trigger clicks; SV98 has a
-bolt cycle and bots have separate distant rifle shots. No clip or source excerpt
-is shared between guns/actions. In **Armory**, use **Shot** or **Reload** to hear
-the chosen weapon, even if WebGL is unavailable. Previews use saved Master volume.
-All sounds are bundled locally; no audio account or subscription is needed.
-See `assets/audio/LICENSE.md` for credits and the adapted source weapons.
+Existing textured warehouses, barracks, radio stations, guard towers, containers,
+fuel tanks, Hesco barriers, asphalt/concrete/metal textures and original layouts
+are retained. Layouts do not recreate commercial FPS maps. Menu previews come
+from the actual geometry with CPU lighting; they are previews rather than
+screenshots of GPU lighting.
 
 ## Play locally
 
-Unzip the project, open a terminal in the folder containing `index.html`, and run:
+Download the complete release ZIP, extract it, and serve the folder containing
+`index.html`:
 
 ```sh
 python3 -m http.server 8000
 ```
 
-Open **http://localhost:8000** in Chrome, Edge, or Firefox. Do not double-click `index.html`: browsers restrict loading modules and model files from `file://` URLs. After serving the folder, all runtime assets are local; no CDN calls are required. You need WebGL 2, a keyboard, and a mouse. Mobile controls are not included.
+Open `http://localhost:8000` in a desktop browser supporting WebGL 2. Choose map,
+teams, side and difficulty, then Deploy. Use a keyboard and mouse. `file://`
+opening cannot load browser modules/models reliably. All game assets are served
+locally; an internet connection is unnecessary when running this local server.
+No service-worker installation or first-load offline Pages cache is provided.
 
-Choose your side and difficulty, then click **Deploy to compound**. Your mouse is captured for aiming. Press Escape to release it and pause. Clicking Resume captures it again.
+## Controls and match rules
 
-## Match rules
-
-- One human against 1–16 bots (six by default). First to four round wins.
-- Attack: plant at A (solar court) or B (reactor hall), then protect the core.
-- Defend: stop the attackers or defuse their core.
-- Buy phase: 12 seconds, with player movement locked. Live round: 90 seconds. Core timer: 40 seconds.
-- Hold E while stationary: plant in 3 seconds; player defuse in 5 seconds.
-- Defending bots take 7 seconds to defuse. Multiple bots do not accelerate it.
-- Eliminating all attackers does not win a defending round if their core is still active. You must defuse it.
-- Death ends the round immediately in this solo mode; there are no human teammates.
-- Pausing or opening the buy panel freezes this offline simulation.
-
-## Controls
-
-| Key | Action |
+| Input | Action |
 | --- | --- |
 | WASD / mouse | Move / aim |
-| Left mouse | Fire |
+| Left mouse | Fire; hold for automatic weapons |
 | Right mouse | Toggle sniper scope |
 | R | Reload |
 | V (hold) | Inspect weapon |
 | Shift | Walk |
 | Ctrl or C | Crouch |
 | Space | Jump |
-| 1 / 2 | Carried primary / pistol |
-| E (hold) | Plant / defuse |
-| G | Smoke grenade |
-| F | Flash grenade |
-| B | Buy at spawn during the buy phase |
-| Tab (hold) | Scoreboard |
-| Escape | Pause and release mouse |
+| 1 / 2 | Owned primary / sidearm |
+| E | Open/close a nearby door |
+| E (hold, stationary) | Plant in 3 seconds; player defuse in 5 seconds |
+| G / F | Smoke / flash |
+| B | Shop at spawn during buy time; pauses the countdown |
+| Tab (hold) / wheel | Scoreboard / scroll its roster |
+| Escape | Release mouse and pause |
 
-Sensitivity and sound volume are adjustable in both settings and pause. Field of view (68–100), crosshair length, and standard/performance graphics are in settings. Preferences and both opening weapons are saved in local browser storage, with a session-only fallback when storage is unavailable.
+The 12-second buy phase locks walking, strafing, jumping and crouching. Looking
+and purchasing remain available. Opening equipment pauses the whole offline
+simulation and preserves remaining buy time. A live round lasts 90 seconds;
+an armed core lasts 40 seconds. Bots take seven seconds to defuse, and extra bots
+do not accelerate progress. A planted core remains urgent after a team dies.
 
-## Gunplay
+Wins award $3,000, losses $1,900, and player eliminations $300, up to $16,000.
+Survival retains both weapons; player death removes the primary and issues the
+free P-9. Armor and utility retain their existing purchase/capacity rules.
+After death the camera follows a surviving ally; there is no free spectator camera.
 
-- Hitscan weapons with original recoil values and head/body hit detection.
-- M4A1: 34 body damage before armor, 160 head damage, 30 rounds, 2.2-second reload. Rifle headshots defeat full health and armor. Rebuy: $2,700.
-- SV98: bolt-action, 10 rounds, 1.35-second shot interval, 3.1-second reload, 24° scoped FOV. Rebuy: $3,800.
-- M82: semi-automatic, 10 rounds, 0.65-second shot interval, 3.6-second reload, 29° scoped FOV. Rebuy: $4,700.
-- Both snipers kill a full-health bot with one head or torso hit; running, jumping, and unscoped firing are inaccurate. Carrying a sniper slows movement.
-- P-9 pistol: 25 body damage before armor, 80 head damage, 12 rounds, 1.45-second reload.
-- AK-47: 30 rounds, 38 body / 160 head damage, automatic, 2.45-second reload; $2,600.
-- MP5: 30 rounds, 27 body / 108 head damage, automatic, 2.1-second reload; $1,500.
-- C-9: 18 rounds, 24 body / 96 head damage, semi-automatic, 1.7-second reload; $400.
-- H-45: 7 rounds, 54 body / 150 head damage, semi-automatic, 1.95-second reload; $700.
-- Bots have 100 HP and body armor. Player armor reduces incoming body damage.
-- Running and jumping increase spread. Standing still settles the first shot. The crosshair reflects movement and recoil.
-- Strafing, tap firing, and burst control matter. Recoil is intentionally original and does not reproduce either commercial game's exact physics.
-- No penetration, grenade damage, fall damage, weapon pickups, matchmaking, or anti-cheat in this release.
-- Smoke blocks bot visibility and obscures the scene. Bullets can still pass through it.
-- Flash blinds exposed bots; looking at your own flash can blind you too.
-- Buy at spawn during the buy phase. Purchasing a different primary replaces the old one. Survive to retain it; death leaves the free P-9 for the next round. Sidearm purchases replace only the sidearm slot. Buying either already-carried weapon cannot refill it.
-- Round reports show actual eliminations, headshot eliminations, shot accuracy, and the standard round reward. The live HUD includes remaining hostiles, armor, credits, reload progress, and weapon slots.
+## Preserved arsenal
 
-## Bot difficulty
+Five primaries and three sidearms retain their existing damage, recoil, spread,
+movement, fire rate, ammo, scopes, animation and individually licensed recordings.
 
-All levels have the same 100 health. Difficulty changes behavior rather than health.
+| Weapon | Magazine | Body / head damage before the existing armor rule | Reload | Rebuy |
+| --- | ---: | ---: | ---: | ---: |
+| M4A1 | 30 | 34 / 160 | 2.20 s | $2,700 |
+| AK-47 | 30 | 38 / 160 | 2.45 s | $2,600 |
+| MP5 | 30 | 27 / 108 | 2.10 s | $1,500 |
+| SV98 | 10 | 145 / 400 | 3.10 s | $3,800 |
+| M82 | 10 | 132 / 280 | 3.60 s | $4,700 |
+| P-9 | 12 | 25 / 80 | 1.45 s | Free |
+| C-9 | 18 | 24 / 96 | 1.70 s | $400 |
+| H-45 | 7 | 54 / 150 | 1.95 s | $700 |
 
-| Level | Reaction delay | Fire interval | Aim spread | Move speed | Last-seen memory |
-| --- | --- | --- | --- | --- | --- |
-| Easy | 0.95 s | 0.55 s | 0.14 | 2.4 m/s | 1.5 s |
-| Normal | 0.55 s | 0.30 s | 0.072 | 3.0 m/s | 3 s |
-| Hard | 0.28 s | 0.19 s | 0.04 | 3.5 m/s | 5 s |
+`weapons.js` is authoritative. Stationary shots settle; movement/jumping widen
+spread; bursts climb and pull sideways. The two snipers retain lethal torso
+shots, slower movement, trigger-based fire and scoped aiming. Hold-V inspection,
+hands, magazine/bolt/slide handling, walking, landing and utility animations remain.
 
-Bots use grid-based pathfinding, cover/smoke line-of-sight checks, last-seen pursuit, and objective actions. Normal/Hard bots strafe in firefights. They do not call an AI service. Awareness is intentionally omnidirectional when line of sight is clear, and navigation is a simple grid, not a production navigation mesh. Balance values are starting points and need human playtesting.
+## Career and storage
 
-## Publish to GitHub Pages
+Career saves at round completion and when returning to the menu. Abandoned
+matches keep recorded combat/time but do not count as wins or award round XP.
+Closing the tab during an unfinished round can lose that round's unsaved progress.
+Statistics belong to this browser/origin, with no account, leaderboard or cloud
+sync. Private browsing, storage clearing and different Pages/local origins have
+separate records. Malformed/blocked/full LocalStorage falls back to session play.
 
-1. Create a new **public** GitHub repository, for example `breach-protocol`.
-2. Upload the **contents** of this folder. `index.html` must be at the repository root, alongside `game.js`, `style.css`, `assets`, and `vendor`. Do not upload only the ZIP or only the HTML file.
-3. In the repository, open **Settings → Pages**.
-4. Choose **Deploy from a branch**, then **main** and **/(root)**. Save.
-5. Wait for the Pages deployment, then open the address GitHub displays. A project site typically looks like `https://YOUR-USERNAME.github.io/breach-protocol/`.
+Levels unlock only cosmetics. The ten challenges are First Deployment,
+Headhunter, Demolition, EOD, Veteran, Operator, Arsenal, Survivor, Precision and
+BlackSite. Each is permanent, with visible progress and a one-time badge/XP award.
+There are no daily streaks, purchases, weapon upgrades or time-limited rewards.
 
-Every asset URL is relative so a repository subpath works. `.nojekyll` is included. No workflow secret, package installation, or build command is needed for publishing.
+## Performance and current limits
 
-Official instructions: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
+Start with **Performance** graphics on Chromebooks, especially with larger teams.
+It uses 1x pixel ratio, no real-time shadows, no weather particles or debris and
+lower distant animation rates. Standard uses up to 1.5x ratio, 1024px shadows and
+small particle/debris caps; High uses 2048px shadows and modestly larger caps.
+Fog is inexpensive and visibility remains readable.
 
-### Let the assistant upload it
+Navigation connectivity is cached at map load; path/sight work is budgeted and
+staggered. Animation distance LOD changes only presentation. Static geometry and
+bot rifle materials are batched, and operator parts share one skinned draw.
+Bot rifle presentation uses a simplified version of the existing CC0 AK model;
+its original rifle AI/combat/audio values remain unchanged. Player weapons retain
+full models. Skeleton textures, mixers, map geometry, particles and audio nodes
+are cleaned up; cached shared assets stay available for later matches.
 
-Connect the GitHub plugin in ChatGPT and grant access to the intended repository. Then send the repository URL and say: “Upload the Breach Protocol project to this repository and enable GitHub Pages.” Repository write access is required; changing Pages settings may require separate repository administration permission. If the connection provides read-only access, the assistant must tell you and use an approved write-capable GitHub connection or have you perform the final upload. Never paste passwords or access tokens into chat.
+This is offline play with one human and AI, not online multiplayer. Navigation
+supports one walkable height at each X/Z location. Explicit ramps/gantries are
+supported; arbitrary stacked walkable floors, ladders and accessible decorative
+perimeter towers are not. Imported stairs were unsuitable for the height field;
+textured ramps provide reliable access instead. Free UAL pistol handling supplies
+upper-body poses; BlackSite adds carried rifle aim/recoil and visual attachments.
+Destruction is limited to cosmetic lights/equipment, with capped temporary debris.
+Weather is deliberately subtle. Mouse capture and GPU speed vary by browser/device.
 
-## Source layout
+## GitHub Pages
 
-```
-index.html        Game menus and HUD
-style.css         Interface styling
-app.js            Game startup and explicit UI preview mode
-ui.js             Menus, armory, settings storage, shop and reports
-weapons.js        Shared weapon balance, model paths and equipment metadata
-audio.js          Cached weapon recordings, playback, timing and cancellation
-game.js           World, gunplay, bots, match rules, controls
-assets/           GLB models, vector UI previews, map plan, local WAVs and licenses
-tools/            Reproducible converters, vector previews and validation
-maps.js           Original layouts, imported prop placements, collision footprints and sites
-environment.js    Imported environment loading and shared PBR surface materials
-vendor/           Three.js 0.170.0, loader, utility, MIT license
-LICENSE           MIT license for original code
-ATTRIBUTION.md    Third-party sources and licenses
-```
+Upload the complete folder to a GitHub repository. In Settings → Pages, publish
+from `main` and `/ (root)` (or use a static Pages workflow). Relative module and
+asset paths support repository URLs such as `/BlackSite/`. No `CNAME`, paid domain,
+server process or runtime remote asset host is required.
 
-Edit `DIFFICULTY` in `game.js` and `WEAPONS` in `weapons.js` to tune the game. Edit `MAPS` in `maps.js` for layouts. Collision footprints follow solid imported props; bot navigation is rebuilt from those footprints and boundary walls. Imported models are replaceable via the weapon metadata; check license and orientation.
+## Source layout and validation
 
-An opt-in `?test` URL exposes local state for development and testing. This is an offline game and it is not designed to prevent players from changing their own client.
+| File | Responsibility |
+| --- | --- |
+| `app.js`, `index.html`, `style.css`, `ui.js` | Startup, muted interface, settings, Armory and shop |
+| `game.js`, `weapons.js`, `audio.js` | Authoritative match/combat, first-person presentation, weapon definitions/audio |
+| `maps.js`, `environment.js`, `navigation.js`, `doors.js` | Maps, local scenery, height-aware routes and doors |
+| `characters.js`, `ai.js` | Skeletal presentation/LOD and bot personalities/teams |
+| `skins.js`, `crosshair.js` | Original cosmetic materials and configurable reticle |
+| `progression.js`, `challenges.js`, `stats.js`, `career-ui.js` | Local career, achievements, reports and statistics |
+| `effects.js`, `environment-audio.js`, `performance.js` | Bounded effects/audio and geometry batching |
+| `assets/`, `vendor/` | Bundled models, textures, recordings, previews, notices and Three.js |
+| `tools/` | Conversion, previews and validation; development dependencies do not ship to gameplay |
 
-An explicit `?preview=deploy` (or `armory`, `manual`, `settings`, `hud`, `buy`, `pause`, `scoreboard`, `result`) displays the real interface without starting WebGL or a match. Preview combat values are examples, clearly marked as a preview, and purchases are disabled. This is useful for UI review on a machine without a GPU.
+Run `node tools/validate.mjs`, `node tools/validate-career.mjs`,
+`node tools/validate-environment.mjs` and `node tools/validate-audio.mjs`.
+`node tools/validate.mjs --benchmark` measures CPU AI/presentation, not GPU FPS.
+Optional `tools/validate-browser.mjs` uses development-only Playwright/Chromium.
+See `TESTING.md` for completed checks, commands and remaining device playtesting.
 
-## License and identity
+## Licenses
 
-Original project source is MIT licensed. Kenney assets are CC0; Three.js and its addons retain their MIT notice. The Free3D weapons and their derived previews retain chasieboy317's credit and permission for modified reuploads; **they are not covered by the project's MIT license**. See `assets/M4A1-LICENSE.md` and `assets/FREE3D-WEAPONS-LICENSE.md`. No assets are extracted from Counter-Strike, Valorant, or their publishers. The working project name has not been trademark-cleared.
-
-Weapon WAV files are separately licensed CC0 1.0; source credits, modifications,
-and MLA references are in `assets/audio/LICENSE.md`. Run audio checks with
-`node tools/validate-audio.mjs` and gameplay checks with `node tools/validate.mjs`.
-
-## Current limits
-
-This release uses procedural articulated bot silhouettes, distinct recorded weapon sounds and synthetic objective cues, procedural visual grenade arcs and smoke expansion, and three compact original maps. It has no online multiplayer, physical grenade collisions, imported skeletal character animations, doors, vertical navigation, or automatic side switching. Internet assets are bundled for weapons, crates, buildings, military props, and PBR surface textures. Map arrangements and articulated bots are original. See `TESTING.md` for what was checked and what still needs a browser playtest.
+Original project code is MIT. New Quaternius/Kenney assets and original environment
+recordings are CC0, with full sources, dates, changes and preserved notices.
+Existing CC-BY environment credits and Free3D weapon permissions remain separate
+from the code license. Do not assume every asset is MIT or CC0.
+See `ATTRIBUTION.md`, `assets/*/LICENSE.md`, `assets/M4A1-LICENSE.md` and
+`vendor/THREE-LICENSE.txt`. Prior releases and changelog history remain available.

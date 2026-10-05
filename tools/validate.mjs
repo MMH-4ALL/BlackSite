@@ -168,14 +168,14 @@ for(const p of [[-15,-18],[15,-18],[0,-24]]){const path=g.pathTo(player.pos,new 
 assert.ok(!g.canStand(24,0));assert.ok(!g.canStand(-15,3),'imported barracks blocks movement');
 state.phase='live';state.paused=false;
 // Make a stationary, isolated headshot on an actual Three.js scene/raycaster.
-const b=state.bots[0];b.pos.set(0,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
-g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);
+const b=state.bots[0];b.pos.set(3,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
+g.camera.position.set(3,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);
 const random=Math.random;Math.random=()=>.5;g.shoot();Math.random=random;
 assert.equal(b.alive,false,'rifle headshot kills armored bot');assert.equal(state.kills,1);assert.equal(state.ammo.rifle.mag,29);
 assert.equal(state.headshots,1);assert.equal(state.shotsFired,1);assert.equal(state.hits,1);
 g.updateBotPresentation(.04);assert.ok(b.operator.current.lower.startsWith('Death01'),'corpse uses a skeletal death clip');
 // Smoke occludes shared visibility queries.
-state.smoke=1;g.utility('smoke');assert.equal(state.smoke,0);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14),false),false);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14)),true);
+state.smoke=1;g.utility('smoke');assert.equal(state.smoke,0);assert.equal(g.blocked(new THREE.Vector3(3,1,19),new THREE.Vector3(3,1,14),false),false);assert.equal(g.blocked(new THREE.Vector3(3,1,19),new THREE.Vector3(3,1,14)),true);
 // Attackers can navigate from spawn to a plant with player perception disabled.
 state.side='defend';g.nextRound();state.phase='live';g.camera.position.set(0,80,0);g.scene.updateMatrixWorld(true);
 for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateDoors(g.doors,.04,g.hitWalls,[]);g.mapRoot.updateMatrixWorld(true);g.updateBots(.04);g.scene.updateMatrixWorld(true);}
@@ -205,8 +205,8 @@ assert.ok(g.buyItem('smoke'));assert.equal(state.smoke,2);assert.equal(g.buyItem
 state.phase='live';assert.equal(g.buyItem('flash'),false,'buy phase enforced');
 for(const key of ['sv98','m82']){
  state.primary=key;state.owned=true;g.equip(key);state.cooldown=0;state.reload=0;state.phase='live';state.paused=false;player.moving=0;player.grounded=true;state.shots=0;
- const target=state.bots[0];target.hp=100;target.alive=true;target.pos.set(0,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
- g.camera.position.set(0,1.1,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);g.setScoped(true);
+ const target=state.bots[0];target.hp=100;target.alive=true;target.pos.set(3,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
+ g.camera.position.set(3,1.1,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);g.setScoped(true);
  const before=state.ammo[key].mag;Math.random=()=>.5;g.shoot();Math.random=random;
  assert.equal(target.alive,false,key+' scoped torso shot is lethal');assert.equal(state.ammo[key].mag,before-1);
  g.shoot();assert.equal(state.ammo[key].mag,before-1,'bolt / fire interval enforced');
@@ -241,8 +241,8 @@ for(const key of ['ak47','mp5','c9','h45']){
 for(const key of ['ak47','mp5','h45']){
  if(WEAPONS[key].slot==='primary'){state.primary=key;state.owned=true;}else state.secondary=key;
  g.equip(key);state.phase='live';state.cooldown=0;state.reload=0;state.shots=0;player.moving=0;player.grounded=true;
- const target=state.bots[0];target.hp=100;target.alive=true;target.pos.set(0,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
- g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;g.shoot();Math.random=random;assert.equal(target.alive,false,key+' headshot is lethal');
+ const target=state.bots[0];target.hp=100;target.alive=true;target.pos.set(3,0,20);state.bots[1].pos.set(-18,0,-24);state.bots[2].pos.set(18,0,-24);
+ g.camera.position.set(3,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;g.shoot();Math.random=random;assert.equal(target.alive,false,key+' headshot is lethal');
 }
 state.secondary='pistol';
 // Validate bundled binary models and every relative import.
@@ -356,8 +356,8 @@ settings.map='bastion';settings.botCount=4;g.nextRound();assert.equal(state.map,
 elements.get('quit').onclick();elements.get('start').onclick();assert.equal(state.map,'bastion');assert.equal(state.bots.length,4,'a new match uses the new choices');weaponAudio.unlock=unlock;
 // A higher bot count only wins after the final hostile is eliminated.
 g.loadMap('helix');state.side='attack';state.botCount=6;state.primary='rifle';state.owned=true;g.nextRound();state.phase='live';state.cooldown=0;player.moving=0;
-state.bots.forEach((b,i)=>{b.alive=i===0||i===5;b.pos.set(i===0?0:i===5?3:18,0,i===0||i===5?20:-24);});
-g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;g.shoot();assert.equal(state.phase,'live','one remaining enemy prevents a win');
+state.bots.forEach((b,i)=>{b.alive=i===0||i===5;b.pos.set(i===0?-3:i===5?3:18,0,i===0||i===5?20:-24);});
+g.camera.position.set(-3,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;g.shoot();assert.equal(state.phase,'live','one remaining enemy prevents a win');
 state.cooldown=0;g.camera.position.x=3;g.camera.updateMatrixWorld(true);g.shoot();Math.random=random;assert.equal(state.phase,'ended');
 state.botCount=3;g.nextRound();
 console.log('PASS: four distinct maps, all 1/3/6/16-bot spawn/route combinations on both sides, unique names, full reports, sixteen-bot plant/defuse simulation, match selection/reset, and last-enemy victory.');
@@ -370,10 +370,10 @@ for(const key of Object.keys(MAPS))for(const side of ['attack','defend'])for(con
  const personalities=state.bots.map(b=>b.personality);g.nextRound();assert.deepEqual(state.bots.map(b=>b.personality),personalities,'personality survives rounds');
 }
 g.loadMap('helix');state.side='attack';state.allyCount=1;state.botCount=1;state.roundResults=[];g.nextRound();state.phase='live';
-const friendly=state.bots.find(b=>b.team==='ally'),hostile=state.bots.find(b=>b.team==='enemy');friendly.pos.set(0,0,20);hostile.pos.set(0,0,10);
-g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;state.cooldown=0;player.moving=0;
+const friendly=state.bots.find(b=>b.team==='ally'),hostile=state.bots.find(b=>b.team==='enemy');friendly.pos.set(3,0,20);hostile.pos.set(3,0,10);
+g.camera.position.set(3,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;state.cooldown=0;player.moving=0;
 g.shoot();assert.equal(friendly.hp,100,'player cannot damage allies');assert.equal(hostile.hp,100,'friendly bodies block the shot');
-friendly.pos.set(0,0,24);hostile.pos.set(0,0,20);g.scene.updateMatrixWorld(true);g.botFire(friendly,hostile,{...g.DIFFICULTY.normal,spread:0},friendly.pos.clone().add(new THREE.Vector3(0,1.55,0)));assert.ok(hostile.hp<100,'allied shots hit enemy hitboxes');
+friendly.pos.set(3,0,24);hostile.pos.set(3,0,20);g.scene.updateMatrixWorld(true);g.botFire(friendly,hostile,{...g.DIFFICULTY.normal,spread:0},friendly.pos.clone().add(new THREE.Vector3(0,1.55,0)));assert.ok(hostile.hp<100,'allied shots hit enemy hitboxes');
 player.health=0;g.checkElimination();assert.equal(state.phase,'live','an ally keeps fighting after player elimination');g.killBot(hostile,friendly);assert.equal(state.phase,'ended','an ally can win the round');Math.random=random;
 for(const key of Object.keys(MAPS)){
  g.loadMap(key);state.side='attack';state.botCount=1;state.allyCount=2;state.roundResults=[];g.nextRound();state.phase='live';g.camera.position.set(0,80,0);state.bots.filter(b=>b.team==='enemy').forEach(b=>b.blind=999);

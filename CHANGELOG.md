@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.8.0 — Squad Operations / 5 October 2026
+
+- Replaced the normal procedural bot presentation with optimized Quaternius CC0 humanoids: distinct gray attackers and olive defenders, helmets, ally markers, thirteen skeletal clips, independent upper/lower blending, rifle aim/hand attachments, reactions and deaths. A built-in fallback remains for failed character downloads.
+- Added six AI decision profiles: Aggressive, Cautious, Flanker, Objective, Marksman and Support. Existing difficulty still controls reaction, accuracy, memory and speed. Up to seven allies can join the human against 1–16 enemies; friendly fire is disabled and allied objective/combat play continues after a human elimination.
+- Teams switch attack/defense once after round three, with an explicit banner, correct spawns/objective roles and retained team score, credits and surviving equipment.
+- Added animated, audible sliding doors with E interaction, closed-door collision/bullet/vision blocking, occupant protection and bot opening. Objective interaction takes precedence.
+- Added cached height-aware routes, textured ramps and accessible gantries on the three existing maps. Introduced BlackSite Zero: an original partially underground research installation with two objective sites, service routes, interiors, doors and a raised position. One walkable height per X/Z avoids unreliable stacked-floor navigation.
+- Strengthened the existing map identities with locally bundled CC0 communications/logistics/motor-pool props, lighting/fog palettes, subtle desert dust and cold light rain. Existing Helix, Bastion and Ironwood layouts and v0.7.1 floor separation remain.
+- Added nine original weapon finishes with per-gun Armory selection; four are available from level one and others unlock through cosmetic progression. All eight weapons keep their damage, recoil, accuracy, handling, movement and recorded audio.
+- Added offline XP, levels, combat/objective/weapon/map/difficulty/playtime statistics, personal bests, ten permanent challenges, badges and a Career screen. LocalStorage failures fall back to session data. Cosmetic unlocks give no gameplay power.
+- Expanded Deploy with team presets/customization, remaining allies/enemies, scoreboard team/profile/K-D labels, crosshair shapes/presets/dot/outline/gap/thickness/opacity/dynamic expansion, round histories, XP/level/unlock reports and staged loading feedback.
+- Added sixteen distinct, original CC0 environment WAVs: concrete/metal/dirt/gravel footsteps, doors, material impacts and ambient wind/rain/machinery. Existing sixty weapon recordings and their credits remain intact. Voice counts, ambient loops and debris are bounded and cleaned up.
+- Added lightweight cosmetic breakable lights/equipment. Destroyed scenery does not alter navigation, objectives or movement collision; capped debris expires and objects reset each round.
+- Batched static scenery and the shared bot rifle, merged operator parts into one skinned draw, staggered AI senses/paths, cached navigation edges, limited HUD/radar updates and added animation distance LOD. Performance Mode disables shadows, weather particles and debris. Repeated browser map switches keep GPU geometry/texture counts stable.
+- Fixed stale mouse-capture requests after leaving/restarting matches and refreshed the camera immediately on round spawn. Split major systems into focused modules; expanded regression tooling and preserved previous release history/licenses.
+- Validation: all five current suites pass, including real Chromium WebGL/input, 24 browser team/map configurations, maximum 23-bot logic configurations, objectives, side switches, doors/ramps, all 72 finish combinations, storage failures and the GitHub Pages subpath. Measured 86–100 world draw calls with sixteen bots in Performance Mode. Hardware Chromebook FPS, cross-browser behavior and real sound playback remain device playtests; see TESTING.md.
+
 ## 0.7.1 — Floor flicker fix
 
 - Separated overlapping concrete and asphalt top faces on every map and lifted objective rings above the loading pads to prevent z-fighting.

@@ -21,15 +21,15 @@ const base='http://127.0.0.1:'+server.address().port+'/BlackSite/';let browser;
 try{
  browser=await chromium.launch({headless:true,...(process.env.BLACKSITE_CHROMIUM?{executablePath:process.env.BLACKSITE_CHROMIUM}:{}),args:['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  const page=await browser.newPage({viewport:{width:960,height:600}}),errors=[],external=[],responses=[];
- page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+ page.on('pageerror',e=>{errors.push(e.message);console.log('PAGE_ERROR',e.message);});page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
  page.on('request',r=>{if(!r.url().startsWith(base)&&!r.url().startsWith('data:')&&!r.url().startsWith('blob:'))external.push(r.url());});
  page.on('response',r=>{if(r.status()>=400)responses.push([r.status(),r.url()]);});
  await page.addInitScript(()=>{
   localStorage.setItem('blacksite.settings.v1',JSON.stringify({quality:'low',botCount:16,allyCount:0}));
-  const native=requestAnimationFrame.bind(window);window.requestAnimationFrame=fn=>{window.__blacksiteFrame=fn;return native(time=>{if(!window.__freezeFrames)fn(time);});};
+  window.__freezeFrames=true;window.requestAnimationFrame=fn=>{window.__blacksiteFrame=fn;return 0;};
  });
- await page.goto(base+'?test',{waitUntil:'load',timeout:60000});
- await page.waitForFunction(()=>window.__game&&document.getElementById('start').disabled===false,null,{timeout:60000,polling:50});
+ console.log('Opening local WebGL build');await page.goto(base+'?test',{waitUntil:'load',timeout:60000});
+ console.log('Page loaded');await page.waitForFunction(()=>window.__game&&document.getElementById('start').disabled===false,null,{timeout:60000,polling:50});
  await page.evaluate(()=>{window.__freezeFrames=true;window.requestAnimationFrame=fn=>{window.__blacksiteFrame=fn;return 0;};window.__testNow=performance.now();window.__testFrames=count=>{const g=window.__game,render=g.renderer.render;g.renderer.render=()=>{};for(let i=0;i<count;i++){window.__testNow+=40;window.__blacksiteFrame(window.__testNow);}g.renderer.render=render;};});
  await page.click('#start');
  await page.waitForFunction(()=>document.pointerLockElement===document.getElementById('world'),null,{timeout:10000,polling:50});
@@ -43,6 +43,11 @@ try{
  await page.click('#closeBuy');await page.waitForFunction(()=>!window.__game.state.paused,null,{timeout:10000,polling:50});
  await page.evaluate(()=>window.__testFrames(1));assert.ok(await page.evaluate(()=>window.__game.state.time)<shopTime);
  console.log('PASS: real browser mouse capture, buy lock, paused shop timer, purchase and resume.');
+ // Fixture deployments below do not represent user gestures. Avoid queueing
+ // denied pointer-lock requests while switching dozens of matches instantly.
+ await page.evaluate(()=>{window.__game.returnMenu();});
+ await page.waitForFunction(()=>!document.pointerLockElement,null,{timeout:10000,polling:50});
+ await page.evaluate(()=>{document.getElementById('world').requestPointerLock=()=>Promise.resolve();});
  const configurations=await page.evaluate(()=>{
   const g=window.__game,results=[];
   for(const map of Object.keys(g.MAPS))for(const side of ['attack','defend'])for(const bots of [1,6,16]){
@@ -50,6 +55,7 @@ try{
    if(g.state.bots.length!==bots+g.settings.allyCount)throw Error('roster '+map);if(!g.state.bots.every(b=>g.canStand(b.pos.x,b.pos.z,.43)))throw Error('spawn '+map);
    g.state.phase='live';g.updateBots(.04);g.updateBotPresentation(.04);g.scene.updateMatrixWorld(true);
    g.scene.traverse(o=>{if(!o.position.toArray().every(Number.isFinite)||!o.quaternion.toArray().every(Number.isFinite))throw Error('NaN transform '+o.name);});
+   for(const b of g.state.bots){const hand=b.operator.rightHand.getWorldPosition(b.pos.clone()),gun=b.gun.getWorldPosition(b.pos.clone());if(hand.distanceTo(gun)>.3)throw Error('weapon hand attachment '+map);const forward=b.pos.clone().set(0,0,1).applyQuaternion(b.operator.model.quaternion);if(forward.z>-.99)throw Error('operator facing '+map);}
    results.push({map,side,bots,allies:g.settings.allyCount});
   }return results;
  });assert.equal(configurations.length,24);console.log('PASS: 24 browser configurations, all four maps/both sides/1,6,16 enemies and 2,7 allies, finite animated transforms.');
@@ -63,6 +69,10 @@ try{
   if(artifacts)await page.screenshot({path:path.join(artifacts,map+'-browser.png'),timeout:60000});
  }
  console.log('WEBGL_BUDGET '+JSON.stringify(budgets));
+ if(artifacts){
+  const operators=await page.evaluate(()=>{const g=window.__game;g.returnMenu();g.loadMap('helix');g.state.botCount=1;g.state.allyCount=1;g.state.side='attack';g.state.roster=[];g.nextRound();g.state.active=true;g.state.phase='live';document.getElementById('menu').hidden=true;document.getElementById('hud').hidden=false;document.getElementById('pause').hidden=true;g.state.bots.forEach((b,i)=>{b.pos.set(i? -1:1,0,23);b.group.rotation.y=Math.PI;b.target=g.player;});g.updateBotPresentation(.3);g.camera.position.set(0,1.68,26);g.camera.lookAt(0,1.3,22);g.scene.updateMatrixWorld(true);g.updateHUD();g.renderer.autoClear=true;g.renderer.render(g.scene,g.camera);return g.state.bots.map(b=>({team:b.team,hand:b.operator.model.getObjectByName('hand_r')?.getWorldPosition(g.player.pos.clone()).toArray(),position:b.pos.toArray()}));});
+  console.log('OPERATOR_PRESENTATION '+JSON.stringify(operators));await page.screenshot({path:path.join(artifacts,'operators-browser.png'),timeout:60000});
+ }
  const finishes=await page.evaluate(async()=>{
   const g=window.__game,{applySkin,SKINS}=await import('./skins.js?v=0.8.0');let count=0;
   for(const weapon of Object.keys(g.WEAPONS)){
@@ -70,10 +80,10 @@ try{
    for(const skin of SKINS){applySkin(g.gunRoot,skin.id);g.renderer.compile(g.viewScene,g.viewCamera);count++;}
   }return count;
  });assert.equal(finishes,72);console.log('PASS: all 72 weapon/finish combinations compiled with the actual WebGL renderer.');
- await page.evaluate(()=>window.__game.returnMenu());
+ await page.evaluate(()=>window.__game.returnMenu());await page.waitForFunction(()=>!document.pointerLockElement,null,{timeout:10000,polling:50});
  for(const view of ['deploy','armory','career','challenges','manual','settings']){
   await page.click('[data-view="'+view+'"]');
-  assert.equal(await page.locator('#view-'+view).isVisible(),true);
+  assert.equal(await page.locator('#view-'+view).isVisible(),true,view+' view is visible');
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);assert.equal(overflow,false,view+' horizontal overflow');
   if(artifacts)await page.screenshot({path:path.join(artifacts,view+'-browser.png'),timeout:60000});
  }
@@ -87,6 +97,8 @@ try{
  });assert.ok(recorded.xp>0);assert.equal(recorded.rounds,1);assert.ok((await page.locator('#resultStats').innerText()).includes('XP EARNED'));
  if(artifacts)await page.screenshot({path:path.join(artifacts,'report-browser.png'),timeout:60000});
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('blacksite.career.v1')));assert.ok(stored.xp>0);
+ const resources=await page.evaluate(()=>{const g=window.__game,counts=[];g.returnMenu();for(let i=0;i<4;i++){g.loadMap('helix');g.state.botCount=16;g.state.allyCount=0;g.nextRound();g.updateBotPresentation(.04);g.renderer.autoClear=true;g.renderer.render(g.scene,g.camera);g.loadMap('helix');g.renderer.render(g.scene,g.camera);counts.push({...g.renderer.info.memory});}return counts;});
+ assert.ok(resources.at(-1).geometries<=resources[1].geometries+2,'map geometry cleanup');assert.ok(resources.at(-1).textures<=resources[1].textures+2,'skeleton texture cleanup');console.log('RESOURCE_CLEANUP '+JSON.stringify(resources));
  // A fresh renderer verifies optional-operator failure and denied LocalStorage.
  const fallback=await browser.newPage({viewport:{width:800,height:600}});const fallbackErrors=[];fallback.on('pageerror',e=>fallbackErrors.push(e.message));
  await fallback.addInitScript(()=>{Object.defineProperty(window,'localStorage',{get(){throw Error('Storage disabled for test');}});window.requestAnimationFrame=()=>0;});

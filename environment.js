@@ -6,7 +6,7 @@ const ROOT='./assets/environment/';
 export async function loadEnvironment(loader){
   const textureLoader=new THREE.TextureLoader(),textures={};
   await Promise.all(['concrete034','asphalt010','metal032'].flatMap(name=>['color','normal','roughness'].map(async kind=>{
-    const t=await textureLoader.loadAsync(ROOT+name+'-'+kind+'.jpg?v=0.7.0');
+    const t=await textureLoader.loadAsync(ROOT+name+'-'+kind+'.jpg?v=0.8.0');
     t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;if(kind==='color')t.colorSpace=THREE.SRGBColorSpace;textures[name+'-'+kind]=t;
   })));
   const surfaces={};

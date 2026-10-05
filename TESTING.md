@@ -1,3 +1,61 @@
+# Validation — v0.8.0 / 5 October 2026
+
+## Current completed checks
+
+All five validation scripts below passed again on the final expansion source, including the final operator facing and hand attachment changes. A machine-readable record of checks and measured budgets is in `tools/reports/v0.8.0-validation.json`.
+
+| Suite | What was exercised |
+| --- | --- |
+| Gameplay/assets | Actual bundled GLTFLoader, Three.js scene graph/raycasts and game logic; all four maps, both sides, Easy/Normal/Hard, 1/3/6/16 enemies, maximum 16 enemies + 7 allies, clear/separated spawns, paths to both sites, real bot plant/defuse, allied combat/friendly-fire rules, post-human-death victory, halftime without score/economy/weapon reset |
+| Weapons/animation | All eight weapon definitions and handling rigs, real lethal head/torso raycasts, ammunition/cooldowns, scopes, recoil, inspect/crouch/jump, purchases/ownership/death reset/survival retention, smoke/flash, skeletal clip changes, near/distant LOD, zero-time freeze, independent hit volumes, finite transforms and mixer disposal |
+| Doors/vertical world | Closed doors block motion/bullets/sight; occupants prevent closure, bots open doors, resets restore state; every map's elevated destination is reached by actual bot movement over its ramp; map arrays replace rather than accumulate, floor top layers and objective rings avoid overlapping planes |
+| Career/cosmetics/UI | Persistent counters, all ten challenges, XP/unlocks, duplicate-round prevention, partial-match handling, malformed/denied/quota-exceeded storage, all weapons/finishes without balance changes, crosshair controls, actual Career/Challenges/Armory/report DOM and team presets |
+| Environment | Sixteen distinct local PCM files; audio caching, missing-file fallback, volume/mute, bounded spatial voices, ambient/pause cleanup, weather quality/disposal, actual bullet-raycast cosmetic destruction, round restoration and capped/finite/expiring debris |
+| Weapon audio | All sixty existing WAVs, distinct files/source excerpts, licensing/provenance, each weapon's shot/action mapping, reload/cycle timing/cancel/resume, distant bot attenuation/pan, caching, rapid fire and node cleanup |
+| Real browser | Chrome 151.0.7922.34 with actual software WebGL 2/ANGLE SwiftShader: mouse capture, buy movement lock, 800 simulated frames with B-shop time unchanged, purchase/close/resume, 24 four-map/two-side/1,6,16-enemy configurations with 2 or 7 allies, rendered operator facing/hand attachment and finite transforms |
+| Browser materials/lifecycle | All four worlds rendered; all 72 weapon/finish pairs compiled; six menu views at 960×600 without horizontal overflow; persisted settings/skins/career, reports, quality/shadows, optional operator-download failure, denied storage, no console/runtime errors, no external runtime requests, all `/BlackSite/` assets resolve. Four repeated sixteen-operator map resets held at 77 geometries / 15 textures |
+
+Node suites stub the DOM, GPU and Web Audio nodes while retaining real model/geometry/combat/data logic. Browser fixtures freeze the normal animation frame loop and step the real callback deterministically; the initial mouse-capture/shop tests use real keyboard/click input. Later mass-deployment fixtures suppress only their non-user pointer-capture requests. These checks are broader than compilation but are not a human competitive playtest.
+
+## Measured performance budgets
+
+- Sixteen animated bots, Performance Mode: Helix 100 world draw calls, Bastion 86, Ironwood 92, Zero 90; approximately 170k–175k rendered world triangles.
+- Shared static-world batching saves approximately 260–300 draws. Operators use one 6,386-triangle skinned mesh; the 410,780-byte GLB includes thirteen clips. Bot rifle presentation is one shared mesh/material; first-person weapons retain their detailed models.
+- In this Linux CPU sample, sixteen-bot AI + animation + scene-transform P95 was 0.41–0.54 ms; twenty-three bots were 0.68–1.10 ms. This excludes GPU rendering and UI, and varies by machine.
+- Software WebGL render submission and screenshot timings are not hardware FPS. No claim is made that these numbers predict Chromebook frame rate.
+- Performance Mode: 1x pixel ratio, no real-time shadows, weather particles or debris, reduced distant animation frequency. Standard/High enable bounded extras. AI gameplay remains authoritative at every quality level.
+
+## Reproduce
+
+From the repository root, with Node.js:
+
+```sh
+node tools/validate.mjs --benchmark
+node tools/validate-career.mjs
+node tools/validate-environment.mjs
+node tools/validate-audio.mjs
+```
+
+These four scripts use bundled runtime files and built-in Node facilities; no installed npm runtime packages are required. Optional browser validation requires **development-only** Playwright and Chromium. Install them in a separate tooling location or provide their existing paths:
+
+```sh
+PLAYWRIGHT_MODULE_PATH=/absolute/path/to/playwright BLACKSITE_CHROMIUM=/absolute/path/to/chromium node tools/validate-browser.mjs
+```
+
+`BLACKSITE_TEST_ARTIFACTS=/absolute/path` saves browser scene/UI snapshots. The test starts its own temporary local HTTP server under `/BlackSite/`. Neither Playwright nor Chromium is downloaded by gameplay or included as a player dependency.
+
+## Remaining human/device checks
+
+- Play full operations on real Chromebook/integrated graphics hardware with 16 enemies, then try 7 allies as well. Compare sustained FPS, thermals, aim latency and Standard/High quality, especially during smoke/flash/weather.
+- Check speaker/headphone playback and subjective spatial levels for all eight guns, surfaces, doors and ambient loops. Node audio scheduling and browser unlocking do not verify audible output.
+- Check other desktop browsers and mouse/keyboard behavior, game balance, long-session memory, legibility at combat distance, and full round/match flow after publishing.
+- Inspect door/ramp sightlines and indoor Zero routes in normal play. Navigation deliberately supports one walkable height per X/Z, not arbitrary stacked floors or ladders. Decorative perimeter towers remain inaccessible.
+- Test Pages after a hard refresh if an older cached asset survives the release. Career is per-browser LocalStorage, not a cloud save; settings/cosmetics fail gracefully into session data, and closing a tab mid-round can lose the most recent unsaved counters.
+
+## Historical validation before v0.8.0
+
+The following records describe older releases and the environment limitations at that time. Current Chromium WebGL/input checks above supersede the historical statement that browser rendering had not been exercised.
+
 # Validation — 3 October 2026
 
 ## Completed

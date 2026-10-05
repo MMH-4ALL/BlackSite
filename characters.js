@@ -7,7 +7,7 @@ export async function loadOperators(loader){
  const bounds=new THREE.Box3().setFromObject(asset.scene),height=bounds.max.y-bounds.min.y;
  const styles={};
  for(const side of ['attack','defend']){
-  const model=cloneSkeleton(asset.scene);model.scale.setScalar(1.8/height);model.position.y=-bounds.min.y*model.scale.y;
+  const model=cloneSkeleton(asset.scene);model.rotation.y=Math.PI;model.scale.setScalar(1.8/height);model.position.y=-bounds.min.y*model.scale.y;
   model.traverse(o=>{if(!o.isMesh)return;o.userData.asset=true;o.castShadow=true;o.receiveShadow=true;
    o.material=new THREE.MeshStandardMaterial({color:0xffffff,vertexColors:true,roughness:.95});
    if(side==='defend'){
@@ -37,7 +37,8 @@ export function attachOperator(assets,bot){
  bot.group.remove(old);old.traverse(o=>{if(o.isMesh&&!o.userData.asset){o.geometry.dispose();if(o.userData.ownMaterial)o.material.dispose();}});
  const mixer=new THREE.AnimationMixer(model),actions={};
  for(const [name,layers] of Object.entries(assets.clips))for(const layer of ['lower','upper'])if(layers[layer].tracks.length)actions[name+':'+layer]=mixer.clipAction(layers[layer]);
- bot.rig=rig;bot.operator={rig,model,aim,helmet,marker,mixer,actions,headBone:model.getObjectByName('Head'),current:{},previous:bot.pos.clone(),elapsed:0,updates:0,disposed:false};
+ bot.rig=rig;bot.operator={rig,model,aim,helmet,marker,mixer,actions,headBone:model.getObjectByName('Head'),rightHand:model.getObjectByName('hand_r'),current:{},previous:bot.pos.clone(),elapsed:0,updates:0,disposed:false};
+ play(bot.operator,'Idle_Loop','lower');play(bot.operator,'Pistol_Aim_Neutral','upper');mixer.update(.001);
  return bot.operator;
 }
 function play(operator,name,layer,once=false){
@@ -54,7 +55,7 @@ export function updateOperator(bot,dt,cameraPosition,quality){
  const work=bot.planting>0||bot.defusing,blind=bot.blind>0;
  bot.gun.visible=!work&&!blind&&bot.alive;bot.workDevice.visible=work&&bot.alive;
  const target=bot.target?.pos;
- const pitch=target?Math.atan2(target.y+1.25-(bot.pos.y+1.22),Math.max(.1,Math.hypot(target.x-bot.pos.x,target.z-bot.pos.z))):0;
+ const pitch=target?Math.atan2(target.y+(bot.target.height??(bot.target.crouched?1:1.55))-(bot.pos.y+1.22),Math.max(.1,Math.hypot(target.x-bot.pos.x,target.z-bot.pos.z))):0;
  op.aim.rotation.x=THREE.MathUtils.damp(op.aim.rotation.x,pitch-bot.fireKick*.10,15,dt);
  bot.gun.position.z=-.22+bot.fireKick*.035;
  if(op.elapsed<period||!bot.alive&&op.deathFinished)return;
@@ -73,5 +74,6 @@ export function updateOperator(bot,dt,cameraPosition,quality){
  }
  op.mixer.update(elapsed);if(!bot.alive&&op.deathTime>3)op.deathFinished=true;
  if(bot.alive&&op.headBone){op.headBone.getWorldPosition(v);op.rig.worldToLocal(v);op.helmet.position.copy(v).y+=.10;}
+ if(bot.alive&&op.rightHand){op.rightHand.getWorldPosition(v);op.aim.worldToLocal(v);bot.gun.position.copy(v);bot.gun.position.y+=.04;bot.gun.position.z-=.18-bot.fireKick*.035;if(work){bot.workDevice.position.copy(v).y-=.05;}}
 }
-export function disposeOperator(operator){if(!operator||operator.disposed)return;operator.mixer.stopAllAction();operator.mixer.uncacheRoot(operator.model);operator.disposed=true;}
+export function disposeOperator(operator){if(!operator||operator.disposed)return;operator.mixer.stopAllAction();operator.mixer.uncacheRoot(operator.model);operator.model.traverse(o=>{if(o.isSkinnedMesh)o.skeleton.dispose();});operator.disposed=true;}

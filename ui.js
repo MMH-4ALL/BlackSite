@@ -1,6 +1,6 @@
-import { WEAPONS, PRIMARY_KEYS, SECONDARY_KEYS } from './weapons.js?v=0.7.0';
-import { weaponAudio } from './audio.js?v=0.7.0';
-import { MAPS, mapKey, normalizeBotCount, MAX_BOTS, DEFAULT_BOTS } from './maps.js?v=0.7.0';
+import { WEAPONS, PRIMARY_KEYS, SECONDARY_KEYS } from './weapons.js?v=0.8.0';
+import { weaponAudio } from './audio.js?v=0.8.0';
+import { MAPS, mapKey, normalizeBotCount, MAX_BOTS, DEFAULT_BOTS } from './maps.js?v=0.8.0';
 import {normalizeAllies,MAX_ALLIES} from './ai.js?v=0.8.0';
 import {career} from './progression.js?v=0.8.0';
 import {chooseSkin} from './skins.js?v=0.8.0';
@@ -30,9 +30,9 @@ function syncSettings(){
   document.querySelectorAll('[data-setting]').forEach(input=>{if(input.type==='checkbox')input.checked=!!settings[input.dataset.setting];else input.value=settings[input.dataset.setting];});
   document.querySelectorAll('[data-output]').forEach(output=>{const k=output.dataset.output;output.textContent=['volume','crossOpacity'].includes(k)?Math.round(settings[k]*100)+'%':k==='sensitivity'?settings[k].toFixed(1):settings[k]+(k==='fov'?'°':' px');});
   applyCrosshair(settings);
-  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ '+WEAPONS[settings.secondary].name+'</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.7.0';
+  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ '+WEAPONS[settings.secondary].name+'</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.8.0';
   const m=MAPS[settings.map];$('mapTag').textContent=m.tag;$('mapName').textContent=m.name.toUpperCase();$('mapTitle').textContent=m.subtitle;$('mapTheme').textContent=m.theme.toUpperCase();$('mapDescription').textContent=m.description;$('mapNumber').textContent=m.number;$('mapPlan').textContent='SECTOR OVERVIEW / '+m.number;
-  $('mapImage').src='assets/'+m.preview+'?v=0.7.0';$('mapImage').alt=m.name+' textured military environment';$('botSummary').textContent=(1+settings.allyCount)+' VS '+settings.botCount+(settings.botCount===1?' BOT':' BOTS');$('introBots').textContent=settings.allyCount+' allies. '+settings.botCount+' '+(settings.botCount===1?'hostile.':'hostiles.');
+  $('mapImage').src='assets/'+m.preview+'?v=0.8.0';$('mapImage').alt=m.name+' textured military environment';$('botSummary').textContent=(1+settings.allyCount)+' VS '+settings.botCount+(settings.botCount===1?' BOT':' BOTS');$('introBots').textContent=settings.allyCount+' allies. '+settings.botCount+' '+(settings.botCount===1?'hostile.':'hostiles.');
   $('manualMap').textContent='OPERATOR HANDBOOK / '+m.tag;$('pauseMap').textContent=m.name.toUpperCase();$('scoreTitle').textContent=m.name.toUpperCase();$('radarMap').textContent=m.tag+' / '+m.number;
   document.documentElement.style.setProperty('--map-preview',`url("assets/${m.preview}")`);
 }
@@ -48,13 +48,13 @@ function inspectWeapon(key){
   inspected=key;refreshSkins(key);const w=WEAPONS[key];
   document.querySelectorAll('.armory-item').forEach(button=>{button.classList.toggle('selected',button.dataset.weapon===key);button.setAttribute('aria-pressed',String(button.dataset.weapon===key));});
   $('inspectCategory').textContent=w.category;$('inspectLabel').textContent=w.label;$('inspectName').textContent=w.name;$('inspectDescription').textContent=w.description;$('inspectStrength').textContent=w.strength;
-  $('inspectImage').src='assets/ui/'+w.image+'.svg?v=0.7.0';$('inspectImage').alt=w.name+' modified model preview';
+  $('inspectImage').src='assets/ui/'+w.image+'.svg?v=0.8.0';$('inspectImage').alt=w.name+' modified model preview';
   $('inspectStats').innerHTML=[['MAGAZINE',w.capacity+' RDS'],['RELOAD',w.reload.toFixed(1)+' SEC'],['FIRE RATE',Math.round(60/w.interval)+' RPM'],['REBUY',w.price?money(w.price):'ISSUED']].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('');
   $('inspectBars').innerHTML=['POWER','FIRE RATE','PRECISION'].map((label,i)=>`<div><small>${label}</small><b><i style="width:${w.bars[i]}%"></i></b></div>`).join('');
   const slot=w.slot==='primary'?'primary':'secondary',label=slot==='primary'?'PRIMARY':'SIDEARM',equipped=key===settings[slot];$('useWeapon').disabled=equipped;$('useWeapon').innerHTML=equipped?'STARTING '+label+' SELECTED <span>✓</span>':'USE AS STARTING '+label+' <span>↗</span>';
 }
-$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg?v=0.7.0" alt=""><em>${(w.slot==='secondary'?'SIDEARM':'PRIMARY')+' / '+w.capacity+' ROUNDS'}</em></button>`).join('');
-for(const [id,keys] of [['shopWeapons',PRIMARY_KEYS],['shopSidearms',SECONDARY_KEYS]])$(id).innerHTML=keys.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg?v=0.7.0" alt=""><strong>${w.name}</strong><b>${w.price?money(w.price):'FREE'}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
+$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg?v=0.8.0" alt=""><em>${(w.slot==='secondary'?'SIDEARM':'PRIMARY')+' / '+w.capacity+' ROUNDS'}</em></button>`).join('');
+for(const [id,keys] of [['shopWeapons',PRIMARY_KEYS],['shopSidearms',SECONDARY_KEYS]])$(id).innerHTML=keys.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg?v=0.8.0" alt=""><strong>${w.name}</strong><b>${w.price?money(w.price):'FREE'}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
 document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>showView(button.dataset.view));
 document.querySelector('.brand').onclick=e=>{e.preventDefault();showView('deploy');};
 document.querySelectorAll('[data-weapon]').forEach(button=>button.onclick=()=>inspectWeapon(button.dataset.weapon));

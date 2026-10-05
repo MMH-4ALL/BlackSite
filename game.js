@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
-import { WEAPONS } from './weapons.js?v=0.7.0';
-import { settings, refreshShop, showReport, showView } from './ui.js?v=0.7.0';
-import { weaponAudio, SOUND_BANK } from './audio.js?v=0.7.0';
-import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.7.0';
-import { loadEnvironment, textureBox, placeEnvironment } from './environment.js?v=0.7.0';
+import { WEAPONS } from './weapons.js?v=0.8.0';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.8.0';
+import { weaponAudio, SOUND_BANK } from './audio.js?v=0.8.0';
+import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.8.0';
+import { loadEnvironment, textureBox, placeEnvironment } from './environment.js?v=0.8.0';
 import { loadOperators, attachOperator, updateOperator, disposeOperator } from './characters.js?v=0.8.0';
 import { createRoster, normalizeAllies, oppositeSide, teamAlive, botGoal } from './ai.js?v=0.8.0';
 
@@ -17,7 +17,7 @@ import {applySkin,skinChoices,skinById,skinUnlocked} from './skins.js?v=0.8.0';
 import {crosshairGap} from './crosshair.js?v=0.8.0';
 import {EnvironmentAudio} from './environment-audio.js?v=0.8.0';
 import {createDestructibles,resetDestructibles,damageDestructible,Debris,createAtmosphere} from './effects.js?v=0.8.0';
-import {batchWorld} from './performance.js?v=0.8.0';
+import {batchWorld,prepareBotWeapon} from './performance.js?v=0.8.0';
 
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
@@ -33,7 +33,7 @@ const state = { active:false, paused:true, phase:'menu', map:mapKey(settings.map
 const player = { pos:V(0,0,24), vel:V(), yaw:0, pitch:0, health:100, armor:0, height:1.68, vy:0, grounded:true, moving:0, crouch:false };
 Object.assign(state,{allyCount:normalizeAllies(settings.allyCount),roster:[],roundResults:[],sidesSwitched:false,sideSwitchTime:0,plants:0,defuses:0,playtime:0});
 Object.assign(state,{weaponUsage:{},sessionXP:0,roundDamage:0});let matchSequence=0;
-const keys = new Set(); let firing=false, audio=null, models={};
+const keys = new Set(); let firing=false, audio=null, models={},botWeapon=null;
 // Presentation has its own state: animation never affects aim or damage.
 const weaponMotion={kick:0,equip:0,swayX:0,swayY:0,bob:0,clock:0,stride:0,bank:0,crouch:0,air:0,landing:0,damage:0,throwTime:0,inspect:0,objective:0,magazine:null,magazineHome:null,hands:[]};
 const ease=(a,b,t)=>{const x=clamp((t-a)/(b-a),0,1);return x*x*(3-2*x);};
@@ -181,7 +181,7 @@ function makeBot(i,pos,descriptor={id:i,name:BOT_NAMES[i],team:'enemy',personali
     capsule(0,-.13,0,.075,.15,0x596152,forearm);capsule(0,-.27,0,.07,.04,0x2c3534,forearm);
   }
   b.gun=new THREE.Group();b.gun.position.set(.16,.05,-.21);b.chest.add(b.gun);
-  if(models.ak47||models.rifle){const gun=(models.ak47||models.rifle).clone(true);gun.scale.multiplyScalar(.72);b.gun.add(gun);}
+  if(models.ak47||models.rifle){const gun=(botWeapon||models.ak47||models.rifle).clone(true);gun.scale.multiplyScalar(.72);b.gun.add(gun);}
   b.muzzle=new THREE.Mesh(new THREE.ConeGeometry(.035,.11,6),new THREE.MeshBasicMaterial({color:0xc7b58c,transparent:true,opacity:.8}));b.muzzle.userData.ownMaterial=true;b.muzzle.rotation.x=-Math.PI/2;b.muzzle.position.z=-.40;b.gun.add(b.muzzle);b.muzzle.visible=false;b.flashTime=0;
   b.workDevice=box(0,-.19,-.36,.20,.07,.15,0x303c3b,false,b.chest);b.workDevice.visible=false;
   b.walk=0;b.fall=0;b.viewYaw=group.rotation.y;b.previous=pos.clone();b.visualSpeed=0;b.fireKick=0;b.clock=i*1.8;b.defusing=false;
@@ -241,8 +241,8 @@ async function loadAssets(){
  const stage=(text,percent)=>{$('loadingStage').textContent=text;$('loadingProgress').style.width=percent+'%';$('start').textContent=text+'…';};
  try{
   stage('LOADING WEAPONS',10);const entries=Object.entries(WEAPONS);
-  const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.7.0')));
-  entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);
+  const loaded=await Promise.all([...entries.map(([,w])=>w.model),'crate-medium'].map(n=>loader.loadAsync('./assets/'+n+'.glb?v=0.8.0')));
+  entries.forEach(([key,w],i)=>models[key]=prepareModel(loaded[i].scene,w.length,key==='pistol'));models.crate=prepareModel(loaded.at(-1).scene,1.8,true);botWeapon=prepareBotWeapon(models.ak47||models.rifle);
   stage('LOADING OPERATORS',40);try{operators=await loadOperators(loader);}catch(e){console.warn('Operator asset unavailable; using the built-in rig',e);}
   stage('LOADING WORLD',65);environment=await loadEnvironment(loader);environmentAudio.preload();
   stage('PREPARING NAVIGATION',90);loadMap(settings.map);loadGun('rifle');
@@ -343,7 +343,8 @@ function updateEnvironmentPresentation(dt){
 }
 function toast(text){$('toast').textContent=text;state.notice=2.6;$('toast').classList.remove('toast-enter');void $('toast').offsetWidth;$('toast').classList.add('toast-enter');}
 function feed(text){const node=document.createElement('div');node.textContent=text;$('feed').prepend(node);while($('feed').children.length>4)$('feed').lastChild.remove();}
-function lock(){if(!state.active)return;try{const p=$('world').requestPointerLock();if(p?.catch)p.catch(()=>{state.paused=true;$('pause').hidden=false;toast('Click Resume to capture your mouse.');});}catch(e){state.paused=true;$('pause').hidden=false;toast('Mouse capture requires a desktop browser.');}}
+let mouseRequest=0;
+function lock(){if(!state.active||state.phase==='ended')return;const request=++mouseRequest;const unavailable=()=>{if(request!==mouseRequest||!state.active||state.phase==='ended')return;state.paused=true;$('pause').hidden=false;toast('Click Resume to capture your mouse.');};try{const p=$('world').requestPointerLock();if(p?.catch)p.catch(unavailable);}catch{unavailable();}}
 function startMatch(){loadMap(settings.map);try{weaponAudio.setVolume(settings.volume);weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));audio=weaponAudio.context;environmentAudio.unlock().catch(()=>{});}catch(e){console.warn('Audio unavailable',e);}Object.assign(state,{active:true,paused:false,side:$('side').value,difficulty:$('difficulty').value,botCount:normalizeBotCount(settings.botCount),allyCount:normalizeAllies(settings.allyCount),round:0,wins:0,losses:0,kills:0,deaths:0,headshots:0,hits:0,shotsFired:0,plants:0,defuses:0,playtime:0,money:3400,primary:settings.primary,secondary:settings.secondary||'pistol',owned:true,roundResults:[],sidesSwitched:false,sideSwitchTime:0});state.matchId='operation-'+Date.now()+'-'+(++matchSequence);state.weaponUsage={};state.sessionXP=0;state.careerStart=career.data.xp;state.persisted=captureStats(state);state.startSide=state.side;state.roster=createRoster(state.botCount,state.allyCount);$('menu').hidden=true;$('hud').hidden=false;$('result').hidden=true;nextRound();lock();}
 function clearRoundObjects(){
   clearBots();debris.clear();for(const s of smokes){scene.remove(s.mesh);s.mesh.geometry.dispose();s.mesh.material.dispose();}smokes.length=0;for(const e of effects){scene.remove(e.mesh);e.mesh.traverse(o=>{if(o.isMesh||o.isLine){o.geometry.dispose();if(o.isLine)o.material.dispose();}});}effects.length=0;
@@ -363,8 +364,8 @@ function nextRound(){
   state.bots=state.roster.map(b=>makeBot(b.id,b.team==='ally'?allySpawns[allies++]:enemySpawns[enemies++],b));
   for(const id of ['result','buy','pause','scoreboard'])$(id).hidden=true;$('feed').innerHTML='';loadGun(state.weapon);toast(state.sideSwitchTime?'SIDE SWITCH · You are now '+(state.side==='attack'?'attacking':'defending'):'Buy phase · B opens equipment · first to four wins');refreshShop(state,player,'Survive to keep both weapons. Elimination issues a free P-9.');updateHUD();
 }
-function returnMenu(){if(state.active&&state.matchId){career.recordPartial({map:state.map,...statDelta(state,state.persisted)});state.persisted=captureStats(state);}clearRoundObjects();$('sideSwitch').hidden=true;weaponAudio.stopAll();environmentAudio.stopAll();state.active=false;state.phase='menu';state.paused=true;setScoped(false);document.exitPointerLock();for(const id of ['hud','pause','buy','result','scoreboard'])$(id).hidden=true;$('menu').hidden=false;showView('deploy');keys.clear();firing=false;}
-function endRound(win,reason){if(state.phase==='ended')return;weaponAudio.stopHandling();environmentAudio.stopAll();state.phase='ended';state.paused=true;firing=false;state.reload=0;state.interact=0;state.roundResults.push({round:state.round,side:state.side,win,reason});win?state.wins++:state.losses++;state.money=Math.min(16000,state.money+(win?3000:1900));if(player.health<=0){state.owned=false;state.secondary='pistol';}
+function returnMenu(){mouseRequest++;if(state.active&&state.matchId){career.recordPartial({map:state.map,...statDelta(state,state.persisted)});state.persisted=captureStats(state);}clearRoundObjects();$('sideSwitch').hidden=true;weaponAudio.stopAll();environmentAudio.stopAll();state.active=false;state.phase='menu';state.paused=true;setScoped(false);document.exitPointerLock();for(const id of ['hud','pause','buy','result','scoreboard'])$(id).hidden=true;$('menu').hidden=false;showView('deploy');keys.clear();firing=false;}
+function endRound(win,reason){if(state.phase==='ended')return;mouseRequest++;weaponAudio.stopHandling();environmentAudio.stopAll();state.phase='ended';state.paused=true;firing=false;state.reload=0;state.interact=0;state.roundResults.push({round:state.round,side:state.side,win,reason});win?state.wins++:state.losses++;state.money=Math.min(16000,state.money+(win?3000:1900));if(player.health<=0){state.owned=false;state.secondary='pistol';}
   const complete=state.wins===4||state.losses===4;state.roundAward=career.recordRound({id:(state.matchId||'practice')+'-round-'+state.round,map:state.map,difficulty:state.difficulty,win,...statDelta(state,state.persisted),complete,alive:player.health>0,damage:state.roundDamage,report:matchSummary(state)});state.sessionXP+=state.roundAward.xp;state.persisted=captureStats(state);
   setScoped(false);showReport(state,win,reason);$('result').hidden=false;$('buy').hidden=true;$('pause').hidden=true;$('scoreboard').hidden=true;document.exitPointerLock();tone(win?550:160,.3,'triangle',.18);updateHUD();}
 function reload(){const a=state.ammo[state.weapon],w=WEAPONS[state.weapon];if(state.reload||a.mag===w.capacity||a.reserve===0||state.phase==='ended')return;setScoped(false);state.reload=w.reload;firing=false;weaponAudio.reload(state.weapon,w.reload);toast('Reloading…');}

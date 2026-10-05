@@ -1,6 +1,24 @@
 import * as THREE from 'three';
 import {mergeGeometries} from './vendor/utils/BufferGeometryUtils.js';
 
+// Shared low-cost bot presentation from the existing CC0 rifle. Player weapons
+// retain their full materials, moving parts, recordings and gameplay statistics.
+export function prepareBotWeapon(source) {
+  source.updateMatrixWorld(true); const parts = [];
+  source.traverse(mesh => {
+    if (!mesh.isMesh) return;
+    const geometry = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+    geometry.applyMatrix4(mesh.matrixWorld); const color = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material).color || new THREE.Color(0x39443d);
+    const old = geometry.getAttribute('color'), colors = new Float32Array(geometry.getAttribute('position').count * 3);
+    for (let i = 0; i < colors.length / 3; i++) { colors[i * 3] = color.r * (old ? old.getX(i) : 1); colors[i * 3 + 1] = color.g * (old ? old.getY(i) : 1); colors[i * 3 + 2] = color.b * (old ? old.getZ(i) : 1); }
+    for (const name of Object.keys(geometry.attributes)) if (!['position', 'normal'].includes(name)) geometry.deleteAttribute(name);
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3)); parts.push(geometry);
+  });
+  const geometry = mergeGeometries(parts, false); parts.forEach(g => g.dispose());
+  const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({color:0xffffff,vertexColors:true,roughness:.86,metalness:.3}));
+  mesh.userData.asset = true; mesh.castShadow = true; mesh.name = 'Shared bot rifle'; return mesh;
+}
+
 // Render batching leaves the original meshes available to authoritative raycasts.
 export function batchWorld(root) {
   root.updateMatrixWorld(true); const groups = new Map(); let before = 0;

@@ -10,7 +10,7 @@ const prop=(asset,x,z,w,d,h,turn=0,solid=true)=>({asset,x,z,w,d,h,turn,solid});
 const common=[prop('snipertower',-27,-26,4,4,8,0,false),prop('snipertower',27,25,4,4,8,2,false),...[-22,22].flatMap(x=>[-23,-7,11,25].map(z=>prop('lightpole',x,z,1,1,7,0,false)))];
 function map(data){
   data.props.push(...common);data.baseY??=0;data.doors??=[];
-  if(data.id!=='zero'){data.walkSurfaces=[{x:0,z:14,w:3,d:8,axis:'z',from:0,to:1.8},{x:0,z:20,w:3,d:4,y:1.8}];data.elevation={vantage:[0,20]};data.props.push(prop('catwalk-stairs',0,14,3,8,1.8,0,false),{...prop('catwalk',0,20,3,4,.15,0,false),y:1.65});}
+  if(data.id!=='zero'){data.walkSurfaces=[{x:0,z:14,w:3,d:8,axis:'z',from:0,to:1.8},{x:0,z:20,w:3,d:4,y:1.8}];data.elevation={vantage:[0,20]};data.props.push({...prop('catwalk',0,20,3,4,.15,0,false),y:1.62});}
   for(const p of data.props)p.y??=data.baseY;
   // Every solid prop has one matching axis-aligned footprint after rotation.
   data.covers=data.props.filter(p=>p.solid).map(p=>[p.x,p.z,p.turn%2?p.d:p.w,p.turn%2?p.w:p.d,p.h]);
@@ -51,6 +51,6 @@ export const MAPS=Object.freeze({
     palette:{sky:0x939d9d,ground:0x555f59,floor:0x747e79,wall:0x858e86,trim:0x38483f,cover:0x52645a},sites:[[-15,-18],[15,-18]],siteNames:['CONTROL ROOM','RESEARCH STORAGE'],spawns:{attack:[0,26],defend:[-3,-26]},botAnchors:{attack:[[-15,-25],[15,-25],[0,-24]],defend:[[-15,25],[0,25],[15,25]]},patrol:[[-19,2],[19,2],[-9,-12],[9,-12],[0,8]],
     walkSurfaces:[{x:0,z:24,w:47,d:12,y:0},...[-19,0,19].map(x=>({x,z:14,w:4,d:8,axis:'z',from:-2,to:0})),{x:9,z:0,w:3,d:10,axis:'z',from:0,to:-2},{x:9,z:-7,w:3,d:4,y:0}],elevation:{vantage:[9,-7]},doors:[{x:0,z:8,w:2.4,name:'SECURITY CHECKPOINT'},{x:-10,z:-10,w:2.4,name:'CONTROL ACCESS'}],
     walls:[[-7.8,8,13.2,.6,3.2],[7.8,8,13.2,.6,3.2],[-10,-3,.6,13.4,3.2],[-10,-17,.6,11.4,3.2],[0,-4,9,.6,3.2],[0,-14,9,.6,3.2],[14,-9,6,.6,3.2],[21,-9,.6,12,3.2]],roofs:[{x:-17,z:-16,w:12,d:12,y:1.5},{x:16,z:-17,w:12,d:12,y:1.5},{x:0,z:-9,w:9,d:9,y:1.5}],crates:[[-19,-25],[20,-25],[-16,4],[16,4]],
-    props:[prop('control-console',-19,-19,3,1,1.5),prop('access-terminal',-19,-13,.8,.7,1.5),prop('machinery',18,-18,2.5,2,2),prop('industrial-tank',17,-24,3,2,2),prop('container_01',-18,1,4,2,2),prop('container_01',17,0,4,2,2),prop('vent-unit',-4,-8,1.5,1,2),prop('fan-unit',3,-9,1.4,.6,2),prop('pipe-unit',22,-19,.8,4,2),{...prop('catwalk-stairs',9,0,3,10,2,2,false),y:-2},{...prop('catwalk',9,-7,3,4,.15,0,false),y:-.15},{...prop('gatekeeperstation',-8,24,5,4,3),y:0},{...prop('hesco',18,24,3,1.5,1.4),y:0},prop('warehouse',32,-14,15,26,6,0,false)]})
+    props:[prop('control-console',-19,-19,3,1,1.5),prop('access-terminal',-19,-13,.8,.7,1.5),prop('machinery',18,-18,2.5,2,2),prop('industrial-tank',17,-24,3,2,2),prop('container_01',-18,1,4,2,2),prop('container_01',17,0,4,2,2),prop('vent-unit',-4,-8,1.5,1,2),prop('fan-unit',3,-9,1.4,.6,2),prop('pipe-unit',22,-19,.8,4,2),{...prop('catwalk',9,-7,3,4,.15,0,false),y:-.18},{...prop('gatekeeperstation',-8,24,5,4,3),y:0},{...prop('hesco',18,24,3,1.5,1.4),y:0},prop('warehouse',32,-14,15,26,6,0,false)]})
 });
 export function mapKey(value){return Object.hasOwn(MAPS,value)?value:'helix';}
