@@ -26,6 +26,8 @@ const {loadEnvironment,textureBox,placeEnvironment,ENVIRONMENT_ASSETS,DETAIL_ASS
 const skeletonSource=fs.readFileSync('./vendor/utils/SkeletonUtils.js','utf8').replace("from 'three'",`from '${engineURL}'`);
 const charactersSource=fs.readFileSync('./characters.js','utf8').replace("from 'three'",`from '${engineURL}'`).replace("from './vendor/utils/SkeletonUtils.js'",`from '${moduleURL(skeletonSource)}'`);
 const characters=await import(moduleURL(charactersSource)),ai=await import('../ai.js'),navigation=await import('../navigation.js'),doors=await import(moduleURL(fs.readFileSync('./doors.js','utf8').replace("from 'three'",`from '${engineURL}'`)));
+const progression=await import('../progression.js'),crosshair=await import('../crosshair.js'),stats=await import('../stats.js'),skins=await import(moduleURL(fs.readFileSync('./skins.js','utf8').replace("from 'three'",`from '${engineURL}'`)));
+const memoryStorage={value:null,getItem(){return this.value;},setItem(k,v){this.value=v;}};
 const operatorBytes=fs.readFileSync('./assets/operators/operator.glb');
 actualAssets.operator=await new RealLoader().parseAsync(operatorBytes.buffer.slice(operatorBytes.byteOffset,operatorBytes.byteOffset+operatorBytes.byteLength),'');
 assert.ok(operatorBytes.length<600000,'optimized operator download stays small');
@@ -86,10 +88,10 @@ const THREE={...RealThree,WebGLRenderer:FakeRenderer};
 class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');if(name==='operator')return actualAssets.operator;return actualAssets[name]?{scene:actualAssets[name].scene.clone(true),animations:actualAssets[name].animations||[]}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial()),animations:[]};}}
 
 const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
-const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:3};
+const settings={...crosshair.CROSSHAIR_DEFAULTS,sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:3};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
-const deps={THREE,GLTFLoader:FakeLoader,WEAPONS,settings,refreshShop:noop,showReport:noop,showView:noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment,...characters,...ai,...navigation,...doors};
+const deps={THREE,GLTFLoader:FakeLoader,WEAPONS,settings,refreshShop:noop,showReport:noop,showView:noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment,...characters,...ai,...navigation,...doors,...crosshair,...skins,...stats,career:new progression.Career(memoryStorage)};
 new Function(...Object.keys(deps),source)(...Object.values(deps));
 for(let i=0;i<20&&document.getElementById('start').disabled!==false;i++)await new Promise(r=>setTimeout(r,0));
 

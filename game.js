@@ -11,6 +11,11 @@ import { createRoster, normalizeAllies, oppositeSide, teamAlive, botGoal } from 
 import {heightAt,reachableStep,nearestClearGoal} from './navigation.js?v=0.8.0';
 import {createDoors,nearbyDoor,toggleDoor,updateDoors,openDoorForBot} from './doors.js?v=0.8.0';
 
+import {career} from './progression.js?v=0.8.0';
+import {captureStats,statDelta,weaponStats,matchSummary} from './stats.js?v=0.8.0';
+import {applySkin,skinChoices,skinById,skinUnlocked} from './skins.js?v=0.8.0';
+import {crosshairGap} from './crosshair.js?v=0.8.0';
+
 // Original gameplay; all distances are meters and all times are seconds.
 const $ = id => document.getElementById(id);
 const clamp = THREE.MathUtils.clamp;
@@ -24,6 +29,7 @@ const BOT_NAMES=['WARDEN','SENTRY','NOMAD','RANGER','VIPER','GHOST','FALCON','AT
 const state = { active:false, paused:true, phase:'menu', map:mapKey(settings.map),botCount:normalizeBotCount(settings.botCount),side:'attack', difficulty:'normal', round:0, wins:0, losses:0, kills:0, deaths:0, headshots:0, shotsFired:0, hits:0, money:3400, time:90, plant:null, interact:0, bots:[], weapon:'rifle', primary:'rifle', secondary:'pistol', owned:true, scoped:false, ammo:{}, smoke:1, flash:1, flashTime:0, shots:0, lastShot:-10, reload:0, cooldown:0, t:0, damages:0, hit:0, notice:0 };
 const player = { pos:V(0,0,24), vel:V(), yaw:0, pitch:0, health:100, armor:0, height:1.68, vy:0, grounded:true, moving:0, crouch:false };
 Object.assign(state,{allyCount:normalizeAllies(settings.allyCount),roster:[],roundResults:[],sidesSwitched:false,sideSwitchTime:0,plants:0,defuses:0,playtime:0});
+Object.assign(state,{weaponUsage:{},sessionXP:0,roundDamage:0});let matchSequence=0;
 const keys = new Set(); let firing=false, audio=null, models={};
 // Presentation has its own state: animation never affects aim or damage.
 const weaponMotion={kick:0,equip:0,swayX:0,swayY:0,bob:0,clock:0,stride:0,bank:0,crouch:0,air:0,landing:0,damage:0,throwTime:0,inspect:0,objective:0,magazine:null,magazineHome:null,hands:[]};
@@ -166,7 +172,7 @@ function makeBot(i,pos,descriptor={id:i,name:BOT_NAMES[i],team:'enemy',personali
     capsule(0,-.13,0,.075,.15,0x596152,forearm);capsule(0,-.27,0,.07,.04,0x2c3534,forearm);
   }
   b.gun=new THREE.Group();b.gun.position.set(.16,.05,-.21);b.chest.add(b.gun);
-  if(models.rifle){const gun=models.rifle.clone(true);gun.scale.multiplyScalar(.72);b.gun.add(gun);}
+  if(models.ak47||models.rifle){const gun=(models.ak47||models.rifle).clone(true);gun.scale.multiplyScalar(.72);b.gun.add(gun);}
   b.muzzle=new THREE.Mesh(new THREE.ConeGeometry(.035,.11,6),new THREE.MeshBasicMaterial({color:0xc7b58c,transparent:true,opacity:.8}));b.muzzle.userData.ownMaterial=true;b.muzzle.rotation.x=-Math.PI/2;b.muzzle.position.z=-.40;b.gun.add(b.muzzle);b.muzzle.visible=false;b.flashTime=0;
   b.workDevice=box(0,-.19,-.36,.20,.07,.15,0x303c3b,false,b.chest);b.workDevice.visible=false;
   b.walk=0;b.fall=0;b.viewYaw=group.rotation.y;b.previous=pos.clone();b.visualSpeed=0;b.fireKick=0;b.clock=i*1.8;b.defusing=false;
@@ -205,7 +211,7 @@ function addGrip(type){
 }
 function loadGun(type){
   disposeViewParts();if(!models[type])return;
-  const g=models[type].clone(true);g.rotation.y=WEAPONS[type].viewRotationY||0;g.scale.multiplyScalar(WEAPONS[type].viewScale||1);gunRoot.add(g);weaponMotion.model=g;
+  const g=models[type].clone(true),skin=skinById(skinChoices[type]);applySkin(g,skinUnlocked(skin,career.data)?skin.id:'default');g.rotation.y=WEAPONS[type].viewRotationY||0;g.scale.multiplyScalar(WEAPONS[type].viewScale||1);gunRoot.add(g);weaponMotion.model=g;
   weaponMotion.magazine=g.getObjectByName('Magazine')??null;weaponMotion.magazineHome=weaponMotion.magazine?.position.clone()??null;weaponMotion.cycling=g.getObjectByName('Slide')||g.getObjectByName('Bolt');weaponMotion.cyclingHome=weaponMotion.cycling?.position.clone()??null;
   gunRoot.position.fromArray(WEAPONS[type].pose);gunRoot.rotation.set(0,0,0);
   gunRoot.updateMatrixWorld(true);weaponMotion.magazineCenter=null;weaponMotion.magazineRotation=null;weaponMotion.magazineScale=1;
@@ -321,17 +327,17 @@ function shotSound(enemy=false,position){const offset=position?.clone().sub(came
 function toast(text){$('toast').textContent=text;state.notice=2.6;$('toast').classList.remove('toast-enter');void $('toast').offsetWidth;$('toast').classList.add('toast-enter');}
 function feed(text){const node=document.createElement('div');node.textContent=text;$('feed').prepend(node);while($('feed').children.length>4)$('feed').lastChild.remove();}
 function lock(){if(!state.active)return;try{const p=$('world').requestPointerLock();if(p?.catch)p.catch(()=>{state.paused=true;$('pause').hidden=false;toast('Click Resume to capture your mouse.');});}catch(e){state.paused=true;$('pause').hidden=false;toast('Mouse capture requires a desktop browser.');}}
-function startMatch(){loadMap(settings.map);try{weaponAudio.setVolume(settings.volume);weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));audio=weaponAudio.context;}catch(e){console.warn('Audio unavailable',e);}Object.assign(state,{active:true,paused:false,side:$('side').value,difficulty:$('difficulty').value,botCount:normalizeBotCount(settings.botCount),allyCount:normalizeAllies(settings.allyCount),round:0,wins:0,losses:0,kills:0,deaths:0,headshots:0,hits:0,shotsFired:0,plants:0,defuses:0,playtime:0,money:3400,primary:settings.primary,secondary:settings.secondary||'pistol',owned:true,roundResults:[],sidesSwitched:false,sideSwitchTime:0});state.startSide=state.side;state.roster=createRoster(state.botCount,state.allyCount);$('menu').hidden=true;$('hud').hidden=false;$('result').hidden=true;nextRound();lock();}
+function startMatch(){loadMap(settings.map);try{weaponAudio.setVolume(settings.volume);weaponAudio.unlock().catch(e=>console.warn('Audio unavailable',e));audio=weaponAudio.context;}catch(e){console.warn('Audio unavailable',e);}Object.assign(state,{active:true,paused:false,side:$('side').value,difficulty:$('difficulty').value,botCount:normalizeBotCount(settings.botCount),allyCount:normalizeAllies(settings.allyCount),round:0,wins:0,losses:0,kills:0,deaths:0,headshots:0,hits:0,shotsFired:0,plants:0,defuses:0,playtime:0,money:3400,primary:settings.primary,secondary:settings.secondary||'pistol',owned:true,roundResults:[],sidesSwitched:false,sideSwitchTime:0});state.matchId='operation-'+Date.now()+'-'+(++matchSequence);state.weaponUsage={};state.sessionXP=0;state.careerStart=career.data.xp;state.persisted=captureStats(state);state.startSide=state.side;state.roster=createRoster(state.botCount,state.allyCount);$('menu').hidden=true;$('hud').hidden=false;$('result').hidden=true;nextRound();lock();}
 function clearRoundObjects(){
   clearBots();for(const s of smokes){scene.remove(s.mesh);s.mesh.geometry.dispose();s.mesh.material.dispose();}smokes.length=0;for(const e of effects){scene.remove(e.mesh);e.mesh.traverse(o=>{if(o.isMesh||o.isLine){o.geometry.dispose();if(o.isLine)o.material.dispose();}});}effects.length=0;
   if(coreMesh){scene.remove(coreMesh);coreMesh.traverse(o=>{if(o.isMesh)o.geometry.dispose();});coreMesh=null;}
 }
 function nextRound(){
   weaponAudio.stopAll();
-  clearRoundObjects();
+  clearRoundObjects();state.roundDamage=0;
   for(const d of doors){d.open=false;d.progress=0;d.cooldown=0;d.collider.enabled=false;}updateDoors(doors,.001,hitWalls);
   if(state.roundResults.length===3&&!state.sidesSwitched){state.side=oppositeSide(state.side);state.sidesSwitched=true;state.sideSwitchTime=4;$('sideSwitch').hidden=false;$('sideSwitchRole').textContent='You are now '+(state.side==='attack'?'attacking.':'defending.');}
-  Object.assign(state,{round:state.round+1,phase:'buy',time:12,plant:null,interact:0,paused:false,reload:0,cooldown:0,shots:0,lastShot:-10,lastShotWeapon:null,smoke:1,flash:1,flashTime:0,damages:0,hit:0,weapon:state.owned?state.primary:state.secondary,roundBaseline:{kills:state.kills,headshots:state.headshots,shotsFired:state.shotsFired,hits:state.hits}});setScoped(false);
+  Object.assign(state,{round:state.round+1,phase:'buy',time:12,plant:null,interact:0,paused:false,reload:0,cooldown:0,shots:0,lastShot:-10,lastShotWeapon:null,smoke:1,flash:1,flashTime:0,damages:0,hit:0,weapon:state.owned?state.primary:state.secondary,roundBaseline:{kills:state.kills,deaths:state.deaths,headshots:state.headshots,shotsFired:state.shotsFired,hits:state.hits,plants:state.plants,defuses:state.defuses}});setScoped(false);
   for(const [k,w] of Object.entries(WEAPONS))state.ammo[k]={mag:w.capacity,reserve:w.reserve};
   Object.assign(player,{health:100,armor:0,yaw:state.side==='attack'?0:Math.PI,pitch:0,vy:0,grounded:true,height:1.68,moving:0,crouch:false});player.vel.set(0,0,0);player.pos.copy(spawnPoint(state.side));
   state.botCount=normalizeBotCount(state.botCount);state.allyCount=normalizeAllies(state.allyCount);
@@ -340,8 +346,9 @@ function nextRound(){
   state.bots=state.roster.map(b=>makeBot(b.id,b.team==='ally'?allySpawns[allies++]:enemySpawns[enemies++],b));
   for(const id of ['result','buy','pause','scoreboard'])$(id).hidden=true;$('feed').innerHTML='';loadGun(state.weapon);toast(state.sideSwitchTime?'SIDE SWITCH · You are now '+(state.side==='attack'?'attacking':'defending'):'Buy phase · B opens equipment · first to four wins');refreshShop(state,player,'Survive to keep both weapons. Elimination issues a free P-9.');updateHUD();
 }
-function returnMenu(){clearRoundObjects();$('sideSwitch').hidden=true;weaponAudio.stopAll();state.active=false;state.phase='menu';state.paused=true;setScoped(false);document.exitPointerLock();for(const id of ['hud','pause','buy','result','scoreboard'])$(id).hidden=true;$('menu').hidden=false;showView('deploy');keys.clear();firing=false;}
+function returnMenu(){if(state.active&&state.matchId){career.recordPartial({map:state.map,...statDelta(state,state.persisted)});state.persisted=captureStats(state);}clearRoundObjects();$('sideSwitch').hidden=true;weaponAudio.stopAll();state.active=false;state.phase='menu';state.paused=true;setScoped(false);document.exitPointerLock();for(const id of ['hud','pause','buy','result','scoreboard'])$(id).hidden=true;$('menu').hidden=false;showView('deploy');keys.clear();firing=false;}
 function endRound(win,reason){if(state.phase==='ended')return;weaponAudio.stopHandling();state.phase='ended';state.paused=true;firing=false;state.reload=0;state.interact=0;state.roundResults.push({round:state.round,side:state.side,win,reason});win?state.wins++:state.losses++;state.money=Math.min(16000,state.money+(win?3000:1900));if(player.health<=0){state.owned=false;state.secondary='pistol';}
+  const complete=state.wins===4||state.losses===4;state.roundAward=career.recordRound({id:(state.matchId||'practice')+'-round-'+state.round,map:state.map,difficulty:state.difficulty,win,...statDelta(state,state.persisted),complete,alive:player.health>0,damage:state.roundDamage,report:matchSummary(state)});state.sessionXP+=state.roundAward.xp;state.persisted=captureStats(state);
   setScoped(false);showReport(state,win,reason);$('result').hidden=false;$('buy').hidden=true;$('pause').hidden=true;$('scoreboard').hidden=true;document.exitPointerLock();tone(win?550:160,.3,'triangle',.18);updateHUD();}
 function reload(){const a=state.ammo[state.weapon],w=WEAPONS[state.weapon];if(state.reload||a.mag===w.capacity||a.reserve===0||state.phase==='ended')return;setScoped(false);state.reload=w.reload;firing=false;weaponAudio.reload(state.weapon,w.reload);toast('Reloading…');}
 function equip(k){if(!WEAPONS[k]||(WEAPONS[k].slot==='primary'?(!state.owned||state.primary!==k):state.secondary!==k))return;state.weapon=k;state.lastShotWeapon=null;state.reload=0;state.shots=0;firing=false;setScoped(false);loadGun(k);weaponAudio.equip(k);}
@@ -359,20 +366,20 @@ function tracer(a,b,color=0xc8be96){const geo=new THREE.BufferGeometry().setFrom
 function shoot(){
   if(player.health<=0||state.phase!=='live'||state.reload||state.cooldown>0)return;
   const w=WEAPONS[state.weapon],a=state.ammo[state.weapon];if(a.mag===0){if(a.reserve>0)reload();else{weaponAudio.empty(state.weapon);state.cooldown=.24;}return;}
-  a.mag--;state.shotsFired++;state.cooldown=w.interval;if(!w.automatic)firing=false;if(state.t-state.lastShot>.28)state.shots=0;state.shots++;state.lastShot=state.t;state.lastShotWeapon=state.weapon;weaponMotion.kick=Math.min(1.8,weaponMotion.kick+1);weaponMotion.throwTime=0;
+  a.mag--;state.shotsFired++;weaponStats(state).shots++;state.cooldown=w.interval;if(!w.automatic)firing=false;if(state.t-state.lastShot>.28)state.shots=0;state.shots++;state.lastShot=state.t;state.lastShotWeapon=state.weapon;weaponMotion.kick=Math.min(1.8,weaponMotion.kick+1);weaponMotion.throwTime=0;
   const spread=(state.scoped?.00045:w.spread)+player.moving*w.movement+(player.grounded?0:.09)+Math.min(state.shots-1,12)*w.bloom;
   const dir=V(0,0,-1).applyQuaternion(camera.quaternion);dir.x+=(Math.random()-.5)*spread;dir.y+=(Math.random()-.5)*spread;dir.z+=(Math.random()-.5)*spread;dir.normalize();
   ray.set(camera.position,dir);ray.far=85;scene.updateMatrixWorld(true);const hit=ray.intersectObjects([...hitWalls,...botParts.filter(p=>p.userData.bot.alive)],false)[0];const end=hit?hit.point:camera.position.clone().addScaledVector(dir,80);
   tracer(camera.position.clone().add(V(0,-.10,0)),end);shotSound();
-  if(hit?.object.userData.bot){const b=hit.object.userData.bot,head=hit.object.userData.zone==='head';if(b.team==='enemy'){state.hits++;b.hp-=head?w.head:w.damage*.78;state.hit=.14;$('hitmarker').style.color=head?'#c9ad78':'#f1f0dd';tone(head?950:650,.045,'triangle',.10);if(b.hp<=0)killBot(b,'player',head,state.weapon);}}
+  if(hit?.object.userData.bot){const b=hit.object.userData.bot,head=hit.object.userData.zone==='head';if(b.team==='enemy'){state.hits++;weaponStats(state).hits++;b.hp-=head?w.head:w.damage*.78;state.hit=.14;$('hitmarker').style.color=head?'#c9ad78':'#f1f0dd';tone(head?950:650,.045,'triangle',.10);if(b.hp<=0)killBot(b,'player',head,state.weapon);}}
   else if(hit){const m=new THREE.Mesh(new THREE.SphereGeometry(.035,4,4),mat(0x313831));m.position.copy(end);scene.add(m);effects.push({mesh:m,life:8,max:8});}
   // Original recoil curve: vertical climb, then alternating horizontal pull.
   player.pitch=clamp(player.pitch+w.recoil+Math.min(state.shots,9)*w.climb,-1.45,1.45);
   player.yaw+=Math.sin(state.shots*.85)*Math.min(state.shots,12)*w.horizontal;
 }
 function checkElimination(){if(state.phase!=='live')return;if(teamAlive(state,player,'enemy')===0&&!(state.side==='defend'&&state.plant))endRound(true,'Enemy team eliminated.');else if(teamAlive(state,player,'ally')===0&&!(state.side==='attack'&&state.plant))endRound(false,'Your team was eliminated.');}
-function killBot(bot,source,head=false,weapon='rifle'){if(!bot.alive)return;bot.alive=false;bot.hp=0;bot.target=null;const roster=state.roster.find(b=>b.id===bot.id);if(roster)roster.deaths=(roster.deaths||0)+1;if(source==='player'){state.kills++;if(head)state.headshots++;state.money=Math.min(16000,state.money+300);}else if(source){const r=state.roster.find(b=>b.id===source.id);if(r)r.kills=(r.kills||0)+1;}feed((source==='player'?'YOU':source?.name||'OPERATOR')+' / '+WEAPONS[weapon].name+' / '+(head?'HEADSHOT / ':'')+bot.name);checkElimination();}
-function hurt(amount){if(player.health<=0)return;const reduction=player.armor>0?.65:1;player.health=Math.max(0,player.health-amount*reduction);player.armor=Math.max(0,player.armor-amount*.35);state.damages=.65;weaponMotion.damage=1;if(player.health===0){state.deaths++;firing=false;state.reload=0;state.interact=0;feed(MAPS[state.map].tag+' / YOU');checkElimination();if(state.phase==='live')toast('You were eliminated · Your team is still fighting');}}
+function killBot(bot,source,head=false,weapon='rifle'){if(!bot.alive)return;bot.alive=false;bot.hp=0;bot.target=null;const roster=state.roster.find(b=>b.id===bot.id);if(roster)roster.deaths=(roster.deaths||0)+1;if(source==='player'){state.kills++;weaponStats(state,weapon).kills++;if(head)state.headshots++;state.money=Math.min(16000,state.money+300);}else if(source){const r=state.roster.find(b=>b.id===source.id);if(r)r.kills=(r.kills||0)+1;}feed((source==='player'?'YOU':source?.name||'OPERATOR')+' / '+WEAPONS[weapon].name+' / '+(head?'HEADSHOT / ':'')+bot.name);checkElimination();}
+function hurt(amount){if(player.health<=0)return;state.roundDamage+=amount;const reduction=player.armor>0?.65:1;player.health=Math.max(0,player.health-amount*reduction);player.armor=Math.max(0,player.armor-amount*.35);state.damages=.65;weaponMotion.damage=1;if(player.health===0){state.deaths++;firing=false;state.reload=0;state.interact=0;feed(MAPS[state.map].tag+' / YOU');checkElimination();if(state.phase==='live')toast('You were eliminated · Your team is still fighting');}}
 function plant(pos,owner){if(state.plant)return;if(owner==='player')state.plants++;state.plant={pos:pos.clone(),time:40,owner,defuse:0};state.interact=0;coreMesh=new THREE.Group();box(0,.12,0,.45,.24,.6,0x303c3b,false,coreMesh);box(0,.25,0,.2,.02,.25,0xc1a96e,false,coreMesh);coreMesh.position.copy(pos);scene.add(coreMesh);toast('SIGNAL CORE ARMED · 40 SECONDS');feed(owner==='player'?'YOU / CORE ARMED':MAPS[state.map].tag+' / CORE ARMED');tone(750,.3,'square',.10);}
 function inSite(pos){return pos.distanceTo(siteA)<4.5||pos.distanceTo(siteB)<4.5;}
 function utility(kind){
@@ -477,7 +484,7 @@ function updateHUD(){
   if(slots!==lastSlots){$('weaponSlots').innerHTML=slots;lastSlots=slots;}
   const pips=Array.from({length:4},(_,i)=>`<i class="${i<state.wins?'won':''}"></i>`).join('');if(pips!==lastPips){$('roundPips').innerHTML=pips;lastPips=pips;}
   $('reloadTrack').hidden=state.reload<=0;$('reloadTrack').firstElementChild.style.width=(100*(1-state.reload/WEAPONS[state.weapon].reload))+'%';
-  $('crosshair').style.setProperty('--gap',(4+player.moving*3+(!player.grounded?12:0)+Math.min(state.shots,10))+'px');
+  $('crosshair').style.setProperty('--gap',crosshairGap(settings,player.moving,!player.grounded,state.shots)+'px');
   const nearby=state.plant?player.pos.distanceTo(state.plant.pos)<2.7:inSite(player.pos);
   $('objective').textContent=state.phase==='buy'?'MOVEMENT LOCKED · B TO BUY / '+state.difficulty.toUpperCase()+' BOTS':state.plant?(state.side==='attack'?'DEFEND THE CORE':nearby?'HOLD E · DEFUSE (5s)':'RETAKE THE SITE · DEFUSE THE CORE'):(state.side==='attack'?(nearby?'HOLD E · PLANT (3s)':'PLANT AT A OR B'):'DEFEND A AND B');
   if(state.phase==='live'&&!nearby){const door=nearbyDoor(doors,player.pos);if(door)$('objective').textContent='E · '+(door.open?'CLOSE':'OPEN')+' '+door.name;}
@@ -512,7 +519,7 @@ let last=performance.now(),menuT=0,beep=0;
 function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/1000,.04),paused=state.paused||!$('buy').hidden;last=now;
   if(!state.active){menuT+=dt;camera.position.set(19+Math.sin(menuT*.07)*2,10,24);camera.lookAt(-2,1,-10);}
   else if(!paused&&state.phase!=='ended'){
-    state.playtime+=dt;state.sideSwitchTime=Math.max(0,state.sideSwitchTime-dt);$('sideSwitch').hidden=state.sideSwitchTime<=0;state.t+=dt;state.cooldown=Math.max(0,state.cooldown-dt);state.notice=Math.max(0,state.notice-dt);state.damages=Math.max(0,state.damages-dt);state.hit=Math.max(0,state.hit-dt);state.flashTime=Math.max(0,state.flashTime-dt);if(state.t-state.lastShot>.25)state.shots=Math.max(0,state.shots-dt*24);
+    state.playtime+=dt;weaponStats(state).time+=dt;state.sideSwitchTime=Math.max(0,state.sideSwitchTime-dt);$('sideSwitch').hidden=state.sideSwitchTime<=0;state.t+=dt;state.cooldown=Math.max(0,state.cooldown-dt);state.notice=Math.max(0,state.notice-dt);state.damages=Math.max(0,state.damages-dt);state.hit=Math.max(0,state.hit-dt);state.flashTime=Math.max(0,state.flashTime-dt);if(state.t-state.lastShot>.25)state.shots=Math.max(0,state.shots-dt*24);
     if(state.reload>0){state.reload-=dt;if(state.reload<=0){state.reload=0;const a=state.ammo[state.weapon],take=Math.min(WEAPONS[state.weapon].capacity-a.mag,a.reserve);a.mag+=take;a.reserve-=take;}}
     updateDoors(doors,dt,hitWalls,actorPositions());mapRoot.updateMatrixWorld(true);updatePlayer(dt);state.time-=dt;
     if(state.phase==='buy'&&state.time<=0){state.phase='live';state.time=90;toast('Operation live. Watch your angles.');}
@@ -530,4 +537,4 @@ function frame(now){requestAnimationFrame(frame);const dt=Math.min((now-last)/10
 }
 requestAnimationFrame(frame);
 // Local development hook is opt-in and not enabled on a normal published URL.
-if(new URLSearchParams(location.search).has('test'))window.__game={state,player,DIFFICULTY,WEAPONS,pathTo,canStand,blocked,shoot,plant,endRound,nextRound,equip,reload,buyItem,setScoped,utility,updateBots,updatePlayer,updateWeaponPresentation,updateBotPresentation,scene,camera,viewCamera,models,gunRoot,weaponMotion,keys,MAPS,loadMap,botSpawnPositions,spawnPoint,siteA,siteB,mapRoot,walls,hitWalls,get environment(){return environment;},get operators(){return operators;},checkElimination,killBot,botFire,startMatch,returnMenu,updateHUD,scoreboard,moveBot,groundHeight,get doors(){return doors;},updateDoors,toggleDoor,openDoorForBot};
+if(new URLSearchParams(location.search).has('test'))window.__game={state,player,DIFFICULTY,WEAPONS,pathTo,canStand,blocked,shoot,plant,endRound,nextRound,equip,reload,buyItem,setScoped,utility,updateBots,updatePlayer,updateWeaponPresentation,updateBotPresentation,scene,camera,viewCamera,models,gunRoot,weaponMotion,keys,MAPS,loadMap,botSpawnPositions,spawnPoint,siteA,siteB,mapRoot,walls,hitWalls,get environment(){return environment;},get operators(){return operators;},checkElimination,killBot,botFire,startMatch,returnMenu,updateHUD,scoreboard,moveBot,groundHeight,get doors(){return doors;},updateDoors,toggleDoor,openDoorForBot,career};

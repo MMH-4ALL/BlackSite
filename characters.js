@@ -37,7 +37,7 @@ export function attachOperator(assets,bot){
  bot.group.remove(old);old.traverse(o=>{if(o.isMesh&&!o.userData.asset){o.geometry.dispose();if(o.userData.ownMaterial)o.material.dispose();}});
  const mixer=new THREE.AnimationMixer(model),actions={};
  for(const [name,layers] of Object.entries(assets.clips))for(const layer of ['lower','upper'])if(layers[layer].tracks.length)actions[name+':'+layer]=mixer.clipAction(layers[layer]);
- bot.rig=rig;bot.operator={rig,model,aim,helmet,marker,mixer,actions,current:{},previous:bot.pos.clone(),elapsed:0,updates:0,disposed:false};
+ bot.rig=rig;bot.operator={rig,model,aim,helmet,marker,mixer,actions,headBone:model.getObjectByName('Head'),current:{},previous:bot.pos.clone(),elapsed:0,updates:0,disposed:false};
  return bot.operator;
 }
 function play(operator,name,layer,once=false){
@@ -72,5 +72,6 @@ export function updateOperator(bot,dt,cameraPosition,quality){
   op.helmet.position.y=crouch?1.13:1.74;
  }
  op.mixer.update(elapsed);
+ if(bot.alive&&op.headBone){op.headBone.getWorldPosition(v);op.rig.worldToLocal(v);op.helmet.position.copy(v).y+=.10;}
 }
 export function disposeOperator(operator){if(!operator||operator.disposed)return;operator.mixer.stopAllAction();operator.mixer.uncacheRoot(operator.model);operator.disposed=true;}
