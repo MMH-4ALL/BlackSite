@@ -89,3 +89,7 @@ modifications, license links, preserved author notices, and MLA references are i
 `assets/environment/LICENSE.md`. Original layout/code licensing remains MIT;
 these third-party assets retain their separate licenses. No named CS/Valorant
 map is copied.
+
+## v0.8 animated operators
+
+Quaternius Universal Base Characters and Universal Animation Library (free Standard editions), CC0. Accessed 5 October 2026. Optimized humanoid geometry, retargeted 13 selected skeletal clips, removed appearance maps and created muted team clothing. Files and changes are recorded in `assets/operators/LICENSE.md`; original source notices are retained there. Three.js r170 SkeletonUtils is bundled under the existing MIT notice.

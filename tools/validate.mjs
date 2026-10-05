@@ -23,6 +23,14 @@ assert.equal(triangles,32980);assert.ok(rifleBytes.length<900000);
 const actualAssets={m4a1:rifleAsset};
 const environmentSource=fs.readFileSync('./environment.js','utf8').replace("from 'three'",`from '${engineURL}'`);
 const {loadEnvironment,textureBox,placeEnvironment,ENVIRONMENT_ASSETS}=await import(moduleURL(environmentSource));
+const skeletonSource=fs.readFileSync('./vendor/utils/SkeletonUtils.js','utf8').replace("from 'three'",`from '${engineURL}'`);
+const charactersSource=fs.readFileSync('./characters.js','utf8').replace("from 'three'",`from '${engineURL}'`).replace("from './vendor/utils/SkeletonUtils.js'",`from '${moduleURL(skeletonSource)}'`);
+const characters=await import(moduleURL(charactersSource)),ai=await import('../ai.js');
+const operatorBytes=fs.readFileSync('./assets/operators/operator.glb');
+actualAssets.operator=await new RealLoader().parseAsync(operatorBytes.buffer.slice(operatorBytes.byteOffset,operatorBytes.byteOffset+operatorBytes.byteLength),'');
+assert.ok(operatorBytes.length<600000,'optimized operator download stays small');
+assert.equal(actualAssets.operator.animations.length,13);let operatorTriangles=0;
+actualAssets.operator.scene.traverse(o=>{if(o.isMesh){assert.ok(o.isSkinnedMesh);operatorTriangles+=o.geometry.index.count/3;}});assert.ok(operatorTriangles<7000);
 // Decode checks use Pillow in the conversion step; the Node loader checks real
 // geometry/UVs/materials with texture decoding replaced (there is no DOM/GPU).
 RealThree.TextureLoader.prototype.loadAsync=async function(path){
@@ -75,13 +83,16 @@ globalThis.window={addEventListener:noop};globalThis.innerWidth=1280;globalThis.
 let frame;globalThis.requestAnimationFrame=fn=>{frame=fn;};
 class FakeRenderer{constructor(){this.shadowMap={};}setPixelRatio(){}setSize(){}render(){}clearDepth(){}}
 const THREE={...RealThree,WebGLRenderer:FakeRenderer};
-class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');return actualAssets[name]?{scene:actualAssets[name].scene.clone(true)}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial())};}}
+class FakeLoader{async loadAsync(path){const name=path.split('?')[0].split('/').at(-1).replace('.glb','');if(name==='operator')return actualAssets.operator;return actualAssets[name]?{scene:actualAssets[name].scene.clone(true),animations:actualAssets[name].animations||[]}:{scene:new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.8),new THREE.MeshStandardMaterial()),animations:[]};}}
+
 const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
 const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:3};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
-new Function('THREE','GLTFLoader','WEAPONS','settings','refreshShop','showReport','showView','weaponAudio','SOUND_BANK','MAPS','mapKey','normalizeBotCount','loadEnvironment','textureBox','placeEnvironment',source)(THREE,FakeLoader,WEAPONS,settings,noop,noop,noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment);
-await new Promise(r=>setTimeout(r,0));
+const deps={THREE,GLTFLoader:FakeLoader,WEAPONS,settings,refreshShop:noop,showReport:noop,showView:noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment,...characters,...ai};
+new Function(...Object.keys(deps),source)(...Object.values(deps));
+for(let i=0;i<20&&document.getElementById('start').disabled!==false;i++)await new Promise(r=>setTimeout(r,0));
+
 console.log('Checking integrated gameplay...');
 const g=window.__game,{state,player}=g;
 assert.ok(g.models.rifle,'async asset integration completed');
@@ -158,7 +169,7 @@ g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMat
 const random=Math.random;Math.random=()=>.5;g.shoot();Math.random=random;
 assert.equal(b.alive,false,'rifle headshot kills armored bot');assert.equal(state.kills,1);assert.equal(state.ammo.rifle.mag,29);
 assert.equal(state.headshots,1);assert.equal(state.shotsFired,1);assert.equal(state.hits,1);
-g.updateBotPresentation(.04);assert.ok(b.rig.rotation.x<0,'corpse settles through the visual rig');
+g.updateBotPresentation(.04);assert.ok(b.operator.current.lower.startsWith('Death01'),'corpse uses a skeletal death clip');
 // Smoke occludes shared visibility queries.
 state.smoke=1;g.utility('smoke');assert.equal(state.smoke,0);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14),false),false);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14)),true);
 // Attackers can navigate from spawn to a plant with player perception disabled.
@@ -275,25 +286,27 @@ for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.m
 state.cooldown=0;g.camera.position.set(0,30,26);g.shoot();g.updateWeaponPresentation(.016);
 assert.ok(g.weaponMotion.muzzle.visible&&g.weaponMotion.shells.some(s=>s.mesh.visible),'shot shows flash and casing');
 state.secondary='c9';g.equip('c9');assert.equal(g.weaponMotion.throwTime,0);assert.equal(g.weaponMotion.objective,0);assert.ok(g.weaponMotion.shells.every(s=>s.life===0));
-const movingBot=state.bots[0];movingBot.pos.set(0,0,0);movingBot.previous.copy(movingBot.pos);movingBot.group.rotation.y=0;movingBot.viewYaw=0;
-const headHome=movingBot.head.position.clone();let legTravel=0,ankleTravel=0;
-for(let i=0;i<60;i++){movingBot.pos.z-=.05;g.updateBotPresentation(1/60);legTravel=Math.max(legTravel,Math.abs(movingBot.legs[0].rotation.x));ankleTravel=Math.max(ankleTravel,Math.abs(movingBot.legs[0].userData.ankle.rotation.x));}
-assert.ok(legTravel>.3&&ankleTravel>.1,'bot hips, knees, and feet move');
-const botPhase=movingBot.walk;for(let i=0;i<120;i++)g.updateBotPresentation(1/60);assert.equal(movingBot.walk,botPhase);assert.ok(movingBot.visualSpeed<.001);
-movingBot.fireKick=1;movingBot.flashTime=.05;g.updateBotPresentation(.016);assert.ok(movingBot.gun.rotation.x<0&&movingBot.muzzle.visible);
-movingBot.blind=3;for(let i=0;i<30;i++)g.updateBotPresentation(1/60);assert.ok(!movingBot.gun.visible&&movingBot.arms[0].rotation.x>2);
-movingBot.blind=0;movingBot.planting=1;for(let i=0;i<30;i++)g.updateBotPresentation(1/60);assert.ok(movingBot.workDevice.visible&&!movingBot.gun.visible);
-movingBot.planting=0;movingBot.defusing=true;g.updateBotPresentation(.016);assert.ok(movingBot.workDevice.visible);
-assert.ok(movingBot.head.position.equals(headHome),'animated rig does not move gameplay hit volumes');
-const botPause=JSON.stringify([movingBot.clock,movingBot.walk,movingBot.rig.position,movingBot.rig.rotation,movingBot.arms.map(a=>a.rotation)]);g.updateBotPresentation(0);assert.equal(JSON.stringify([movingBot.clock,movingBot.walk,movingBot.rig.position,movingBot.rig.rotation,movingBot.arms.map(a=>a.rotation)]),botPause);
-movingBot.alive=false;for(let i=0;i<120;i++)g.updateBotPresentation(1/60);assert.ok(movingBot.fall>.99&&movingBot.rig.position.y>0,'corpse settles above the floor');
-g.nextRound();assert.equal(g.weaponMotion.landing,0);assert.equal(player.moving,0);assert.ok(state.bots.every(b=>b.fall===0&&b.alive),'new round clears motion state');
+const movingBot=state.bots[0],operator=movingBot.operator;
+assert.ok(operator,'normal gameplay uses the imported animated operator');
+movingBot.pos.set(0,0,0);movingBot.previous.copy(movingBot.pos);operator.previous.copy(movingBot.pos);g.camera.position.set(0,2,5);
+const leg=operator.model.getObjectByName('thigh_l'),restLeg=leg.quaternion.clone();
+for(let i=0;i<60;i++){movingBot.pos.z-=.05;const gameplayOrigin=movingBot.pos.clone();g.updateBotPresentation(1/60);assert.ok(movingBot.pos.equals(gameplayOrigin),'animation cannot translate the gameplay origin');}
+assert.ok(leg.quaternion.angleTo(restLeg)>.1,'real skeletal walk motion');assert.ok(operator.updates>=25&&operator.updates<=31,'nearby animation uses scheduled updates');
+movingBot.fireKick=1;movingBot.flashTime=.05;g.updateBotPresentation(.04);assert.ok(movingBot.gun.rotation.x<0||operator.aim.rotation.x<0);
+movingBot.blind=3;g.updateBotPresentation(.08);assert.ok(!movingBot.gun.visible&&operator.current.upper.startsWith('Hit_Head'));
+movingBot.blind=0;movingBot.planting=1;g.updateBotPresentation(.08);assert.ok(movingBot.workDevice.visible&&!movingBot.gun.visible);
+movingBot.planting=0;movingBot.defusing=true;g.updateBotPresentation(.08);assert.ok(movingBot.workDevice.visible);
+const headHome=movingBot.head.position.clone(),origin=movingBot.pos.clone(),time=operator.mixer.time;g.updateBotPresentation(0);assert.equal(operator.mixer.time,time);assert.ok(movingBot.head.position.equals(headHome),'presentation does not move authoritative hitboxes');
+movingBot.defusing=false;movingBot.alive=false;for(let i=0;i<120;i++)g.updateBotPresentation(1/60);
+assert.ok(operator.current.lower.startsWith('Death01'));assert.ok(movingBot.pos.equals(origin));
+operator.model.traverse(o=>{assert.ok([...o.position.toArray(),...o.quaternion.toArray(),...o.scale.toArray()].every(Number.isFinite));});
+g.nextRound();assert.ok(operator.disposed,'round reset uncaches the old mixer');assert.equal(g.weaponMotion.landing,0);assert.equal(player.moving,0);assert.ok(state.bots.every(b=>b.fall===0&&b.alive),'new round clears motion state');
 console.log('PASS: all eight hand/reload rigs, normalized magazine travel, pause/round/switch resets, actual-distance gait, landing recovery, inspect/throw/objective states, flash/casings, bot joints/reactions/death, finite transforms, and independent combat state.');
 // Real map switching/collision/navigation and variable hostiles, on both sides.
 assert.equal(Object.keys(MAPS).length,3);assert.equal(DEFAULT_BOTS,6);assert.equal(MAX_BOTS,16);
 for(const value of [undefined,null,NaN,Infinity,'bad'])assert.equal(normalizeBotCount(value),6);
 assert.equal(normalizeBotCount(-3),1);assert.equal(normalizeBotCount(99),16);assert.equal(normalizeBotCount('8'),8);assert.equal(mapKey('constructor'),'helix');
-const mapWallSignatures=new Set();
+state.roundResults=[];state.sidesSwitched=false;const mapWallSignatures=new Set();
 for(const [key,m] of Object.entries(MAPS)){
  g.loadMap(key);assert.equal(state.map,key);assert.equal(state.bots.length,0);assert.ok(g.siteA.equals(new THREE.Vector3(m.sites[0][0],0,m.sites[0][1])));
  // Check actual world-space floor faces, including pads, markings and drains.
@@ -344,6 +357,34 @@ g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMat
 state.cooldown=0;g.camera.position.x=3;g.camera.updateMatrixWorld(true);g.shoot();Math.random=random;assert.equal(state.phase,'ended');
 state.botCount=3;g.nextRound();
 console.log('PASS: three distinct maps, all 1/3/6/16-bot spawn/route combinations on both sides, unique names, full reports, sixteen-bot plant/defuse simulation, match selection/reset, and last-enemy victory.');
+// Allied combat, independent difficulty, objective roles and a single halftime.
+for(const key of Object.keys(MAPS))for(const side of ['attack','defend'])for(const difficulty of ['easy','normal','hard']){
+ g.loadMap(key);state.side=side;state.difficulty=difficulty;state.botCount=16;state.allyCount=7;state.roundResults=[];state.sidesSwitched=false;g.nextRound();
+ assert.equal(state.bots.length,23);assert.equal(state.bots.filter(b=>b.team==='ally').length,7);
+ assert.equal(new Set(state.bots.map(b=>b.name)).size,23);assert.equal(new Set(state.bots.map(b=>b.personality)).size,6);
+ for(const bot of state.bots){assert.equal(bot.side,bot.team==='ally'?side:ai.oppositeSide(side));assert.ok(g.canStand(bot.pos.x,bot.pos.z,.43));if(bot.team==='ally')assert.ok(bot.pos.distanceTo(player.pos)>=1.3);}
+ const personalities=state.bots.map(b=>b.personality);g.nextRound();assert.deepEqual(state.bots.map(b=>b.personality),personalities,'personality survives rounds');
+}
+g.loadMap('helix');state.side='attack';state.allyCount=1;state.botCount=1;state.roundResults=[];g.nextRound();state.phase='live';
+const friendly=state.bots.find(b=>b.team==='ally'),hostile=state.bots.find(b=>b.team==='enemy');friendly.pos.set(0,0,20);hostile.pos.set(0,0,10);
+g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;state.cooldown=0;player.moving=0;
+g.shoot();assert.equal(friendly.hp,100,'player cannot damage allies');assert.equal(hostile.hp,100,'friendly bodies block the shot');
+friendly.pos.set(0,0,24);hostile.pos.set(0,0,20);g.scene.updateMatrixWorld(true);g.botFire(friendly,hostile,{...g.DIFFICULTY.normal,spread:0},friendly.pos.clone().add(new THREE.Vector3(0,1.55,0)));assert.ok(hostile.hp<100,'allied shots hit enemy hitboxes');
+player.health=0;g.checkElimination();assert.equal(state.phase,'live','an ally keeps fighting after player elimination');g.killBot(hostile,friendly);assert.equal(state.phase,'ended','an ally can win the round');Math.random=random;
+for(const key of Object.keys(MAPS)){
+ g.loadMap(key);state.side='attack';state.botCount=1;state.allyCount=2;state.roundResults=[];g.nextRound();state.phase='live';g.camera.position.set(0,80,0);state.bots.filter(b=>b.team==='enemy').forEach(b=>b.blind=999);
+ for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateBots(.04);}
+ assert.ok(state.plant&&state.plant.owner==='ally',key+' allied attackers plant');
+ state.side='defend';state.roundResults=[];g.nextRound();state.phase='live';g.camera.position.set(0,80,0);state.bots.filter(b=>b.team==='enemy').forEach(b=>b.blind=999);
+ g.plant(g.pathTo(player.pos,g.siteA).at(-1),'bot');
+ for(let i=0;i<1800&&state.phase==='live';i++){state.t+=.04;g.updateBots(.04);}
+ assert.equal(state.phase,'ended',key+' allied defenders finish defusing');assert.ok(state.plant.defuse>=7&&state.plant.defuse<7.05);
+}
+state.side='attack';state.round=3;state.wins=2;state.losses=1;state.money=6700;state.primary='sv98';state.owned=true;state.sidesSwitched=false;state.roundResults=[{},{},{}];
+g.nextRound();assert.equal(state.side,'defend');assert.equal(state.wins,2);assert.equal(state.losses,1);assert.equal(state.money,6700);assert.equal(state.primary,'sv98');assert.ok(state.owned);assert.ok(state.bots.every(b=>b.side===(b.team==='ally'?'defend':'attack')));
+g.nextRound();assert.equal(state.side,'defend','only one halftime switch');
+state.allyCount=0;state.botCount=3;state.roundResults=[];state.sidesSwitched=false;state.primary='rifle';state.side='attack';g.nextRound();
+console.log('PASS: real skeletal operators, presentation LOD and mixer cleanup; six personalities; 23-bot team configurations on all maps/sides/difficulties; friendly-fire protection; allied combat, post-death victory, plant/defuse; score/economy/equipment-safe halftime.');
 for(const name of ['m4a1','sv98','m82','ak47','mp5','c9','h45','blaster-b','crate-medium']){const data=fs.readFileSync('./assets/'+name+'.glb');assert.equal(data.toString('ascii',0,4),'glTF');assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);const json=JSON.parse(data.toString('utf8',20,20+data.readUInt32LE(12)));assert.ok(json.meshes.length);for(const image of json.images??[])if(image.uri)assert.ok(fs.existsSync('./assets/'+image.uri),'external model texture exists');console.log(name+': '+json.meshes.length+' meshes');}
 for(const w of Object.values(WEAPONS))assert.ok(fs.existsSync('./assets/ui/'+w.image+'.svg'));
 console.log('PASS: seven actual imported weapon assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.');

@@ -22,17 +22,17 @@
       <div class="briefing">
         <div class="eyebrow"><span class="short-line"></span> PRECISION. POSITION. CONTROL.</div>
         <h1>EVERY SHOT<br><span>COUNTS.</span></h1>
-        <p class="intro">One operator. <span id="introBots">6 hostiles.</span> Two sites.<br>Hold the angle. Make the first shot count.</p>
+        <p class="intro">Lead your squad. <span id="introBots">6 hostiles.</span> Two sites.<br>Hold the angle. Make the first shot count.</p>
         <div class="operation-strip"><span>03 <small>ORIGINAL MAPS</small></span><span>1 <small id="botSummary">VS 6 BOTS</small></span><span>4 <small>ROUNDS TO WIN</small></span></div>
         <div class="setup operation-setup">
           <label for="mapSelect">OPERATION MAP<select id="mapSelect" data-setting="map"><option value="helix">HELIX COMPOUND</option></select></label>
           <label for="botCount">HOSTILE COUNT<select id="botCount" data-setting="botCount"><option value="6">6 HOSTILES</option></select></label>
-          <label for="side">TACTICAL ROLE<select id="side"><option value="attack">BREACH / ATTACK</option><option value="defend">CONTAIN / DEFEND</option></select></label>
+          <label for="allyCount">ALLIED BOTS<select id="allyCount" data-setting="allyCount"><option value="0">0 ALLIES</option></select></label><label for="side">TACTICAL ROLE<select id="side"><option value="attack">BREACH / ATTACK</option><option value="defend">CONTAIN / DEFEND</option></select></label>
           <label for="difficulty">BOT PROFILE<select id="difficulty"><option value="easy">EASY / RECRUIT</option><option value="normal" selected>NORMAL / OPERATOR</option><option value="hard">HARD / VETERAN</option></select></label>
         </div>
         <p id="difficultyInfo" class="difficulty-note">Balanced reactions and controlled bursts. Stay sharp.</p>
         <div class="deploy-action"><button id="start" class="primary" disabled>LOADING COMPOUND… <span>↗</span></button><span class="input-note">KEYBOARD + MOUSE<br>DESKTOP BROWSER</span></div>
-        <p id="compatibility" class="compatibility" hidden></p>
+        <div class="loading-status" role="status"><span id="loadingStage">LOADING WORLD</span><div class="loading-track"><span id="loadingProgress"></span></div></div><p id="compatibility" class="compatibility" hidden></p>
       </div>
       <aside class="mission-column">
         <div class="map-card"><div class="card-top"><span>OPERATION / BLACKSITE</span><span id="mapTag" class="tag">HELIX</span></div><div class="map-image"><img id="mapImage" src="assets/environment/helix-scene.jpg" alt="Helix Compound textured military environment"><span class="map-coordinates">48M × 60M<br>TACTICAL SECTOR</span><span id="mapPlan" class="map-label">SECTOR OVERVIEW / 01</span></div><div class="map-caption"><div><span id="mapName" class="eyebrow">HELIX COMPOUND</span><h2 id="mapTitle">Restricted territory.</h2></div><span id="mapNumber" class="map-number">01</span></div><div class="map-detail"><span id="mapTheme">DESERT COMMUNICATIONS FACILITY</span><span>TWO OBJECTIVE SITES</span></div><p id="mapDescription" class="map-description">Barracks lanes, a fortified radio station, and a brick service warehouse.</p></div>
@@ -57,10 +57,10 @@
 </main>
 <div id="hud" hidden>
   <div id="radarWrap"><div class="radar-head"><span id="radarMap">HELIX / 01</span><span>N ↑</span></div><canvas id="radar" width="180" height="180"></canvas><span id="location">ATTACKER APPROACH</span></div>
-  <div class="roundbar"><div class="team"><small>OPERATOR</small><b id="scoreYou">0</b></div><div class="round-clock"><small id="phase">BUY / ROUND 1</small><strong id="timer">0:12</strong><div class="round-pips" id="roundPips"></div></div><div class="team enemy"><small>HOSTILES</small><b id="scoreBot">0</b></div></div>
-  <div class="hostile-count"><span id="hostileCount">6</span> HOSTILES REMAINING</div>
+  <div class="roundbar"><div class="team"><small>OPERATOR</small><b id="scoreYou">0</b></div><div class="round-clock"><small id="phase">BUY / ROUND 1</small><strong id="timer">0:12</strong><div class="round-pips" id="roundPips"></div></div><div class="team enemy"><small>OPPONENTS</small><b id="scoreBot">0</b></div></div>
+  <div class="hostile-count"><span id="hostileCount">6</span> ENEMIES REMAINING <i>·</i> <b id="alliesCount">0</b> ALLIES REMAINING</div>
   <div id="feed"></div><div id="crosshair"><i></i><i></i><i></i><i></i></div><div id="hitmarker">×</div><div id="scope" hidden><div class="scope-line vertical"></div><div class="scope-line horizontal"></div><div class="scope-center"></div></div>
-  <div id="objective"></div><div id="progress"><span></span></div><div id="toast" role="status"></div>
+  <div id="sideSwitch" class="side-switch" hidden><strong>SIDE SWITCH</strong><span id="sideSwitchRole"></span><small>Score and equipment are retained.</small></div><div id="objective"></div><div id="progress"><span></span></div><div id="toast" role="status"></div>
   <div class="bottom"><div class="vitals"><div><span class="hud-label">VITALS</span><strong id="health">100</strong><small>HP</small></div><div class="health-track"><span id="healthBar"></span></div><b id="armor">0 ARMOR</b></div><div class="equipment"><span class="hud-label">CREDITS</span><strong id="cash">$3,400</strong><small id="utility">G SMOKE ×1 · F FLASH ×1</small></div><div class="weapon"><div id="weaponSlots" class="weapon-slots"><span><kbd>1</kbd> M4A1</span><span><kbd>2</kbd> P-9</span></div><small id="weaponName">M4A1</small><strong id="ammo">30 <em>/ 90</em></strong><div id="reloadTrack" class="reload-track" hidden><span></span></div></div></div>
   <div id="hints"><span><kbd>R</kbd> RELOAD</span><span><kbd>E</kbd> OBJECTIVE</span><span><kbd>B</kbd> BUY</span><span><kbd>TAB</kbd> REPORT</span><span><kbd>ESC</kbd> PAUSE</span></div>
 </div>

@@ -1,19 +1,22 @@
 import { WEAPONS, PRIMARY_KEYS, SECONDARY_KEYS } from './weapons.js?v=0.7.0';
 import { weaponAudio } from './audio.js?v=0.7.0';
 import { MAPS, mapKey, normalizeBotCount, MAX_BOTS, DEFAULT_BOTS } from './maps.js?v=0.7.0';
+import {normalizeAllies,MAX_ALLIES} from './ai.js?v=0.8.0';
 const $=id=>document.getElementById(id), defaults={sensitivity:1,volume:.45,fov:78,crosshair:6,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:DEFAULT_BOTS};
 export const settings={...defaults};
+defaults.allyCount=0;settings.allyCount=0;
 try {
   const saved=JSON.parse(localStorage.getItem('blacksite.settings.v1')||'{}');
   for(const [key,min,max] of [['sensitivity',.4,2.4],['volume',0,1],['fov',68,100],['crosshair',3,12]])if(Number.isFinite(saved[key]))settings[key]=Math.min(max,Math.max(min,saved[key]));
   if(['standard','low'].includes(saved.quality))settings.quality=saved.quality;
   if(PRIMARY_KEYS.includes(saved.primary))settings.primary=saved.primary;
   if(SECONDARY_KEYS.includes(saved.secondary))settings.secondary=saved.secondary;
-  settings.map=mapKey(saved.map);settings.botCount=normalizeBotCount(saved.botCount);
+  settings.map=mapKey(saved.map);settings.botCount=normalizeBotCount(saved.botCount);settings.allyCount=normalizeAllies(saved.allyCount);
 }catch{/* Browsing and play also work when storage is unavailable. */}
 let inspected=settings.primary, soundRequest=0;
 $('mapSelect').innerHTML=Object.values(MAPS).map(m=>`<option value="${m.id}">${m.name.toUpperCase()}</option>`).join('');
 $('botCount').innerHTML=Array.from({length:MAX_BOTS},(_,i)=>`<option value="${i+1}">${i+1} ${i?'HOSTILES':'HOSTILE'}</option>`).join('');
+$('allyCount').innerHTML=Array.from({length:MAX_ALLIES+1},(_,i)=>`<option value="${i}">${i} ${i===1?'ALLY':'ALLIES'}</option>`).join('');
 weaponAudio.preload();
 const money=value=>'$'+value.toLocaleString('en-US');
 function saveSettings(){try{localStorage.setItem('blacksite.settings.v1',JSON.stringify(settings));$('settingsSaved').textContent='Preferences saved on this browser.';}catch{$('settingsSaved').textContent='Preferences apply for this session.';}}
@@ -24,7 +27,7 @@ function syncSettings(){
   document.documentElement.style.setProperty('--crosshair',settings.crosshair+'px');
   const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ '+WEAPONS[settings.secondary].name+'</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.7.0';
   const m=MAPS[settings.map];$('mapTag').textContent=m.tag;$('mapName').textContent=m.name.toUpperCase();$('mapTitle').textContent=m.subtitle;$('mapTheme').textContent=m.theme.toUpperCase();$('mapDescription').textContent=m.description;$('mapNumber').textContent=m.number;$('mapPlan').textContent='SECTOR OVERVIEW / '+m.number;
-  $('mapImage').src='assets/'+m.preview+'?v=0.7.0';$('mapImage').alt=m.name+' textured military environment';$('botSummary').textContent='VS '+settings.botCount+(settings.botCount===1?' BOT':' BOTS');$('introBots').textContent=settings.botCount+' '+(settings.botCount===1?'hostile.':'hostiles.');
+  $('mapImage').src='assets/'+m.preview+'?v=0.7.0';$('mapImage').alt=m.name+' textured military environment';$('botSummary').textContent=(1+settings.allyCount)+' VS '+settings.botCount+(settings.botCount===1?' BOT':' BOTS');$('introBots').textContent=settings.allyCount+' allies. '+settings.botCount+' '+(settings.botCount===1?'hostile.':'hostiles.');
   $('manualMap').textContent='OPERATOR HANDBOOK / '+m.tag;$('pauseMap').textContent=m.name.toUpperCase();$('scoreTitle').textContent=m.name.toUpperCase();$('radarMap').textContent=m.tag+' / '+m.number;
   document.documentElement.style.setProperty('--map-preview',`url("assets/${m.preview}")`);
 }
@@ -62,7 +65,7 @@ async function previewSound(kind){
   }catch{if(request===soundRequest)$('soundStatus').textContent='Audio could not start. Try another desktop browser.';}
 }
 $('previewShot').onclick=()=>previewSound('shot');$('previewReload').onclick=()=>previewSound('reload');
-document.querySelectorAll('[data-setting]').forEach(input=>input.addEventListener('input',()=>{const key=input.dataset.setting;settings[key]=key==='map'?mapKey(input.value):key==='botCount'?normalizeBotCount(input.value):key==='quality'?input.value:Number(input.value);syncSettings();saveSettings();window.dispatchEvent(new CustomEvent(key==='map'?'blacksite:map':'blacksite:settings'));}));
+document.querySelectorAll('[data-setting]').forEach(input=>input.addEventListener('input',()=>{const key=input.dataset.setting;settings[key]=key==='map'?mapKey(input.value):key==='botCount'?normalizeBotCount(input.value):key==='allyCount'?normalizeAllies(input.value):key==='quality'?input.value:Number(input.value);syncSettings();saveSettings();window.dispatchEvent(new CustomEvent(key==='map'?'blacksite:map':'blacksite:settings'));}));
 $('resetSettings').onclick=()=>{Object.assign(settings,defaults);syncSettings();saveSettings();inspectWeapon(settings.primary);window.dispatchEvent(new CustomEvent('blacksite:settings'));window.dispatchEvent(new CustomEvent('blacksite:map'));};
 $('difficulty').onchange=()=>{$('difficultyInfo').textContent={easy:'Slower reactions and wider shots. Learn the angles.',normal:'Balanced reactions and controlled bursts. Stay sharp.',hard:'Fast reactions, tight shots, and longer pursuit. No easy fights.'}[$('difficulty').value];};
 syncSettings();inspectWeapon(inspected);

@@ -42,3 +42,5 @@
 .map-description{font-size:10px;color:var(--muted);margin:0;padding:0 20px 16px;line-height:1.6}
 .score-panel{max-height:90vh;overflow-y:auto;scrollbar-width:thin}
 @media(max-width:480px){.operation-setup{gap:12px 9px}.map-description{font-size:9px;padding:0 15px 14px}}
+
+.loading-status{max-width:340px;margin-top:16px;font-size:10px;letter-spacing:1.5px;color:var(--muted)}.loading-track{height:3px;background:#303a36;margin-top:8px}.loading-track span{display:block;height:100%;width:0;background:#b9c39f;transition:width .2s}.side-switch{position:absolute;top:25%;left:50%;transform:translateX(-50%);padding:24px 48px;background:#171e1eee;border:1px solid #6e7961;text-align:center;display:grid;gap:10px}.side-switch strong{font-size:28px;letter-spacing:4px}.side-switch small{color:#a9b3a1}.allied-count{position:absolute;top:182px;left:28px;font-size:11px;color:#a6c3ae}.allied-count b{margin-left:10px}.operation-setup{grid-template-columns:repeat(2,minmax(0,1fr))}
