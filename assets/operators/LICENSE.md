@@ -18,4 +18,4 @@ Quaternius. “Universal Base Characters.” *Quaternius*, https://quaternius.co
 
 Quaternius. “Universal Animation Library.” *Quaternius*, https://quaternius.com/packs/universalanimationlibrary.html. Accessed 5 Oct. 2026.
 
-Three.js contributors. “SkeletonUtils.js.” *Three.js*, r170, https://github.com/mrdoob/three.js/blob/r170/examples/jsm/utils/SkeletonUtils.js. Accessed 5 Oct. 2026. MIT; notice preserved in `vendor/LICENSE`.
+Three.js contributors. “SkeletonUtils.js.” *Three.js*, r170, https://github.com/mrdoob/three.js/blob/r170/examples/jsm/utils/SkeletonUtils.js. Accessed 5 Oct. 2026. MIT; notice preserved in `vendor/THREE-LICENSE.txt`.

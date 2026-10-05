@@ -14,13 +14,13 @@ data=json.loads(Path(sys.argv[1]).read_text());out=Path(sys.argv[2]);out.mkdir(p
 textures={};geometries=[]
 for g in data['geometries']:
     p=np.array(g['positions']);n=np.array(g['normals']) if g['normals'] else np.zeros_like(p)
-    geometries.append((np.c_[p,np.ones(len(p))],n,np.array(g['uv']) if g['uv'] else np.zeros((len(p),2)),np.array(g['indices']).reshape(-1,3)))
+    geometries.append((np.c_[p,np.ones(len(p))],n,np.array(g['uv']) if g['uv'] else np.zeros((len(p),2)),np.array(g['indices']).reshape(-1,3),np.array(g['colors']) if g.get('colors') else np.ones_like(p)))
 def render(m,camera,W,H):
     sky=np.array(m['sky'])**(1/2.2);img=np.zeros((H,W,3))+sky;zbuffer=np.full((H,W),np.inf)
     view=np.array(camera['view']).reshape(4,4).T;projection=np.array(camera['projection']).reshape(4,4).T
     light=np.array([-.45,.82,.33]);light/=np.linalg.norm(light)
     for mesh in m['meshes']:
-        p,n,uv,ix=geometries[mesh['geometry']];matrix=np.array(mesh['matrix']).reshape(4,4).T
+        p,n,uv,ix,colors=geometries[mesh['geometry']];matrix=np.array(mesh['matrix']).reshape(4,4).T
         clip=p@matrix.T@view.T@projection.T;valid=clip[:,3]>.05;ndc=clip[:,:3]/np.maximum(.001,clip[:,3,None]);xy=np.c_[(ndc[:,0]+1)*W/2,(1-ndc[:,1])*H/2]
         normal=n@np.linalg.inv(matrix[:3,:3]);normal/=np.maximum(.001,np.linalg.norm(normal,axis=1,keepdims=True));shade=.5+.65*np.maximum(0,normal@light)
         tex=None
@@ -31,7 +31,7 @@ def render(m,camera,W,H):
         color=np.array(mesh['color'],dtype=float);repeat=np.array(mesh['repeat']);uv=uv*repeat
         triangles=[]
         for ids in ix:
-            q=clip[ids];attrs=np.c_[uv[ids],shade[ids]]
+            q=clip[ids];attrs=np.c_[uv[ids],shade[ids],colors[ids]]
             if not np.any(q[:,3]>.05):continue
             if not np.all(q[:,3]>.05):
                 polygon=[]
@@ -54,7 +54,7 @@ def render(m,camera,W,H):
             sub=zbuffer[y0:y1+1,x0:x1+1];mask=(u>=-1e-5)&(v>=-1e-5)&(w>=-1e-5)&(depth<sub)&(depth>=-1)&(depth<=1)
             if not mask.any():continue
             weights=np.stack([u[mask],v[mask],w[mask]],1)/q[:,3];weights/=weights.sum(1,keepdims=True)
-            rgb=np.tile(color,(len(weights),1));brightness=weights@attrs[:,2]
+            rgb=np.tile(color,(len(weights),1))*(weights@attrs[:,3:6]);brightness=weights@attrs[:,2]
             if tex is not None:
                 coords=weights@attrs[:,:2];coords%=1
                 if mesh['flipY']:coords[:,1]=1-coords[:,1]
@@ -64,7 +64,7 @@ def render(m,camera,W,H):
     return Image.fromarray((img*255).astype('uint8'))
 font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',18)
 small=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',12)
-sheet=Image.new('RGB',(1600,3*570+72),(19,26,23));d=ImageDraw.Draw(sheet);d.text((22,18),'BLACKSITE / TEXTURED MILITARY ENVIRONMENTS',font=font,fill=(208,219,195))
+sheet=Image.new('RGB',(1600,len(data['maps'])*570+72),(19,26,23));d=ImageDraw.Draw(sheet);d.text((22,18),'BLACKSITE / TEXTURED MILITARY ENVIRONMENTS',font=font,fill=(208,219,195))
 for i,m in enumerate(data['maps']):
     overview=render(m,m['overview'],840,600);overview.save(out/(m['key']+'-scene.jpg'),quality=89)
     street=render(m,m['street'],960,540);street.save(out/(m['key']+'-street.jpg'),quality=89)

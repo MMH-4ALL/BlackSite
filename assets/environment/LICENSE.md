@@ -73,3 +73,14 @@ https://opengameart.org/content/hesco-box. Accessed 3 Oct. 2026.
 
 ambientCG. “Concrete034,” “Asphalt010,” and “Metal032.” *ambientCG*,
 https://ambientcg.com/. Accessed 3 Oct. 2026.
+
+
+## Expansion environment models / 0.8.0
+
+Downloaded/accessed 5 October 2026. CC0 1.0, verified on creator pages and preserved notices. Unused textures/attributes removed, muted vertex colors baked, meshes joined and simplified to at most 1,800 triangles per asset. No external runtime requests.
+
+- Kenney. “Factory Kit.” *Kenney*, https://kenney.nl/assets/factory-kit. CC0. Files: door-panel.glb, catwalk-stairs.glb, catwalk.glb, machinery.glb, pipe-unit.glb, loading-lift.glb, conveyor.glb. Notice: KENNEY-FACTORY-LICENSE.txt.
+- Kenney. “City Kit Industrial.” *Kenney*, https://kenney.nl/assets/city-kit-industrial. CC0. Files: industrial-tank.glb, solar-panel.glb, chimney.glb. Notice: KENNEY-INDUSTRIAL-LICENSE.txt.
+- Quaternius. “Modular Sci-Fi Megakit.” *Quaternius*, https://quaternius.com/packs/modularscifimegakit.html. CC0. Files: control-console.glb, access-terminal.glb, vent-unit.glb, fan-unit.glb, research-rail.glb. Notice: QUATERNIUS-SCIFI-LICENSE.txt.
+
+Build: tools/prepare-world-props.mjs using glTF Transform 4.2.1 and meshoptimizer 0.22.0 (MIT), development only. Existing map and surface licenses remain unchanged.

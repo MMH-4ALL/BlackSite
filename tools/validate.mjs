@@ -22,10 +22,10 @@ let triangles=0;rifleAsset.scene.traverse(o=>{if(o.isMesh){triangles+=o.geometry
 assert.equal(triangles,32980);assert.ok(rifleBytes.length<900000);
 const actualAssets={m4a1:rifleAsset};
 const environmentSource=fs.readFileSync('./environment.js','utf8').replace("from 'three'",`from '${engineURL}'`);
-const {loadEnvironment,textureBox,placeEnvironment,ENVIRONMENT_ASSETS}=await import(moduleURL(environmentSource));
+const {loadEnvironment,textureBox,placeEnvironment,ENVIRONMENT_ASSETS,DETAIL_ASSETS}=await import(moduleURL(environmentSource));
 const skeletonSource=fs.readFileSync('./vendor/utils/SkeletonUtils.js','utf8').replace("from 'three'",`from '${engineURL}'`);
 const charactersSource=fs.readFileSync('./characters.js','utf8').replace("from 'three'",`from '${engineURL}'`).replace("from './vendor/utils/SkeletonUtils.js'",`from '${moduleURL(skeletonSource)}'`);
-const characters=await import(moduleURL(charactersSource)),ai=await import('../ai.js');
+const characters=await import(moduleURL(charactersSource)),ai=await import('../ai.js'),navigation=await import('../navigation.js'),doors=await import(moduleURL(fs.readFileSync('./doors.js','utf8').replace("from 'three'",`from '${engineURL}'`)));
 const operatorBytes=fs.readFileSync('./assets/operators/operator.glb');
 actualAssets.operator=await new RealLoader().parseAsync(operatorBytes.buffer.slice(operatorBytes.byteOffset,operatorBytes.byteOffset+operatorBytes.byteLength),'');
 assert.ok(operatorBytes.length<600000,'optimized operator download stays small');
@@ -36,15 +36,15 @@ actualAssets.operator.scene.traverse(o=>{if(o.isMesh){assert.ok(o.isSkinnedMesh)
 RealThree.TextureLoader.prototype.loadAsync=async function(path){
  assert.ok(fs.existsSync(path.split('?')[0]),'bundled surface texture exists');const t=new RealThree.Texture();t.userData.file=path.split('?')[0];return t;
 };
-for(const name of ENVIRONMENT_ASSETS){
+for(const name of [...ENVIRONMENT_ASSETS,...DETAIL_ASSETS]){
  const bytes=fs.readFileSync('./assets/environment/'+name+'.glb');
  const loader=new RealLoader().register(parser=>({name:'local-test-textures',loadTexture(index){
   const uri=parser.json.images[parser.json.textures[index].source].uri;
   assert.ok(fs.existsSync('./assets/environment/'+uri));const t=new RealThree.Texture();t.flipY=false;t.userData.file='./assets/environment/'+uri;return Promise.resolve(t);
  }}));
  const asset=await loader.parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');actualAssets[name]=asset;
- const bounds=new RealThree.Box3().setFromObject(asset.scene);assert.ok(Math.abs(bounds.min.y)<1e-5,'environment stands at Y=0');assert.ok(Math.abs(bounds.max.x-bounds.min.x-1)<1e-5,'unit width');
- asset.scene.traverse(o=>{if(o.isMesh){assert.ok(o.geometry.attributes.uv,'textured environment UVs');assert.ok(o.geometry.attributes.normal);}});
+ if(ENVIRONMENT_ASSETS.includes(name)){const bounds=new RealThree.Box3().setFromObject(asset.scene);assert.ok(Math.abs(bounds.min.y)<1e-5,'environment stands at Y=0');assert.ok(Math.abs(bounds.max.x-bounds.min.x-1)<1e-5,'unit width');}
+ asset.scene.traverse(o=>{if(o.isMesh){assert.ok(o.geometry.attributes.uv||o.geometry.attributes.color,'textured or baked environment finish');assert.ok(o.geometry.attributes.normal);}});
 }
 for(const name of ['sv98','m82']){
  const bytes=fs.readFileSync('./assets/'+name+'.glb');
@@ -89,14 +89,14 @@ const source=fs.readFileSync('./game.js','utf8').replace(/^import .*$/mg,'');
 const settings={sensitivity:1,volume:0,fov:78,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:3};
 const soundEvents=[],weaponAudio=new WeaponAudio();
 for(const action of ['shot','reload','equip','empty','stopHandling','stopAll']){const original=weaponAudio[action].bind(weaponAudio);weaponAudio[action]=(...args)=>{soundEvents.push({action,args});return original(...args);};}
-const deps={THREE,GLTFLoader:FakeLoader,WEAPONS,settings,refreshShop:noop,showReport:noop,showView:noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment,...characters,...ai};
+const deps={THREE,GLTFLoader:FakeLoader,WEAPONS,settings,refreshShop:noop,showReport:noop,showView:noop,weaponAudio,SOUND_BANK,MAPS,mapKey,normalizeBotCount,loadEnvironment,textureBox,placeEnvironment,...characters,...ai,...navigation,...doors};
 new Function(...Object.keys(deps),source)(...Object.values(deps));
 for(let i=0;i<20&&document.getElementById('start').disabled!==false;i++)await new Promise(r=>setTimeout(r,0));
 
 console.log('Checking integrated gameplay...');
 const g=window.__game,{state,player}=g;
 assert.ok(g.models.rifle,'async asset integration completed');
-assert.equal(Object.keys(g.environment.models).length,10,'all imported environment templates loaded');
+assert.equal(Object.keys(g.environment.models).length,25,'all imported environment templates loaded');
 assert.ok(g.environment.surfaces.asphalt.map&&g.environment.surfaces.asphalt.normalMap&&g.environment.surfaces.asphalt.roughnessMap,'real PBR ground textures');
 assert.ok(g.models.sv98&&g.models.m82,'both new Free3D models load into the game');
 const receiver=g.models.rifle.getObjectByName('Receiver');
@@ -160,7 +160,7 @@ state.reload=0;for(let i=0;i<100;i++)g.updateWeaponPresentation(.016);
 assert.ok(g.gunRoot.position.distanceTo(rest)<.006);assert.equal(g.weaponMotion.magazine.position.y,0);
 assert.equal(state.ammo.rifle.mag,30,'presentation never changes ammunition');
 g.equip('pistol');assert.equal(g.weaponMotion.magazine,null);g.equip('rifle');
-for(const p of [[-15,-18],[15,-18],[0,-24]]){const path=g.pathTo(player.pos,new THREE.Vector3(p[0],0,p[1]));assert.ok(path.length>10,'route exists');assert.ok(path.every(p=>g.canStand(p.x,p.z,.43)),'route stays out of walls');assert.ok(path.at(-1).distanceTo(new THREE.Vector3(p[0],0,p[1]))<4.5,'route reaches objective radius');}
+for(const p of [[-15,-18],[15,-18],[0,-24]]){const path=g.pathTo(player.pos,new THREE.Vector3(p[0],0,p[1]));assert.ok(path.length>10,'route exists');assert.ok(path.every(p=>g.canStand(p.x,p.z,.43,p.y,true)),'route stays out of walls');assert.ok(path.at(-1).distanceTo(new THREE.Vector3(p[0],0,p[1]))<4.5,'route reaches objective radius');}
 assert.ok(!g.canStand(24,0));assert.ok(!g.canStand(-15,3),'imported barracks blocks movement');
 state.phase='live';state.paused=false;
 // Make a stationary, isolated headshot on an actual Three.js scene/raycaster.
@@ -174,7 +174,7 @@ g.updateBotPresentation(.04);assert.ok(b.operator.current.lower.startsWith('Deat
 state.smoke=1;g.utility('smoke');assert.equal(state.smoke,0);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14),false),false);assert.equal(g.blocked(new THREE.Vector3(0,1,19),new THREE.Vector3(0,1,14)),true);
 // Attackers can navigate from spawn to a plant with player perception disabled.
 state.side='defend';g.nextRound();state.phase='live';g.camera.position.set(0,80,0);g.scene.updateMatrixWorld(true);
-for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateBots(.04);g.scene.updateMatrixWorld(true);}
+for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateDoors(g.doors,.04,g.hitWalls,[]);g.mapRoot.updateMatrixWorld(true);g.updateBots(.04);g.scene.updateMatrixWorld(true);}
 assert.ok(state.plant,'bots reach and plant an objective');assert.equal(state.plant.owner,'bot');
 // A player defuse is a timed action that produces a round victory.
 player.pos.copy(state.plant.pos);player.vel.set(0,0,0);
@@ -303,21 +303,21 @@ operator.model.traverse(o=>{assert.ok([...o.position.toArray(),...o.quaternion.t
 g.nextRound();assert.ok(operator.disposed,'round reset uncaches the old mixer');assert.equal(g.weaponMotion.landing,0);assert.equal(player.moving,0);assert.ok(state.bots.every(b=>b.fall===0&&b.alive),'new round clears motion state');
 console.log('PASS: all eight hand/reload rigs, normalized magazine travel, pause/round/switch resets, actual-distance gait, landing recovery, inspect/throw/objective states, flash/casings, bot joints/reactions/death, finite transforms, and independent combat state.');
 // Real map switching/collision/navigation and variable hostiles, on both sides.
-assert.equal(Object.keys(MAPS).length,3);assert.equal(DEFAULT_BOTS,6);assert.equal(MAX_BOTS,16);
+assert.equal(Object.keys(MAPS).length,4);assert.equal(DEFAULT_BOTS,6);assert.equal(MAX_BOTS,16);
 for(const value of [undefined,null,NaN,Infinity,'bad'])assert.equal(normalizeBotCount(value),6);
 assert.equal(normalizeBotCount(-3),1);assert.equal(normalizeBotCount(99),16);assert.equal(normalizeBotCount('8'),8);assert.equal(mapKey('constructor'),'helix');
 state.roundResults=[];state.sidesSwitched=false;const mapWallSignatures=new Set();
 for(const [key,m] of Object.entries(MAPS)){
- g.loadMap(key);assert.equal(state.map,key);assert.equal(state.bots.length,0);assert.ok(g.siteA.equals(new THREE.Vector3(m.sites[0][0],0,m.sites[0][1])));
+ g.loadMap(key);assert.equal(state.map,key);assert.equal(state.bots.length,0);assert.ok(g.siteA.equals(new THREE.Vector3(m.sites[0][0],m.baseY,m.sites[0][1])));
  // Check actual world-space floor faces, including pads, markings and drains.
- const floors=g.mapRoot.children.filter(o=>o.isMesh&&o.geometry.type==='BoxGeometry').map(o=>new THREE.Box3().setFromObject(o)).filter(b=>b.min.y<=.02&&b.max.y<=.2);
+ const floors=g.mapRoot.children.filter(o=>o.isMesh&&o.geometry.type==='BoxGeometry').map(o=>new THREE.Box3().setFromObject(o)).filter(b=>b.min.y<=m.baseY+.02&&b.max.y<=m.baseY+.2);
  const overlaps=(a,b)=>Math.min(a.max.x,b.max.x)-Math.max(a.min.x,b.min.x)>.001&&Math.min(a.max.z,b.max.z)-Math.max(a.min.z,b.min.z)>.001;
  assert.ok(floors.length>=4,key+' ground, pavement and pads present');
  for(let i=0;i<floors.length;i++)for(const other of floors.slice(i+1))if(overlaps(floors[i],other))assert.ok(Math.abs(floors[i].max.y-other.max.y)>.002,key+' overlapping floor tops have depth separation');
  const rings=g.mapRoot.children.filter(o=>o.isMesh&&o.geometry.type==='RingGeometry');assert.equal(rings.length,2);
  for(const ring of rings){const bounds=new THREE.Box3().setFromObject(ring);for(const floor of floors.filter(b=>overlaps(bounds,b)))assert.ok(bounds.min.y-floor.max.y>.002,key+' objective ring sits above its floor');}
- assert.equal(g.walls.length,4+m.walls.length+m.covers.length+m.crates.length,'map collider arrays are replaced, not accumulated');
- for(const prop of m.props.filter(p=>p.solid)){assert.equal(g.canStand(prop.x,prop.z),false,key+' imported footprint blocks movement');const imported=g.mapRoot.children.find(o=>o.name===prop.asset&&Math.abs(o.position.x-prop.x)<.01&&Math.abs(o.position.z-prop.z)<.01);assert.ok(imported);const bounds=new THREE.Box3().setFromObject(imported),size=bounds.getSize(new THREE.Vector3());assert.ok(Math.abs(size.x-(prop.turn%2?prop.d:prop.w))<.001&&Math.abs(size.z-(prop.turn%2?prop.w:prop.d))<.001,'mesh bounds match collision footprint');assert.equal(g.blocked(new THREE.Vector3(prop.x-size.x/2-1,1,prop.z),new THREE.Vector3(prop.x+size.x/2+1,1,prop.z),false),true,key+'/'+prop.asset+' imported cover blocks bullets/vision');}
+ assert.equal(g.walls.length,4+m.walls.length+m.covers.length+m.crates.length+m.doors.length+(m.roofs?.length??0)+2*(m.walkSurfaces??[]).filter(s=>s.y!==undefined&&(m.id!=='zero'||s.w<5)).length,'map collider arrays are replaced, not accumulated');
+ for(const prop of m.props.filter(p=>p.solid)){assert.equal(g.canStand(prop.x,prop.z),false,key+' imported footprint blocks movement');const imported=g.mapRoot.children.find(o=>o.name===prop.asset&&Math.abs(new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()).x-prop.x)<.01&&Math.abs(new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()).z-prop.z)<.01);assert.ok(imported);const bounds=new THREE.Box3().setFromObject(imported),size=bounds.getSize(new THREE.Vector3());assert.ok(Math.abs(size.x-(prop.turn%2?prop.d:prop.w))<.001&&Math.abs(size.z-(prop.turn%2?prop.w:prop.d))<.001,'mesh bounds match collision footprint');assert.equal(g.blocked(new THREE.Vector3(prop.x-size.x/2-1,prop.y+Math.min(1,prop.h*.5),prop.z),new THREE.Vector3(prop.x+size.x/2+1,prop.y+Math.min(1,prop.h*.5),prop.z),false),true,key+'/'+prop.asset+' imported cover blocks bullets/vision');}
  mapWallSignatures.add(JSON.stringify(g.walls));const geometryCount=g.mapRoot.children.length;g.loadMap(key);assert.equal(g.mapRoot.children.length,geometryCount,'repeated loading does not stack map objects');
  for(const side of ['attack','defend'])for(const count of [1,3,6,16]){
   state.side=side;state.botCount=count;g.nextRound();assert.equal(state.bots.length,count);assert.ok(g.canStand(player.pos.x,player.pos.z,.43),key+' '+side+' clear player spawn');
@@ -325,7 +325,7 @@ for(const [key,m] of Object.entries(MAPS)){
   for(const [i,b] of state.bots.entries()){
    assert.ok(g.canStand(b.pos.x,b.pos.z,.43),key+' clear bot spawn');assert.ok(b.pos.distanceTo(player.pos)>20,'opponents spawn across the map');
    for(const other of state.bots.slice(i+1))assert.ok(b.pos.distanceTo(other.pos)>=1.25,'separated spawns');
-   for(const site of [g.siteA,g.siteB]){const path=g.pathTo(b.pos,site);assert.ok(path.length,key+' bot route exists');assert.ok(path.every(p=>g.canStand(p.x,p.z,.43)),key+' bot route stays clear');assert.ok(path.at(-1).distanceTo(site)<4.5,key+' bot route reaches each objective');}
+   for(const site of [g.siteA,g.siteB]){const path=g.pathTo(b.pos,site);assert.ok(path.length,key+' bot route exists');assert.ok(path.every(p=>g.canStand(p.x,p.z,.43,p.y,true)),key+' bot route stays clear');assert.ok(path.at(-1).distanceTo(site)<4.5,key+' bot route reaches each objective');}
   }
   for(const site of [g.siteA,g.siteB]){const path=g.pathTo(player.pos,site);assert.ok(path.length&&path.at(-1).distanceTo(site)<4.5,key+' player entry connects to both objectives');}
   g.scoreboard();assert.equal(elements.get('scoreRows').children.length,count+1,'report includes every bot');assert.equal(elements.get('scoreTitle').textContent,m.name.toUpperCase());
@@ -334,16 +334,16 @@ for(const [key,m] of Object.entries(MAPS)){
  }
  // Maximum-size attacker group must reach and arm a real core, despite separation.
  state.side='defend';state.botCount=16;g.nextRound();state.phase='live';g.camera.position.set(0,80,0);g.scene.updateMatrixWorld(true);
- for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateBots(.04);g.scene.updateMatrixWorld(true);}
+ for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateDoors(g.doors,.04,g.hitWalls,[]);g.mapRoot.updateMatrixWorld(true);g.updateBots(.04);g.scene.updateMatrixWorld(true);}
  assert.ok(state.plant&&state.plant.owner==='bot',key+' sixteen attackers navigate and plant');
  // Defenders traverse the selected map and finish a single seven-second defuse.
  state.side='attack';g.nextRound();state.phase='live';g.camera.position.set(0,80,0);
  const plantPoint=g.pathTo(player.pos,g.siteA).at(-1);g.plant(plantPoint,'player');g.scene.updateMatrixWorld(true);
- for(let i=0;i<1800&&state.phase!=='ended';i++){state.t+=.04;g.updateBots(.04);g.scene.updateMatrixWorld(true);}
+ for(let i=0;i<1800&&state.phase!=='ended';i++){state.t+=.04;g.updateDoors(g.doors,.04,g.hitWalls,[]);g.mapRoot.updateMatrixWorld(true);g.updateBots(.04);g.scene.updateMatrixWorld(true);}
  assert.equal(state.phase,'ended',key+' sixteen defenders reach and defuse');assert.ok(state.plant.defuse>=7&&state.plant.defuse<7.05,'bot count does not accelerate defusing');
  assert.ok(fs.existsSync('./assets/'+m.image),'selected map plan is bundled');
 }
-assert.equal(mapWallSignatures.size,3,'three distinct collision layouts');
+assert.equal(mapWallSignatures.size,4,'four distinct collision layouts');
 // Normal Deploy consumes saved choices; changes stay locked until a new match.
 const unlock=weaponAudio.unlock;weaponAudio.unlock=async()=>false;
 settings.map='ironwood';settings.botCount=12;document.getElementById('side').value='defend';document.getElementById('difficulty').value='hard';elements.get('start').onclick();
@@ -356,7 +356,7 @@ state.bots.forEach((b,i)=>{b.alive=i===0||i===5;b.pos.set(i===0?0:i===5?3:18,0,i
 g.camera.position.set(0,1.64,26);g.camera.rotation.set(0,0,0);g.camera.updateMatrixWorld(true);Math.random=()=>.5;g.shoot();assert.equal(state.phase,'live','one remaining enemy prevents a win');
 state.cooldown=0;g.camera.position.x=3;g.camera.updateMatrixWorld(true);g.shoot();Math.random=random;assert.equal(state.phase,'ended');
 state.botCount=3;g.nextRound();
-console.log('PASS: three distinct maps, all 1/3/6/16-bot spawn/route combinations on both sides, unique names, full reports, sixteen-bot plant/defuse simulation, match selection/reset, and last-enemy victory.');
+console.log('PASS: four distinct maps, all 1/3/6/16-bot spawn/route combinations on both sides, unique names, full reports, sixteen-bot plant/defuse simulation, match selection/reset, and last-enemy victory.');
 // Allied combat, independent difficulty, objective roles and a single halftime.
 for(const key of Object.keys(MAPS))for(const side of ['attack','defend'])for(const difficulty of ['easy','normal','hard']){
  g.loadMap(key);state.side=side;state.difficulty=difficulty;state.botCount=16;state.allyCount=7;state.roundResults=[];state.sidesSwitched=false;g.nextRound();
@@ -373,11 +373,11 @@ friendly.pos.set(0,0,24);hostile.pos.set(0,0,20);g.scene.updateMatrixWorld(true)
 player.health=0;g.checkElimination();assert.equal(state.phase,'live','an ally keeps fighting after player elimination');g.killBot(hostile,friendly);assert.equal(state.phase,'ended','an ally can win the round');Math.random=random;
 for(const key of Object.keys(MAPS)){
  g.loadMap(key);state.side='attack';state.botCount=1;state.allyCount=2;state.roundResults=[];g.nextRound();state.phase='live';g.camera.position.set(0,80,0);state.bots.filter(b=>b.team==='enemy').forEach(b=>b.blind=999);
- for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateBots(.04);}
+ for(let i=0;i<1800&&!state.plant;i++){state.t+=.04;g.updateDoors(g.doors,.04,g.hitWalls,[]);g.mapRoot.updateMatrixWorld(true);g.updateBots(.04);}
  assert.ok(state.plant&&state.plant.owner==='ally',key+' allied attackers plant');
  state.side='defend';state.roundResults=[];g.nextRound();state.phase='live';g.camera.position.set(0,80,0);state.bots.filter(b=>b.team==='enemy').forEach(b=>b.blind=999);
  g.plant(g.pathTo(player.pos,g.siteA).at(-1),'bot');
- for(let i=0;i<1800&&state.phase==='live';i++){state.t+=.04;g.updateBots(.04);}
+ for(let i=0;i<1800&&state.phase==='live';i++){state.t+=.04;g.updateDoors(g.doors,.04,g.hitWalls,[]);g.mapRoot.updateMatrixWorld(true);g.updateBots(.04);}
  assert.equal(state.phase,'ended',key+' allied defenders finish defusing');assert.ok(state.plant.defuse>=7&&state.plant.defuse<7.05);
 }
 state.side='attack';state.round=3;state.wins=2;state.losses=1;state.money=6700;state.primary='sv98';state.owned=true;state.sidesSwitched=false;state.roundResults=[{},{},{}];
@@ -388,6 +388,14 @@ console.log('PASS: real skeletal operators, presentation LOD and mixer cleanup; 
 for(const name of ['m4a1','sv98','m82','ak47','mp5','c9','h45','blaster-b','crate-medium']){const data=fs.readFileSync('./assets/'+name+'.glb');assert.equal(data.toString('ascii',0,4),'glTF');assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);const json=JSON.parse(data.toString('utf8',20,20+data.readUInt32LE(12)));assert.ok(json.meshes.length);for(const image of json.images??[])if(image.uri)assert.ok(fs.existsSync('./assets/'+image.uri),'external model texture exists');console.log(name+': '+json.meshes.length+' meshes');}
 for(const w of Object.values(WEAPONS))assert.ok(fs.existsSync('./assets/ui/'+w.image+'.svg'));
 console.log('PASS: seven actual imported weapon assets, PBR, reload/equip animation, recoil, lethal headshot and sniper torso raycasts, ammo, purchases, ownership, spawn/funds/capacity restrictions, scope FOV, navigation, collision, smoke, bot objectives, difficulty, model/texture/preview integrity.');
+console.log('Checking doors and height-aware routes...');
+for(const [key,m] of Object.entries(MAPS)){
+ g.loadMap(key);state.side='attack';state.botCount=6;state.allyCount=2;state.roundResults=[];g.nextRound();state.phase='live';state.paused=false;
+ for(const door of g.doors){const c=door.collider,axis=c.w>c.d?'z':'x',a=door.group.position.clone(),b=a.clone();a.y+=1.3;b.y+=1.3;a[axis]-=2;b[axis]+=2;g.mapRoot.updateMatrixWorld(true);assert.ok(g.blocked(a,b,false),'closed door blocks sight and bullets');assert.ok(!g.canStand(c.x,c.z,.2,c.minY));assert.ok(g.toggleDoor(door,[]));g.updateDoors(g.doors,.5,g.hitWalls,[]);assert.equal(c.enabled,false);assert.ok(g.canStand(c.x,c.z,.2,c.minY));assert.equal(g.toggleDoor(door,[door.group.position]),false,'occupied doorway cannot close');assert.ok(g.toggleDoor(door,[]));g.updateDoors(g.doors,.5,g.hitWalls,[]);assert.ok(c.enabled);door.cooldown=0;assert.ok(g.openDoorForBot(g.doors,{pos:a.clone().setY(c.minY)},b.clone().setY(c.minY)));g.updateDoors(g.doors,.5,g.hitWalls,[]);}
+ const [x,z]=m.elevation.vantage,target=new THREE.Vector3(x,g.groundHeight(x,z),z),path=g.pathTo(g.spawnPoint('attack'),target);assert.ok(path.length);assert.ok(path.at(-1).distanceTo(target)<1.6);for(let i=1;i<path.length;i++)assert.ok(navigation.reachableStep(m,path[i-1],path[i]));const bot=state.bots[0];bot.pos.copy(g.spawnPoint('attack'));bot.path=path.map(p=>p.clone());for(let i=0;i<1600&&bot.path.length;i++){g.updateDoors(g.doors,.04,g.hitWalls,[]);const d=bot.path[0].clone().sub(bot.pos);d.y=0;if(d.length()<.25)bot.path.shift();else{d.normalize();g.moveBot(bot,d.x*.12,d.z*.12,.04);}}assert.ok(bot.pos.distanceTo(target)<2,key+' bot traverses ramp');
+}
+console.log('PASS: doors block collision/sight/bullets, protect occupants and support bots; every elevated route is physically traversable.');
+
 if(process.env.BLACKSITE_RENDER_EXPORT){
  state.owned=true;state.primary='rifle';state.weapon='rifle';g.equip('rifle');for(let i=0;i<150;i++)g.updateWeaponPresentation(.016);
  g.gunRoot.updateMatrixWorld(true);const meshes=[];
@@ -397,9 +405,9 @@ if(process.env.BLACKSITE_RENDER_EXPORT){
 // Optional, compact real-geometry export for CPU visual review without WebGL.
 if(process.env.BLACKSITE_ANIMATION_EXPORT){
  const geometries=[],cache=new Map(),frames=[];
- const capture=root=>{root.updateWorldMatrix(true,true);const meshes=[];root.traverseVisible(o=>{if(!o.isMesh)return;
-  if(!cache.has(o.geometry)){const a=o.geometry.attributes.position,n=o.geometry.attributes.normal,v=new THREE.Vector3();cache.set(o.geometry,geometries.length);geometries.push({positions:Array.from({length:a.count},(_,i)=>v.fromBufferAttribute(a,i).toArray()),normals:Array.from({length:n.count},(_,i)=>v.fromBufferAttribute(n,i).toArray()),indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:a.count},(_,i)=>i)});}
-  const material=Array.isArray(o.material)?o.material[0]:o.material;meshes.push({geometry:cache.get(o.geometry),matrix:o.matrixWorld.toArray(),color:material.color.toArray()});
+ const capture=root=>{g.scene.updateMatrixWorld(true);root.updateMatrixWorld(true);const meshes=[];root.traverseVisible(o=>{if(!o.isMesh)return;
+  if(o.isSkinnedMesh)o.skeleton.update();const cacheKey=o.isSkinnedMesh?Symbol():o.geometry;if(!cache.has(cacheKey)){const a=o.geometry.attributes.position,n=o.geometry.attributes.normal,v=new THREE.Vector3();cache.set(cacheKey,geometries.length);geometries.push({positions:Array.from({length:a.count},(_,i)=>(o.isSkinnedMesh?o.getVertexPosition(i,v):v.fromBufferAttribute(a,i)).toArray()),normals:Array.from({length:n.count},(_,i)=>v.fromBufferAttribute(n,i).toArray()),indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:a.count},(_,i)=>i),colors:o.geometry.attributes.color?Array.from({length:a.count},(_,i)=>v.fromBufferAttribute(o.geometry.attributes.color,i).toArray()):null});}
+  const material=Array.isArray(o.material)?o.material[0]:o.material;meshes.push({geometry:cache.get(cacheKey),matrix:o.matrixWorld.toArray(),color:material.color.toArray()});
  });return meshes;};
  state.primary='mp5';state.owned=true;g.equip('mp5');g.viewCamera.aspect=16/9;g.viewCamera.updateProjectionMatrix();state.phase='live';state.interact=0;player.vel.set(0,0,0);player.grounded=true;
  const bot=state.bots[0];bot.pos.set(0,0,0);bot.previous.copy(bot.pos);bot.group.rotation.y=0;bot.viewYaw=0;
@@ -418,7 +426,7 @@ if(process.env.BLACKSITE_MAP_EXPORT){
  for(const [key,m] of Object.entries(MAPS)){
   g.loadMap(key);g.mapRoot.updateMatrixWorld(true);const meshes=[];
   g.mapRoot.traverse(o=>{if(!o.isMesh||!o.visible)return;const material=o.material;if(Array.isArray(material))throw new Error('preview requires per-primitive meshes');
-   if(!geometryIds.has(o.geometry)){const p=o.geometry.attributes.position,n=o.geometry.attributes.normal,uv=o.geometry.attributes.uv;const read=(a,dim)=>Array.from({length:a.count},(_,i)=>Array.from({length:dim},(_,k)=>[a.getX,a.getY,a.getZ][k].call(a,i)));geometryIds.set(o.geometry,geometries.length);geometries.push({positions:read(p,3),normals:n?read(n,3):null,uv:uv?read(uv,2):null,indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:p.count},(_,i)=>i)});}
+   if(!geometryIds.has(o.geometry)){const p=o.geometry.attributes.position,n=o.geometry.attributes.normal,uv=o.geometry.attributes.uv;const read=(a,dim)=>Array.from({length:a.count},(_,i)=>Array.from({length:dim},(_,k)=>[a.getX,a.getY,a.getZ][k].call(a,i)));geometryIds.set(o.geometry,geometries.length);geometries.push({positions:read(p,3),normals:n?read(n,3):null,uv:uv?read(uv,2):null,indices:o.geometry.index?Array.from(o.geometry.index.array):Array.from({length:p.count},(_,i)=>i),colors:o.geometry.attributes.color?read(o.geometry.attributes.color,3):null});}
    if(material.map?.isCanvasTexture)return;
    meshes.push({geometry:geometryIds.get(o.geometry),matrix:o.matrixWorld.toArray(),color:material.color.toArray(),texture:material.map?.userData.file,flipY:material.map?.flipY??true,repeat:material.map?.repeat.toArray()??[1,1]});
   });

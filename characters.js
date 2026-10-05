@@ -59,11 +59,11 @@ export function updateOperator(bot,dt,cameraPosition,quality){
  bot.gun.position.z=-.22+bot.fireKick*.035;
  if(op.elapsed<period&&bot.alive)return;
  const elapsed=op.elapsed;op.elapsed=0;op.updates++;
- const moved=bot.pos.distanceTo(op.previous);op.previous.copy(bot.pos);bot.visualSpeed=moved/Math.max(.001,elapsed);
+ const moved=bot.pos.distanceTo(op.previous);const displacement=bot.pos.clone().sub(op.previous);op.previous.copy(bot.pos);bot.visualSpeed=moved/Math.max(.001,elapsed);
  if(!bot.alive){play(op,'Death01','lower',true);play(op,'Death01','upper',true);op.helmet.visible=false;op.marker.visible=false;bot.workDevice.visible=false;}
  else{
   const moving=bot.visualSpeed>.15,crouch=bot.crouched||work;
-  const local=v.copy(bot.pos).sub(bot.previous);bot.previous.copy(bot.pos);
+  const local=v.copy(displacement);bot.previous.copy(bot.pos);
   const lower=crouch?(moving?'Crouch_Fwd_Loop':'Crouch_Idle_Loop'):moving?(bot.visualSpeed>3.2?'Sprint_Loop':bot.visualSpeed>2.6?'Jog_Fwd_Loop':'Walk_Loop'):'Idle_Loop';
   const upper=blind?'Hit_Head':work?'Fixing_Kneeling':bot.reload>0?'Pistol_Reload':bot.flashTime>0?'Pistol_Shoot':'Pistol_Aim_Neutral';
   play(op,lower,'lower');play(op,upper,'upper');

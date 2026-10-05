@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 export const ENVIRONMENT_ASSETS=['warehouse','quarter','radiostation','snipertower','gatekeeperstation','gastank','lightpole','container_01','sandssack','hesco'];
+export const DETAIL_ASSETS=['door-panel','catwalk-stairs','catwalk','machinery','pipe-unit','loading-lift','conveyor','industrial-tank','solar-panel','chimney','control-console','access-terminal','vent-unit','fan-unit','research-rail'];
 const ROOT='./assets/environment/';
 // All runtime textures and models are bundled. No third-party requests in play.
 export async function loadEnvironment(loader){
@@ -13,10 +14,11 @@ export async function loadEnvironment(loader){
     surfaces[name]=new THREE.MeshStandardMaterial({color,map:textures[key+'-color'],normalMap:textures[key+'-normal'],roughnessMap:textures[key+'-roughness'],roughness:1,metalness:name==='metal'?.45:0,normalScale:new THREE.Vector2(.5,.5)});
   }
   const models={};
-  await Promise.all(ENVIRONMENT_ASSETS.map(async name=>{
-    const g=(await loader.loadAsync(ROOT+name+'.glb?v=0.7.0')).scene;
+  await Promise.all([...ENVIRONMENT_ASSETS,...DETAIL_ASSETS].map(async name=>{
+    let asset;try{asset=await loader.loadAsync(ROOT+name+'.glb?v=0.8.0');}catch(error){if(DETAIL_ASSETS.includes(name)){console.warn('Optional environment detail unavailable:',name);return;}throw error;}
+    const g=asset.scene;
     g.traverse(o=>{if(!o.isMesh)return;o.userData.asset=true;o.castShadow=true;o.receiveShadow=true;
-      if(name==='warehouse'||name==='hesco')return;
+      if(name==='warehouse'||name==='hesco'||DETAIL_ASSETS.includes(name))return;
       const source=o.material,label=source.name.toLowerCase(),window=/window|glass/.test(label),dark=/black|door/.test(label),concrete=/wall|lightyellow|sand/.test(label);
       const material=window?new THREE.MeshStandardMaterial({color:0x2c3a3b,roughness:.3,metalness:.35}):surfaces[concrete?'concrete':'metal'].clone();
       material.name=source.name;if(!window)material.color.set(dark?0x39403a:/yellow|green|color/.test(label)?0x7b806a:0xa1a69d);o.material=material;
@@ -34,7 +36,7 @@ export function textureBox(mesh,material,tile=2){
 export function placeEnvironment(root,environment,props,hitWalls){
   for(const p of props){const source=environment.models[p.asset];if(!source)continue;const m=source.clone(true),bounds=new THREE.Box3().setFromObject(source),size=bounds.getSize(new THREE.Vector3());
     // Explicit dimensions match the authored footprint and collision metadata.
-    m.scale.set(p.w/size.x,(p.h??p.w*size.y/size.x)/size.y,(p.d??p.w*size.z/size.x)/size.z);m.rotation.y=(p.turn??0)*Math.PI/2;m.position.set(p.x,p.y??0,p.z);m.name=p.asset;root.add(m);m.updateMatrixWorld(true);
+    m.scale.set(p.w/size.x,(p.h??p.w*size.y/size.x)/size.y,(p.d??p.w*size.z/size.x)/size.z);m.rotation.y=(p.turn??0)*Math.PI/2;const center=bounds.getCenter(new THREE.Vector3()),offset=new THREE.Vector3(-center.x*m.scale.x,-bounds.min.y*m.scale.y,-center.z*m.scale.z).applyAxisAngle(new THREE.Vector3(0,1,0),m.rotation.y);m.position.set(p.x,p.y??0,p.z).add(offset);m.name=p.asset;root.add(m);m.updateMatrixWorld(true);
     m.traverse(o=>{if(o.isMesh)hitWalls.push(o);});
   }
 }

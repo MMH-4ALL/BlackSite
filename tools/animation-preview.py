@@ -16,7 +16,7 @@ small=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',10)
 geometries=[]
 for g in data['geometries']:
     p=np.array(g['positions']);n=np.array(g['normals']);ix=np.array(g['indices']).reshape(-1,3)
-    geometries.append((np.c_[p,np.ones(len(p))],n,ix))
+    geometries.append((np.c_[p,np.ones(len(p))],n,ix,np.array(g['colors']) if g.get('colors') else np.ones_like(p)))
 
 def project(meshes,camera):
     image=Image.new('RGB',(W,H),(32,40,37));draw=ImageDraw.Draw(image)
@@ -25,7 +25,7 @@ def project(meshes,camera):
     triangles=[]
     light=np.array([-.4,.75,-.52]);light/=np.linalg.norm(light)
     for mesh in meshes:
-        p,n,ix=geometries[mesh['geometry']]
+        p,n,ix,colors=geometries[mesh['geometry']]
         matrix=np.array(mesh['matrix']).reshape(4,4).T
         clip=p@matrix.T@view.T@projection.T
         safe=clip[:,3]>.01
@@ -38,7 +38,7 @@ def project(meshes,camera):
         valid&=(points[:,:,0].max(axis=1)>=0)&(points[:,:,0].min(axis=1)<=W)&(points[:,:,1].max(axis=1)>=0)&(points[:,:,1].min(axis=1)<=H)
         color=np.array(mesh['color'])
         for ids,poly,depth in zip(ix[valid],points[valid],ndc[ix[valid],2].mean(axis=1)):
-            rgb=tuple((np.clip(color*shade[ids].mean(),0,1)**(1/2.2)*255).astype(int))
+            rgb=tuple((np.clip(color*colors[ids].mean(axis=0)*shade[ids].mean(),0,1)**(1/2.2)*255).astype(int))
             triangles.append((depth,poly,rgb))
     triangles.sort(key=lambda t:-t[0])
     for _,poly,color in triangles:draw.polygon([tuple(v) for v in poly],fill=color)
