@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1 — Weapon Inspection / 6 October 2026
+
+- Tap F or Y to play a full 2.4-second inspection on any weapon, with a smooth lift, turning motion and automatic return. The existing hold-V inspection remains available.
+- Flashbangs move to H so F can inspect without throwing a grenade. Smoke stays on G. HUD hints, Field Manual and README show the new controls.
+- Firing, reloading, scopes, utility and weapon/round changes cancel the inspection; pause freezes it. Presentation leaves aim, ammunition, damage and weapon statistics unchanged.
+
 ## 0.8.0 — Squad Operations / 5 October 2026
 
 - Replaced the normal procedural bot presentation with optimized Quaternius CC0 humanoids: distinct gray attackers and olive defenders, helmets, ally markers, thirteen skeletal clips, independent upper/lower blending, rifle aim/hand attachments, reactions and deaths. A built-in fallback remains for failed character downloads.

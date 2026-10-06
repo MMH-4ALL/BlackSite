@@ -2,8 +2,8 @@
 
 Open source tactical browser FPS for Chromebook players and ordinary laptops.
 
-**v0.8.0 — Squad Operations** expands the existing game with animated operators,
-allied squads, four original maps and an offline career. It remains a static
+**v0.8.1 — Weapon Inspection** adds tap-to-inspect controls to Squad Operations,
+with its animated operators, allied squads, four maps and offline career. It remains a static
 HTML/CSS/JavaScript game using bundled Three.js r170: no account, paid API,
 backend, CDN or build step is required to play.
 
@@ -81,14 +81,14 @@ No service-worker installation or first-load offline Pages cache is provided.
 | Left mouse | Fire; hold for automatic weapons |
 | Right mouse | Toggle sniper scope |
 | R | Reload |
-| V (hold) | Inspect weapon |
+| F or Y | Play a weapon inspection; hold V still works |
 | Shift | Walk |
 | Ctrl or C | Crouch |
 | Space | Jump |
 | 1 / 2 | Owned primary / sidearm |
 | E | Open/close a nearby door |
 | E (hold, stationary) | Plant in 3 seconds; player defuse in 5 seconds |
-| G / F | Smoke / flash |
+| G / H | Smoke / flash |
 | B | Shop at spawn during buy time; pauses the countdown |
 | Tab (hold) / wheel | Scoreboard / scroll its roster |
 | Escape | Release mouse and pause |
@@ -122,7 +122,7 @@ movement, fire rate, ammo, scopes, animation and individually licensed recording
 
 `weapons.js` is authoritative. Stationary shots settle; movement/jumping widen
 spread; bursts climb and pull sideways. The two snipers retain lethal torso
-shots, slower movement, trigger-based fire and scoped aiming. Hold-V inspection,
+shots, slower movement, trigger-based fire and scoped aiming. Tap F or Y for a complete inspection (or hold V);
 hands, magazine/bolt/slide handling, walking, landing and utility animations remain.
 
 ## Career and storage

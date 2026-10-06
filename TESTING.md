@@ -1,3 +1,7 @@
+# Weapon inspection patch — v0.8.1 / 6 October 2026
+
+Tap F or Y for a 2.4-second inspection, hold V for the original pose, G for smoke and H for flash. Gameplay and Chromium browser suites passed. Validation checks both tap keys on all eight guns, automatic return, no utility/ammo consumption, camera independence, pause, repeat keys, combat/reload/scope/utility cancellation and round/weapon resets. Browser checks exercise real F/Y/H keyboard input. The v0.8.0 regression record remains below.
+
 # Validation — v0.8.0 / 5 October 2026
 
 ## Current completed checks

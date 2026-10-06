@@ -283,6 +283,32 @@ assert.equal(g.weaponMotion.bob,stridePhase,'feet do not advance while stationar
 g.weaponMotion.lastGrounded=false;g.weaponMotion.lastVy=-6;g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.landing>.6);
 for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.landing<.001,'landing recovers');
 g.keys.add('KeyV');for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.inspect>.99);g.keys.clear();
+// Actual input handlers: taps persist after key release, and F never throws flash.
+const pressInspect=(code,repeat=false)=>inputHandlers.get('keydown')({code,repeat,preventDefault:noop});
+const releaseInspect=code=>inputHandlers.get('keyup')({code});
+state.active=true;state.paused=false;state.phase='buy';state.reload=0;state.cooldown=0;state.interact=0;player.health=100;
+const inspectAmmo=JSON.stringify(state.ammo),inspectCamera=g.camera.matrixWorld.clone(),inspectAim=[player.yaw,player.pitch],inspectUtility=[state.smoke,state.flash];
+for(const key of Object.keys(WEAPONS))for(const code of ['KeyF','KeyY']){
+ state.primary=key;state.secondary=key;state.owned=true;g.equip(key);
+ pressInspect(code);releaseInspect(code);assert.equal(g.weaponMotion.inspectTime,2.4,key+' tap '+code);
+ pressInspect(code,true);assert.equal(g.weaponMotion.inspectTime,2.4,'key repeat does not restart');
+ for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.inspect>.95,key+' active inspection');
+ const remaining=g.weaponMotion.inspectTime;g.updateWeaponPresentation(0);assert.equal(g.weaponMotion.inspectTime,remaining,'pause freezes inspection');
+ for(let i=0;i<180;i++)g.updateWeaponPresentation(1/60);assert.equal(g.weaponMotion.inspectTime,0);assert.ok(g.weaponMotion.inspect<.001,key+' automatic return');
+ g.gunRoot.traverse(o=>assert.ok([...o.position.toArray(),...o.quaternion.toArray()].every(Number.isFinite),key+' inspection transforms'));
+}
+assert.equal(JSON.stringify(state.ammo),inspectAmmo);assert.deepEqual([state.smoke,state.flash],inspectUtility);assert.ok(g.camera.matrixWorld.equals(inspectCamera));assert.deepEqual([player.yaw,player.pitch],inspectAim);
+state.primary='rifle';state.secondary='pistol';g.equip('rifle');pressInspect('KeyF');g.updateWeaponPresentation(.4);state.phase='live';state.cooldown=0;g.camera.position.set(0,30,26);g.shoot();assert.equal(g.weaponMotion.inspectTime,0,'shot cancels');
+state.cooldown=0;pressInspect('KeyY');g.reload();assert.equal(g.weaponMotion.inspectTime,0,'reload cancels');state.reload=0;
+state.primary='sv98';g.equip('sv98');pressInspect('KeyF');g.setScoped(true);assert.equal(g.weaponMotion.inspectTime,0,'scope cancels');pressInspect('KeyY');assert.equal(g.weaponMotion.inspectTime,0,'scoped input ignored');g.setScoped(false);
+pressInspect('KeyY');state.flash=1;pressInspect('KeyH');assert.equal(state.flash,0,'H throws flash');assert.equal(g.weaponMotion.inspectTime,0,'flash cancels');
+g.weaponMotion.throwTime=0;state.cooldown=0;pressInspect('KeyF');state.smoke=1;g.utility('smoke');assert.equal(g.weaponMotion.inspectTime,0,'smoke cancels');
+g.weaponMotion.throwTime=0;pressInspect('KeyY');state.secondary='pistol';g.equip('pistol');assert.equal(g.weaponMotion.inspectTime,0,'switch cancels');
+state.paused=true;pressInspect('KeyF');assert.equal(g.weaponMotion.inspectTime,0,'paused input ignored');state.paused=false;
+pressInspect('KeyY');g.nextRound();assert.equal(g.weaponMotion.inspectTime,0,'round reset cancels');
+state.primary='mp5';g.equip('mp5');state.phase='live';state.cooldown=0;state.reload=0;state.interact=0;
+console.log('PASS: F/Y tap inspections on all eight guns, V compatibility, automatic return, pause/repeat, unchanged ammo/utility/aim, combat/reload/scope/utility/switch/round cancellation and H flash input.');
+
 state.interact=1;for(let i=0;i<30;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.device.visible&&!g.weaponMotion.model.visible);
 state.interact=0;for(let i=0;i<60;i++)g.updateWeaponPresentation(1/60);assert.ok(g.weaponMotion.model.visible&&!g.weaponMotion.device.visible);
 state.smoke=1;g.utility('smoke');g.updateWeaponPresentation(.10);assert.ok(g.weaponMotion.grenade.visible&&!g.weaponMotion.model.visible);

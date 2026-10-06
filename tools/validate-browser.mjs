@@ -43,6 +43,13 @@ try{
  await page.click('#closeBuy');await page.waitForFunction(()=>!window.__game.state.paused,null,{timeout:10000,polling:50});
  await page.evaluate(()=>window.__testFrames(1));assert.ok(await page.evaluate(()=>window.__game.state.time)<shopTime);
  console.log('PASS: real browser mouse capture, buy lock, paused shop timer, purchase and resume.');
+ const flashBefore=await page.evaluate(()=>window.__game.state.flash);
+ for(const key of ['f','y']){await page.keyboard.press(key);assert.equal(await page.evaluate(()=>window.__game.weaponMotion.inspectTime),2.4);await page.evaluate(()=>window.__testFrames(25));assert.ok(await page.evaluate(()=>window.__game.weaponMotion.inspect>.9));}
+ assert.equal(await page.evaluate(()=>window.__game.state.flash),flashBefore,'inspection does not throw flash');
+ await page.evaluate(()=>window.__testFrames(100));assert.equal(await page.evaluate(()=>window.__game.weaponMotion.inspectTime),0);assert.ok(await page.evaluate(()=>window.__game.weaponMotion.inspect<.001));
+ await page.evaluate(()=>{window.__game.state.phase='live';});await page.keyboard.press('h');assert.equal(await page.evaluate(()=>window.__game.state.flash),flashBefore-1);
+ console.log('PASS: real F/Y tap inspection input, automatic return, preserved flash count and H flashbang binding.');
+
  // Fixture deployments below do not represent user gestures. Avoid queueing
  // denied pointer-lock requests while switching dozens of matches instantly.
  await page.evaluate(()=>{window.__game.returnMenu();});
