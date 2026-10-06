@@ -3,7 +3,7 @@ import {clone as cloneSkeleton} from './vendor/utils/SkeletonUtils.js';
 const UPPER=/^(Head|neck_|spine_|clavicle_|upperarm_|lowerarm_|hand_)/;
 const v=new THREE.Vector3();
 export async function loadOperators(loader){
- const asset=await loader.loadAsync('./assets/operators/operator.glb?v=0.8.0');
+ const asset=await loader.loadAsync('./assets/operators/operator.glb?v=0.9.0');
  const bounds=new THREE.Box3().setFromObject(asset.scene),height=bounds.max.y-bounds.min.y;
  const styles={};
  for(const side of ['attack','defend']){

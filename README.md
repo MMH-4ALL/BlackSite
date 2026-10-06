@@ -2,12 +2,43 @@
 
 Open source tactical browser FPS for Chromebook players and ordinary laptops.
 
-**v0.8.1 — Weapon Inspection** adds tap-to-inspect controls to Squad Operations,
-with its animated operators, allied squads, four maps and offline career. It remains a static
+**v0.9.0 — Tactical Tools** adds a practice range, decoys, incendiaries, escalating
+loss bonuses, death recaps, match rules and interactive map controls to Squad Operations.
+Animated operators, allied squads, all four maps and the offline career remain. It is a static
 HTML/CSS/JavaScript game using bundled Three.js r170: no account, paid API,
 backend, CDN or build step is required to play.
 
 [Play on GitHub Pages](https://mmh-4all.github.io/BlackSite/)
+
+## New in Tactical Tools
+
+- Distinct original headshot/kill cues, kill confirmation, directional damage
+  arrows, surface-aligned bullet marks and small capped impact sparks.
+- Consecutive loss bonuses of $1,900 / $2,400 / $2,900 / $3,400 / $3,900.
+  A win resets the streak. Scoreboard credits, optional buy advice and a
+  one-click suggested purchase; bots rebuy the low-poly AK or fall back to a P-9.
+- $100 decoy: ten seconds of synthesized false gunfire. Nearby idle enemies
+  investigate; visible enemies, remembered combat and urgent objectives take priority.
+- $500 incendiary: eight seconds, 2.5m radius, 6 damage per 0.2s tick.
+  Walls and floor height block damage, allied fire is disabled, enemy paths avoid
+  active zones and smoke extinguishes fire. Effects are deliberately inexpensive.
+- Two-second opening spawn shields for both teams. Firing, utility or moving
+  more than 3m from spawn breaks protection; bot starts are briefly staggered.
+- Factual death recap: killer, weapon, distance, applied health damage and hit
+  locations. It remains visible while a surviving ally fights, and appears in reports.
+- First to 2/4/7/10, quick matches (2 wins, 8s buy, 60s round), custom or balanced
+  bot fill, and optional win-by-two overtime. Six extra rounds then a decider cap
+  match length. Halfway through regulation teams switch sides; overtime swaps
+  sides every two rounds. Scores and surviving equipment do not reset.
+- Named A/B plant/retake callouts and a small pulsing core beacon. E still gives
+  objectives priority over switches and doors.
+- Each existing map gets a control: Helix false-contact radio relay, Bastion
+  loading-door override, Ironwood floodlight breaker, Zero timed security bypass.
+  No layouts are replaced; timed doors retain occupant protection.
+- Separate live-fire practice range with five steel targets (two moving), recoil
+  board, headshot/accuracy/elimination counters, all eight guns, normal reloads
+  with unlimited reserve ammo, target toggle and reset. Practice cannot earn XP
+  or change career statistics. Press B for range controls.
 
 ## Squad Operations
 
@@ -21,7 +52,7 @@ backend, CDN or build step is required to play.
 - Customize **0–7 allies** and **1–16 enemies**. Presets include solo 1v5, 3v5,
   5v5 and 8v8. Allies fight, navigate, plant, hold and defuse. Friendly fire is
   disabled, and surviving allies continue after the player dies.
-- First to four round wins, with a side switch after round three. Score, credits,
+- By default, first to four round wins, with a side switch after round three. Score, credits,
   the roster and surviving weapons carry over. A banner announces the new role.
 - Strategic animated sliding doors block movement, bullets and sight while
   closed. Players and bots can open them. Occupants prevent a door closing on
@@ -86,10 +117,11 @@ No service-worker installation or first-load offline Pages cache is provided.
 | Ctrl or C | Crouch |
 | Space | Jump |
 | 1 / 2 | Owned primary / sidearm |
-| E | Open/close a nearby door |
+| E | Use a nearby map control or open/close a door |
 | E (hold, stationary) | Plant in 3 seconds; player defuse in 5 seconds |
 | G / H | Smoke / flash |
-| B | Shop at spawn during buy time; pauses the countdown |
+| J / K | Decoy / incendiary (buy first) |
+| B | Shop at spawn during buy time; pauses countdown. In practice: range controls |
 | Tab (hold) / wheel | Scoreboard / scroll its roster |
 | Escape | Release mouse and pause |
 
@@ -99,7 +131,8 @@ simulation and preserves remaining buy time. A live round lasts 90 seconds;
 an armed core lasts 40 seconds. Bots take seven seconds to defuse, and extra bots
 do not accelerate progress. A planted core remains urgent after a team dies.
 
-Wins award $3,000, losses $1,900, and player eliminations $300, up to $16,000.
+Wins award $3,000, consecutive losses $1,900–$3,900, and player eliminations $300,
+up to $16,000. A win resets the loss bonus. The shop shows the next loss reward.
 Survival retains both weapons; player death removes the primary and issues the
 free P-9. Armor and utility retain their existing purchase/capacity rules.
 After death the camera follows a surviving ally; there is no free spectator camera.
@@ -151,7 +184,8 @@ Navigation connectivity is cached at map load; path/sight work is budgeted and
 staggered. Animation distance LOD changes only presentation. Static geometry and
 bot rifle materials are batched, and operator parts share one skinned draw.
 Bot rifle presentation uses a simplified version of the existing CC0 AK model;
-its original rifle AI/combat/audio values remain unchanged. Player weapons retain
+its original difficulty/aim values remain unchanged. Bot loadouts use the AK
+recordings, or the P-9 bank when credits require a sidearm. Player weapons retain
 full models. Skeleton textures, mixers, map geometry, particles and audio nodes
 are cleaned up; cached shared assets stay available for later matches.
 
@@ -182,10 +216,12 @@ server process or runtime remote asset host is required.
 | `skins.js`, `crosshair.js` | Original cosmetic materials and configurable reticle |
 | `progression.js`, `challenges.js`, `stats.js`, `career-ui.js` | Local career, achievements, reports and statistics |
 | `effects.js`, `environment-audio.js`, `performance.js` | Bounded effects/audio and geometry batching |
+| `match-rules.js`, `economy.js`, `combat-feedback.js` | Configured rounds/overtime, credits/advice and visual cues/recaps |
+| `tactical-utilities.js`, `map-features.js`, `practice.js` | Bounded fire/decoy gameplay, map controls and separate training mode |
 | `assets/`, `vendor/` | Bundled models, textures, recordings, previews, notices and Three.js |
 | `tools/` | Conversion, previews and validation; development dependencies do not ship to gameplay |
 
-Run `node tools/validate.mjs`, `node tools/validate-career.mjs`,
+Run `node tools/validate-tactics.mjs` (includes the full `validate.mjs` baseline), `node tools/validate-career.mjs`,
 `node tools/validate-environment.mjs` and `node tools/validate-audio.mjs`.
 `node tools/validate.mjs --benchmark` measures CPU AI/presentation, not GPU FPS.
 Optional `tools/validate-browser.mjs` uses development-only Playwright/Chromium.

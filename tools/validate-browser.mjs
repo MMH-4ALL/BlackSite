@@ -81,7 +81,7 @@ try{
   console.log('OPERATOR_PRESENTATION '+JSON.stringify(operators));await page.screenshot({path:path.join(artifacts,'operators-browser.png'),timeout:60000});
  }
  const finishes=await page.evaluate(async()=>{
-  const g=window.__game,{applySkin,SKINS}=await import('./skins.js?v=0.8.0');let count=0;
+  const g=window.__game,{applySkin,SKINS}=await import('./skins.js?v=0.9.0');let count=0;
   for(const weapon of Object.keys(g.WEAPONS)){
    g.state.primary=weapon;g.state.secondary=weapon;g.state.owned=true;g.equip(weapon);
    for(const skin of SKINS){applySkin(g.gunRoot,skin.id);g.renderer.compile(g.viewScene,g.viewCamera);count++;}
@@ -99,6 +99,28 @@ try{
  await page.selectOption('[data-setting="quality"]','low');assert.equal(await page.evaluate(()=>window.__game.renderer.shadowMap.enabled),false);
  const persisted=await page.evaluate(()=>JSON.parse(localStorage.getItem('blacksite.settings.v1')));assert.equal(persisted.crossShape,'t');assert.equal(persisted.crossDynamic,false);
  await page.click('[data-view="armory"]');await page.click('[data-weapon="ak47"]');await page.selectOption('#skinSelect','desert');assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('blacksite.skins.v1')).ak47),'desert');
+ // New rules/settings use actual native controls and preserve the old defaults.
+ await page.click('[data-view="deploy"]');await page.locator('.match-options summary').click();
+ await page.selectOption('#firstTo','7');await page.locator('#overtimeSetting').check();await page.selectOption('#botFill','balanced');await page.selectOption('#allyCount','4');
+ assert.equal(await page.evaluate(()=>window.__game.settings.botCount),5);assert.equal(await page.locator('#botCount').isDisabled(),true);
+ await page.selectOption('#matchMode','quick');assert.equal(await page.locator('#firstTo').isDisabled(),true);
+ await page.selectOption('#matchMode','standard');await page.selectOption('#firstTo','4');await page.locator('#overtimeSetting').uncheck();await page.selectOption('#botFill','manual');
+ const tactical=await page.evaluate(()=>{
+  const g=window.__game;g.settings.map='zero';g.settings.botCount=16;g.settings.allyCount=2;g.startMatch();g.state.money=6000;g.buyItem('decoy');g.buyItem('incendiary');g.state.phase='live';g.utility('decoy');g.utility('incendiary');g.updateHUD();
+  g.tacticalUtilities.update(.2,[],[]);g.renderer.autoClear=true;g.renderer.render(g.scene,g.camera);g.mapFeatures.activate(g.mapFeatures.group.position,g.toggleDoor,[]);g.updateDoors(g.doors,.6,g.hitWalls,[]);g.mapFeatures.update(.1,g.toggleDoor,[]);
+  g.player.health=40;const source=g.state.bots[0];g.hurt(25,{source,weapon:'ak47',zone:'body',distance:18,pos:source.pos});g.hurt(25,{source,weapon:'ak47',zone:'head',distance:18,pos:source.pos});g.updateHUD();g.scoreboard();return {fires:g.tacticalUtilities.fires.length,decoys:g.tacticalUtilities.decoys.length,recap:g.state.damageRecap,doors:g.doors.every(d=>d.open),credits:document.getElementById('scoreRows').innerText.includes('$')};
+ });assert.equal(tactical.fires,1);assert.equal(tactical.decoys,1);assert.equal(tactical.doors,true);assert.equal(tactical.credits,true);assert.equal(tactical.recap.hits,2);assert.equal(await page.locator('#deathRecap').isVisible(),true);
+ if(artifacts)await page.screenshot({path:path.join(artifacts,'tactics-browser.png'),timeout:60000});
+ await page.evaluate(()=>{window.__game.returnMenu();window.__game.startPractice();});
+ const careerBeforeRange=await page.evaluate(()=>JSON.stringify(window.__game.career.data));await page.keyboard.press('b');assert.equal(await page.locator('#rangeControls').isVisible(),true);
+ await page.selectOption('#rangeWeapon','h45');await page.locator('#rangeMoving').uncheck();assert.equal(await page.evaluate(()=>window.__game.practiceRange.moving),false);await page.click('#rangeReset');await page.click('#rangeClose');
+ const training=await page.evaluate(()=>{const g=window.__game,r=g.practiceRange,t=r.targets[0];g.player.pos.set(t.x,0,22);g.player.pitch=0;g.player.yaw=0;g.updatePlayer(0);g.state.cooldown=0;g.shoot();r.update(.04);g.updateHUD();g.radar();g.updateWeaponPresentation(.3);g.renderer.autoClear=true;g.renderer.render(g.scene,g.camera);g.renderer.autoClear=false;g.renderer.clearDepth();g.renderer.render(g.viewScene,g.viewCamera);return {stats:r.stats,weapon:g.state.weapon};});assert.equal(training.weapon,'h45');assert.equal(training.stats.headshots,1);assert.equal(training.stats.eliminations,1);
+ if(artifacts)await page.screenshot({path:path.join(artifacts,'range-browser.png'),timeout:60000});
+ await page.evaluate(()=>window.__game.returnMenu());assert.equal(await page.evaluate(()=>JSON.stringify(window.__game.career.data)),careerBeforeRange);assert.equal(await page.evaluate(()=>window.__game.practiceRange),null);
+ console.log('PASS: browser match controls/bot fill, bought/thrown decoy and fire, WebGL zone rendering, security switch, death recap/credits, B range controls, weapon choice, mover toggle, actual practice headshot and no XP farming.');
+ // Desktop game input is required; menus should still fit a narrow viewport.
+ for(const width of [320,768,1024,1440]){await page.setViewportSize({width,height:720});await page.click('[data-view="deploy"]');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'deploy width '+width);}
+ await page.setViewportSize({width:960,height:600});
  const recorded=await page.evaluate(()=>{
   const g=window.__game;g.settings.map='zero';g.settings.botCount=1;g.settings.allyCount=2;g.startMatch();g.state.kills=2;g.state.headshots=1;g.state.shotsFired=10;g.state.hits=4;g.state.plants=1;g.endRound(true,'Browser verification');return {xp:g.career.data.xp,rounds:g.career.data.stats.rounds};
  });assert.ok(recorded.xp>0);assert.equal(recorded.rounds,1);assert.ok((await page.locator('#resultStats').innerText()).includes('XP EARNED'));

@@ -1,14 +1,17 @@
-import { WEAPONS, PRIMARY_KEYS, SECONDARY_KEYS } from './weapons.js?v=0.8.0';
-import { weaponAudio } from './audio.js?v=0.8.0';
-import { MAPS, mapKey, normalizeBotCount, MAX_BOTS, DEFAULT_BOTS } from './maps.js?v=0.8.0';
-import {normalizeAllies,MAX_ALLIES} from './ai.js?v=0.8.0';
-import {career} from './progression.js?v=0.8.0';
-import {chooseSkin} from './skins.js?v=0.8.0';
-import {refreshCareer,refreshSkins,renderReport} from './career-ui.js?v=0.8.0';
-import {CROSSHAIR_DEFAULTS,CROSSHAIR_PRESETS,normalizeCrosshair,applyCrosshair} from './crosshair.js?v=0.8.0';
+import { WEAPONS, PRIMARY_KEYS, SECONDARY_KEYS } from './weapons.js?v=0.9.0';
+import { weaponAudio } from './audio.js?v=0.9.0';
+import { MAPS, mapKey, normalizeBotCount, MAX_BOTS, DEFAULT_BOTS } from './maps.js?v=0.9.0';
+import {normalizeAllies,MAX_ALLIES} from './ai.js?v=0.9.0';
+import {career} from './progression.js?v=0.9.0';
+import {chooseSkin} from './skins.js?v=0.9.0';
+import {refreshCareer,refreshSkins,renderReport} from './career-ui.js?v=0.9.0';
+import {CROSSHAIR_DEFAULTS,CROSSHAIR_PRESETS,normalizeCrosshair,applyCrosshair} from './crosshair.js?v=0.9.0';
+import {normalizeRules} from './match-rules.js?v=0.9.0';
+import {UTILITY_COSTS,buyRecommendation} from './economy.js?v=0.9.0';
 const $=id=>document.getElementById(id), defaults={...CROSSHAIR_DEFAULTS,sensitivity:1,volume:.45,fov:78,crosshair:6,quality:'standard',primary:'rifle',secondary:'pistol',map:'helix',botCount:DEFAULT_BOTS};
 export const settings={...defaults};
 defaults.allyCount=0;settings.allyCount=0;
+Object.assign(defaults,{matchMode:'standard',firstTo:4,overtime:false,botFill:'manual'});Object.assign(settings,{matchMode:'standard',firstTo:4,overtime:false,botFill:'manual'});
 try {
   const saved=JSON.parse(localStorage.getItem('blacksite.settings.v1')||'{}');
   for(const [key,min,max] of [['sensitivity',.4,2.4],['volume',0,1],['fov',68,100],['crosshair',3,12]])if(Number.isFinite(saved[key]))settings[key]=Math.min(max,Math.max(min,saved[key]));
@@ -17,6 +20,7 @@ try {
   if(PRIMARY_KEYS.includes(saved.primary))settings.primary=saved.primary;
   if(SECONDARY_KEYS.includes(saved.secondary))settings.secondary=saved.secondary;
   settings.map=mapKey(saved.map);settings.botCount=normalizeBotCount(saved.botCount);settings.allyCount=normalizeAllies(saved.allyCount);
+  const rules=normalizeRules(saved);settings.matchMode=rules.mode;settings.firstTo=rules.firstTo;settings.overtime=rules.overtime;settings.botFill=saved.botFill==='balanced'?'balanced':'manual';
 }catch{/* Browsing and play also work when storage is unavailable. */}
 let inspected=settings.primary, soundRequest=0;
 $('mapSelect').innerHTML=Object.values(MAPS).map(m=>`<option value="${m.id}">${m.name.toUpperCase()}</option>`).join('');
@@ -26,15 +30,18 @@ weaponAudio.preload();
 const money=value=>'$'+value.toLocaleString('en-US');
 function saveSettings(){try{localStorage.setItem('blacksite.settings.v1',JSON.stringify(settings));$('settingsSaved').textContent='Preferences saved on this browser.';}catch{$('settingsSaved').textContent='Preferences apply for this session.';}}
 function syncSettings(){
+  if(settings.botFill==='balanced')settings.botCount=1+settings.allyCount;
   weaponAudio.setVolume(settings.volume);
   document.querySelectorAll('[data-setting]').forEach(input=>{if(input.type==='checkbox')input.checked=!!settings[input.dataset.setting];else input.value=settings[input.dataset.setting];});
   document.querySelectorAll('[data-output]').forEach(output=>{const k=output.dataset.output;output.textContent=['volume','crossOpacity'].includes(k)?Math.round(settings[k]*100)+'%':k==='sensitivity'?settings[k].toFixed(1):settings[k]+(k==='fov'?'°':' px');});
   applyCrosshair(settings);
-  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ '+WEAPONS[settings.secondary].name+'</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.8.0';
+  const w=WEAPONS[settings.primary];$('startingName').innerHTML=w.name+' <em>+ '+WEAPONS[settings.secondary].name+'</em>';$('startingImage').src='assets/ui/'+w.image+'.svg?v=0.9.0';
   const m=MAPS[settings.map];$('mapTag').textContent=m.tag;$('mapName').textContent=m.name.toUpperCase();$('mapTitle').textContent=m.subtitle;$('mapTheme').textContent=m.theme.toUpperCase();$('mapDescription').textContent=m.description;$('mapNumber').textContent=m.number;$('mapPlan').textContent='SECTOR OVERVIEW / '+m.number;
-  $('mapImage').src='assets/'+m.preview+'?v=0.8.0';$('mapImage').alt=m.name+' textured military environment';$('botSummary').textContent=(1+settings.allyCount)+' VS '+settings.botCount+(settings.botCount===1?' BOT':' BOTS');$('introBots').textContent=settings.allyCount+' allies. '+settings.botCount+' '+(settings.botCount===1?'hostile.':'hostiles.');
+  $('mapImage').src='assets/'+m.preview+'?v=0.9.0';$('mapImage').alt=m.name+' textured military environment';$('botSummary').textContent=(1+settings.allyCount)+' VS '+settings.botCount+(settings.botCount===1?' BOT':' BOTS');$('introBots').textContent=settings.allyCount+' allies. '+settings.botCount+' '+(settings.botCount===1?'hostile.':'hostiles.');
   $('manualMap').textContent='OPERATOR HANDBOOK / '+m.tag;$('pauseMap').textContent=m.name.toUpperCase();$('scoreTitle').textContent=m.name.toUpperCase();$('radarMap').textContent=m.tag+' / '+m.number;
   document.documentElement.style.setProperty('--map-preview',`url("assets/${m.preview}")`);
+  const rules=normalizeRules(settings);$('roundTarget').textContent=rules.firstTo;$('matchRulesInfo').textContent=(rules.mode==='quick'?'QUICK / '+rules.buyTime+'s BUY · '+rules.roundTime+'s ROUNDS':'REGULATION / UP TO '+(rules.firstTo*2-1)+' ROUNDS')+(rules.overtime?' · WIN-BY-TWO OVERTIME, SIX EXTRA ROUNDS THEN A DECIDER':' · FIRST TO '+rules.firstTo);
+  $('firstTo').disabled=rules.mode==='quick';$('overtimeSetting').disabled=rules.mode==='quick';$('botCount').disabled=settings.botFill==='balanced';
 }
 export function showView(view){
   soundRequest++;weaponAudio.stopAll();
@@ -48,13 +55,13 @@ function inspectWeapon(key){
   inspected=key;refreshSkins(key);const w=WEAPONS[key];
   document.querySelectorAll('.armory-item').forEach(button=>{button.classList.toggle('selected',button.dataset.weapon===key);button.setAttribute('aria-pressed',String(button.dataset.weapon===key));});
   $('inspectCategory').textContent=w.category;$('inspectLabel').textContent=w.label;$('inspectName').textContent=w.name;$('inspectDescription').textContent=w.description;$('inspectStrength').textContent=w.strength;
-  $('inspectImage').src='assets/ui/'+w.image+'.svg?v=0.8.0';$('inspectImage').alt=w.name+' modified model preview';
+  $('inspectImage').src='assets/ui/'+w.image+'.svg?v=0.9.0';$('inspectImage').alt=w.name+' modified model preview';
   $('inspectStats').innerHTML=[['MAGAZINE',w.capacity+' RDS'],['RELOAD',w.reload.toFixed(1)+' SEC'],['FIRE RATE',Math.round(60/w.interval)+' RPM'],['REBUY',w.price?money(w.price):'ISSUED']].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('');
   $('inspectBars').innerHTML=['POWER','FIRE RATE','PRECISION'].map((label,i)=>`<div><small>${label}</small><b><i style="width:${w.bars[i]}%"></i></b></div>`).join('');
   const slot=w.slot==='primary'?'primary':'secondary',label=slot==='primary'?'PRIMARY':'SIDEARM',equipped=key===settings[slot];$('useWeapon').disabled=equipped;$('useWeapon').innerHTML=equipped?'STARTING '+label+' SELECTED <span>✓</span>':'USE AS STARTING '+label+' <span>↗</span>';
 }
-$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg?v=0.8.0" alt=""><em>${(w.slot==='secondary'?'SIDEARM':'PRIMARY')+' / '+w.capacity+' ROUNDS'}</em></button>`).join('');
-for(const [id,keys] of [['shopWeapons',PRIMARY_KEYS],['shopSidearms',SECONDARY_KEYS]])$(id).innerHTML=keys.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg?v=0.8.0" alt=""><strong>${w.name}</strong><b>${w.price?money(w.price):'FREE'}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
+$('armoryList').innerHTML=Object.entries(WEAPONS).map(([k,w])=>`<button class="armory-item" data-weapon="${k}" aria-pressed="false"><strong>${w.name}</strong><small>${w.category}</small><img src="assets/ui/${w.image}.svg?v=0.9.0" alt=""><em>${(w.slot==='secondary'?'SIDEARM':'PRIMARY')+' / '+w.capacity+' ROUNDS'}</em></button>`).join('');
+for(const [id,keys] of [['shopWeapons',PRIMARY_KEYS],['shopSidearms',SECONDARY_KEYS]])$(id).innerHTML=keys.map(k=>{const w=WEAPONS[k];return `<button class="shop-weapon" data-buy="${k}"><small>${w.category} / ${w.capacity} ROUNDS</small><img src="assets/ui/${w.image}.svg?v=0.9.0" alt=""><strong>${w.name}</strong><b>${w.price?money(w.price):'FREE'}</b><em data-status="${k}">AVAILABLE</em></button>`;}).join('');
 document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>showView(button.dataset.view));
 document.querySelector('.brand').onclick=e=>{e.preventDefault();showView('deploy');};
 document.querySelectorAll('[data-weapon]').forEach(button=>button.onclick=()=>inspectWeapon(button.dataset.weapon));
@@ -70,7 +77,7 @@ async function previewSound(kind){
   }catch{if(request===soundRequest)$('soundStatus').textContent='Audio could not start. Try another desktop browser.';}
 }
 $('previewShot').onclick=()=>previewSound('shot');$('previewReload').onclick=()=>previewSound('reload');
-document.querySelectorAll('[data-setting]').forEach(input=>input.addEventListener('input',()=>{const key=input.dataset.setting;settings[key]=input.type==='checkbox'?input.checked:key==='map'?mapKey(input.value):key==='botCount'?normalizeBotCount(input.value):key==='allyCount'?normalizeAllies(input.value):['quality','crossShape','crossColor'].includes(key)?input.value:Number(input.value);syncSettings();saveSettings();window.dispatchEvent(new CustomEvent(key==='map'?'blacksite:map':'blacksite:settings'));}));
+document.querySelectorAll('[data-setting]').forEach(input=>input.addEventListener('input',()=>{const key=input.dataset.setting;settings[key]=input.type==='checkbox'?input.checked:key==='map'?mapKey(input.value):key==='botCount'?normalizeBotCount(input.value):key==='allyCount'?normalizeAllies(input.value):['quality','crossShape','crossColor','matchMode','botFill'].includes(key)?input.value:Number(input.value);syncSettings();saveSettings();window.dispatchEvent(new CustomEvent(key==='map'?'blacksite:map':'blacksite:settings'));}));
 $('resetSettings').onclick=()=>{Object.assign(settings,defaults);syncSettings();saveSettings();inspectWeapon(settings.primary);window.dispatchEvent(new CustomEvent('blacksite:settings'));window.dispatchEvent(new CustomEvent('blacksite:map'));};
 $('difficulty').onchange=()=>{$('difficultyInfo').textContent={easy:'Slower reactions and wider shots. Learn the angles.',normal:'Balanced reactions and controlled bursts. Stay sharp.',hard:'Fast reactions, tight shots, and longer pursuit. No easy fights.'}[$('difficulty').value];};
 document.querySelectorAll('[data-squad]').forEach(b=>b.onclick=()=>{const [allies,enemies]=b.dataset.squad.split(',').map(Number);settings.allyCount=normalizeAllies(allies);settings.botCount=normalizeBotCount(enemies);syncSettings();saveSettings();});
@@ -81,12 +88,13 @@ syncSettings();inspectWeapon(inspected);refreshCareer();
 export function refreshShop(state,player,message){
   $('shopCash').textContent=money(state.money);
   document.querySelectorAll('[data-buy]').forEach(button=>{
-    const k=button.dataset.buy,w=WEAPONS[k],cost=w?.price??{armor:650,smoke:300,flash:200}[k];
+    const k=button.dataset.buy,w=WEAPONS[k],cost=w?.price??UTILITY_COSTS[k];
     const full=w?(w.slot==='primary'?state.owned&&state.primary===k:state.secondary===k):k==='armor'?player.armor>=100:state[k]>=2;
     button.disabled=full||state.money<cost||state.phase!=='buy';button.classList.toggle('equipped',!!full);
     const status=button.querySelector('[data-status]');if(status)status.textContent=full?(w?'EQUIPPED':k==='armor'?'EQUIPPED':'AT CAPACITY'):state.money<cost?'INSUFFICIENT CREDITS':w?'AVAILABLE':(k==='armor'?Math.ceil(player.armor)+' / 100':state[k]+' / 2');
   });
   if(message)$('shopMessage').textContent=message;
+  const advice=buyRecommendation(state,player);$('buyAdvice').textContent=advice.label+' · '+advice.reason;$('buySuggested').dataset.buySuggested=advice.item||'';$('buySuggested').disabled=!advice.item||state.phase!=='buy';$('shopLossBonus').textContent='NEXT LOSS BONUS / '+money(1900+Math.min(4,state.lossStreak||0)*500)+' · WIN +$3,000';
 }
 export const showReport=renderReport;
 export function showCompatibility(message){$('compatibility').hidden=false;$('compatibility').textContent=message;$('start').disabled=true;$('start').textContent='WEBGL UNAVAILABLE';$('unsupported').hidden=true;}

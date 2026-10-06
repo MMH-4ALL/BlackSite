@@ -114,3 +114,15 @@ included files and hashes: `assets/environment-audio/manifest.json`; dedication:
 `assets/environment-audio/LICENSE.md`. No third-party recordings were sampled.
 Original procedural cosmetic finishes, crosshairs, weather and fragile props
 are project code under the repository MIT license.
+
+## Original Tactical Tools / 0.9.0
+
+Created 6 October 2026 by BlackSite contributors. New range geometry, targets,
+control housings, fire/decoy presentation, crosshair feedback, impact geometry
+and synthesized Web Audio cues are original project code under the repository
+MIT license. No commercial game samples, external recordings, textures or models
+were added for this release. Included implementation: `combat-feedback.js`,
+`tactical-utilities.js`, `map-features.js`, `practice.js`, `economy.js`,
+`match-rules.js` and their integration in `game.js`/the UI.
+Existing downloaded assets, preserved notices and all 60 weapon recordings keep
+their original licenses and attribution above; no asset is relicensed.

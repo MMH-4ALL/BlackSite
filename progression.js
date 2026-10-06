@@ -1,4 +1,4 @@
-import {CHALLENGES,challengeProgress} from './challenges.js?v=0.8.0';
+import {CHALLENGES,challengeProgress} from './challenges.js?v=0.9.0';
 const KEY='blacksite.career.v1',STAT_KEYS=['matches','wins','losses','rounds','roundWins','kills','deaths','headshots','shots','hits','plants','defuses','time','cleanRounds','precisionRounds'],MAP_KEYS=['helix','bastion','ironwood','zero'],WEAPON_KEYS=['ak47','mp5','rifle','sv98','m82','pistol','c9','h45'];
 const CLASS={ak47:'RIFLE',rifle:'RIFLE',mp5:'SMG',sv98:'SNIPER',m82:'SNIPER',pistol:'SIDEARM',c9:'SIDEARM',h45:'SIDEARM'},number=v=>Number.isFinite(v)?Math.min(1e9,Math.max(0,v)):0;
 export const levelForXP=xp=>1+Math.floor(Math.sqrt(number(xp)/300));

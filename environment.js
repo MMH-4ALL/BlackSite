@@ -6,7 +6,7 @@ const ROOT='./assets/environment/';
 export async function loadEnvironment(loader){
   const textureLoader=new THREE.TextureLoader(),textures={};
   await Promise.all(['concrete034','asphalt010','metal032'].flatMap(name=>['color','normal','roughness'].map(async kind=>{
-    const t=await textureLoader.loadAsync(ROOT+name+'-'+kind+'.jpg?v=0.8.0');
+    const t=await textureLoader.loadAsync(ROOT+name+'-'+kind+'.jpg?v=0.9.0');
     t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=4;if(kind==='color')t.colorSpace=THREE.SRGBColorSpace;textures[name+'-'+kind]=t;
   })));
   const surfaces={};
@@ -15,7 +15,7 @@ export async function loadEnvironment(loader){
   }
   const models={};
   await Promise.all([...ENVIRONMENT_ASSETS,...DETAIL_ASSETS].map(async name=>{
-    let asset;try{asset=await loader.loadAsync(ROOT+name+'.glb?v=0.8.0');}catch(error){if(DETAIL_ASSETS.includes(name)){console.warn('Optional environment detail unavailable:',name);return;}throw error;}
+    let asset;try{asset=await loader.loadAsync(ROOT+name+'.glb?v=0.9.0');}catch(error){if(DETAIL_ASSETS.includes(name)){console.warn('Optional environment detail unavailable:',name);return;}throw error;}
     const g=asset.scene;
     g.traverse(o=>{if(!o.isMesh)return;o.userData.asset=true;o.castShadow=true;o.receiveShadow=true;
       if(name==='warehouse'||name==='hesco'||DETAIL_ASSETS.includes(name))return;

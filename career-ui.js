@@ -1,8 +1,10 @@
-import {career,levelProgress,accuracy,favorite} from './progression.js?v=0.8.0';
-import {challengeProgress,CHALLENGES} from './challenges.js?v=0.8.0';
-import {WEAPONS} from './weapons.js?v=0.8.0';
-import {MAPS} from './maps.js?v=0.8.0';
-import {SKINS,skinChoices,skinUnlocked} from './skins.js?v=0.8.0';
+import {career,levelProgress,accuracy,favorite} from './progression.js?v=0.9.0';
+import {challengeProgress,CHALLENGES} from './challenges.js?v=0.9.0';
+import {WEAPONS} from './weapons.js?v=0.9.0';
+import {MAPS} from './maps.js?v=0.9.0';
+import {SKINS,skinChoices,skinUnlocked} from './skins.js?v=0.9.0';
+import {matchComplete,ruleLabel} from './match-rules.js?v=0.9.0';
+import {recapText} from './combat-feedback.js?v=0.9.0';
 const $=id=>document.getElementById(id),money=value=>'$'+value.toLocaleString('en-US');
 const duration=seconds=>Math.floor(seconds/3600)+'H '+Math.floor(seconds%3600/60)+'M';
 export function refreshSkins(weapon){
@@ -23,10 +25,11 @@ export function refreshCareer(){
  $('challengeList').innerHTML=challengeProgress(p).map(c=>`<article class="challenge ${c.complete?'completed':''}"><div><span class="challenge-status">${c.complete?'✓ COMPLETE':'IN PROGRESS'}</span><strong>${c.name}</strong><p>${c.description}</p></div><span class="challenge-count">${c.current} / ${c.target}</span><progress value="${c.current}" max="${c.target}" aria-label="${c.name} progress"></progress><small>BADGE + 100 XP</small></article>`).join('');
 }
 export function renderReport(state,win,reason){
- const complete=state.wins===4||state.losses===4,base=complete?{}:state.roundBaseline||{},delta=k=>(state[k]||0)-(base[k]||0),award=state.roundAward;
+ const complete=matchComplete(state),base=complete?{}:state.roundBaseline||{},delta=k=>(state[k]||0)-(base[k]||0),award=state.roundAward;
+ $('resultRules').textContent=ruleLabel(state);$('resultRecap').textContent=state.damageRecap?'DEATH RECAP / '+recapText(state.damageRecap,WEAPONS):'SURVIVED / EQUIPMENT RETAINED';
  $('result').classList.toggle('defeat',!win);$('resultLabel').textContent=complete?'OPERATION COMPLETE':'ROUND '+String(state.round).padStart(2,'0')+' / COMPLETE';$('resultTitle').innerHTML=(complete?(win?'OPERATION WON':'OPERATION LOST'):(win?'SECTOR SECURED':'SECTOR LOST'))+'<span>.</span>';$('resultDetail').textContent=reason;$('resultYou').textContent=state.wins;$('resultBot').textContent=state.losses;
  $('resultContext').textContent=[MAPS[state.map||'helix'].name.toUpperCase(),(state.side||'attack').toUpperCase(),(state.difficulty||'normal').toUpperCase(),(state.allyCount||0)+' ALLIES / '+(state.botCount||6)+' ENEMIES'].join(' · ');
- const shots=delta('shotsFired'),hits=delta('hits'),stats=[['ELIMINATIONS',delta('kills')],['DEATHS',delta('deaths')],['HEADSHOTS',delta('headshots')],['ACCURACY',shots?accuracy(hits,shots)+'%':'NO SHOTS'],['SHOTS / HITS',shots+' / '+hits],['PLANTS / DEFUSES',delta('plants')+' / '+delta('defuses')],['XP EARNED',complete?state.sessionXP||0:award?.xp||0],['ROUND REWARD',money(win?3000:1900)]];
+ const shots=delta('shotsFired'),hits=delta('hits'),stats=[['ELIMINATIONS',delta('kills')],['DEATHS',delta('deaths')],['HEADSHOTS',delta('headshots')],['ACCURACY',shots?accuracy(hits,shots)+'%':'NO SHOTS'],['SHOTS / HITS',shots+' / '+hits],['PLANTS / DEFUSES',delta('plants')+' / '+delta('defuses')],['XP EARNED',complete?state.sessionXP||0:award?.xp||0],['ROUND REWARD',money(state.roundReward??(win?3000:1900))]];
  $('resultStats').innerHTML=stats.map(([label,value])=>`<div><small>${label}</small><strong>${value}</strong></div>`).join('');
  $('resultProgress').innerHTML=award?`<div class="report-level"><strong>LEVEL ${award.level.level}</strong><span>${award.level.current.toLocaleString()} / ${award.level.required.toLocaleString()} XP</span></div><div class="xp-track"><span style="width:${award.level.percent}%"></span></div>${award.unlocks.length?`<p class="unlock-line">BADGE UNLOCKED / ${award.unlocks.join(' · ')}</p>`:''}${award.level.level>award.previousLevel?`<p class="unlock-line">LEVEL UP / ${award.level.level}</p><p class="unlock-line">${SKINS.filter(s=>!s.badge&&s.level>award.previousLevel&&s.level<=award.level.level).map(s=>'FINISH UNLOCKED / '+s.name).join(' · ')}</p>`:''}${award.challengeProgress?.length?`<p>${award.challengeProgress.map(c=>c.name+' '+c.current+'/'+c.target).join(' · ')}</p>`:''}${award.bests?.length?`<p>PERSONAL BEST / ${award.bests.join(' · ')}</p>`:''}`:'';
  $('resultHistory').innerHTML=(state.roundResults||[]).map(r=>`<span class="${r.win?'won':'lost'}" title="${r.reason}"><small>R${r.round} / ${r.side.toUpperCase()}</small><strong>${r.win?'WIN':'LOSS'}</strong></span>`).join('');$('next').innerHTML=(complete?'DEPLOY AGAIN':'NEXT ROUND')+' <span>↗</span>';

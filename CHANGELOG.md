@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0 — Tactical Tools / 6 October 2026
+
+- Added a separate practice range: five reactive targets, two movers, recoil board, headshot/accuracy counters, all eight guns, normal reloads with unlimited reserve, B controls and reset. Training never modifies XP/career/economy.
+- Added original headshot/kill sounds, kill confirmation, bounded directional damage arrows, surface-aligned impact marks and capped short-lived sparks. Existing weapon recordings and weapon balance are retained.
+- Added factual death recaps with killer, weapon, distance, applied health damage and hit locations; visible while allies continue and in the round report.
+- Added consecutive loss rewards ($1,900 to $3,900), scoreboard credits, contextual buy advice and an optional suggested-purchase button. Bots retain rifles when alive, rebuy after death when affordable, and otherwise use the issued P-9 with its correct model/audio/magazine/reload.
+- Added purchasable decoys (J, $100, 10 seconds) and incendiaries (K, $500, 8 seconds). False contact attracts idle opponents, without overriding combat memory/urgent objectives. Fire respects walls, height and friendly-fire rules; bots route around enemy fire and smoke extinguishes it. Zones and geometry are capped.
+- Added symmetric two-second spawn protection that breaks on firing/utility/leaving the 3m spawn radius, plus short staggered bot releases. The existing buy movement lock and paused shop timer remain.
+- Added configurable first-to-2/4/7/10 matches, quick mode, balanced bot fill and optional win-by-two overtime capped at six extra rounds plus a decider. Halftime follows match length; overtime swaps sides in pairs without resetting squad score/credits/surviving equipment.
+- Added named A/B objective callouts, plant confirmation and a low-cost core beacon.
+- Added original map controls: Helix false-contact relay, Bastion timed loading override, Ironwood equipment-light breaker and Zero timed security bypass. All four maps/layouts/ramps remain; E objective priority and door occupant protection are preserved.
+- Kept muted, responsive native UI controls and Performance Mode. Shared bot rifle stays low-poly, no new external runtime requests or downloads; six focused modules isolate the new systems. Previous release notes/licenses remain intact.
+- Extended real-model/gameplay and Chromium regressions for rules, utilities, recaps, switches, training and storage. See TESTING.md for measured budgets and device-testing limits.
+
 ## 0.8.1 — Weapon Inspection / 6 October 2026
 
 - Tap F or Y to play a full 2.4-second inspection on any weapon, with a smooth lift, turning motion and automatic return. The existing hold-V inspection remains available.

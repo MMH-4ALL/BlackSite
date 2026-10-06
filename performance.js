@@ -24,7 +24,7 @@ export function batchWorld(root) {
   root.updateMatrixWorld(true); const groups = new Map(); let before = 0;
   root.traverse(mesh => {
     if (!mesh.isMesh || !mesh.visible || mesh.isSkinnedMesh || Array.isArray(mesh.material)) return;
-    for (let p = mesh; p && p !== root; p = p.parent) if (p.userData.door || p.userData.destructible) return;
+    for (let p = mesh; p && p !== root; p = p.parent) if (p.userData.door || p.userData.destructible || p.userData.interactive) return;
     if (mesh.userData.ownMaterial || mesh.geometry.morphAttributes.position) return;
     const layout = Object.entries(mesh.geometry.attributes).map(([k, a]) => `${k}:${a.itemSize}:${a.normalized}:${a.array.constructor.name}`).sort().join('|');
     const key = mesh.material.uuid + ':' + layout; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(mesh); before++;

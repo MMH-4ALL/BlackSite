@@ -1,3 +1,47 @@
+# Tactical Tools — v0.9.0 / 6 October 2026
+
+The legacy baseline and expanded tactics checks pass on the actual Three.js scene
+and bundled GLBs. `node tools/validate-tactics.mjs` includes `validate.mjs`, then
+exercises every match length/overtime cap, side-switch schedules, quick matches,
+loss streaks, real bot rebuy/fallback, buy advice, spawn protection boundaries,
+damage recaps, grenade purchases/throws, wall/height/ally-safe fire, smoke
+extinguishing, decoy memory, zone caps, all four reachable map controls, timed
+doors/light reset and training transitions. The range test fires an actual
+headshot ray, tests five targets/two movers, all eight guns and unlimited reserve,
+resets objects and verifies that career data is byte-for-byte unchanged.
+
+`validate-career.mjs`, `validate-environment.mjs` and `validate-audio.mjs` also
+pass: old save/unlock/settings behavior and every existing sound/model license
+are retained. All game/module JavaScript parses successfully.
+
+Real Chrome 151 software WebGL checks pass with no runtime/console errors or
+remote requests: mouse capture, buy lock/timer pause, 24 map/team configurations,
+all 72 gun/finish combinations, actual new match controls/balanced fill,
+decoy/fire rendering, security bypass, death recap/scoreboard credits, B range
+controls, changing training guns/movers, an actual training headshot and no XP
+farming. Menus fit 320/768/1024/1440px without document-level overflow. Optional
+operator failures and denied LocalStorage remain playable under `/BlackSite/`.
+
+Sixteen-bot Performance Mode worlds: Helix 102 draws/173,160 triangles; Bastion
+88/175,272; Ironwood 94/173,622; Zero 92/170,518. This is only two additional draws
+per map for the interactive control, with no large new downloads. Four repeated
+resets held at 89 GPU geometries / 15 textures after rendering the training gun.
+A sample 500-step AI/animation simulation took 45–90ms per map in this environment,
+excluding GPU/UI. Neither
+CPU samples nor software render submission timings predict Chromebook FPS.
+
+New original cues have bounded lifetime and explicitly disconnect audio nodes;
+decoy sample synthesis is cached. Fire is capped at three zones, each with 3
+Performance-mode flames or 8 Standard/High flames. Decoys cap at three; impact
+marks at 12/32 and spark groups at six. Empty hazard lists do not add path rays.
+
+Run `node tools/validate-tactics.mjs` and the other Node suites above; optional
+browser reproduction remains the Playwright/Chromium command below. Remaining
+human checks: full matches/balance, sustained real Chromebook FPS/thermals,
+subjective cue volume and other desktop browsers. A recap was implemented instead
+of replay to avoid a second simulation/camera render. Overtime is deliberately
+bounded, and Ironwood's breaker changes equipment indicators, not bot vision.
+
 # Weapon inspection patch — v0.8.1 / 6 October 2026
 
 Tap F or Y for a 2.4-second inspection, hold V for the original pose, G for smoke and H for flash. Gameplay and Chromium browser suites passed. Validation checks both tap keys on all eight guns, automatic return, no utility/ammo consumption, camera independence, pause, repeat keys, combat/reload/scope/utility cancellation and round/weapon resets. Browser checks exercise real F/Y/H keyboard input. The v0.8.0 regression record remains below.
