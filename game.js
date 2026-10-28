@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from './vendor/loaders/GLTFLoader.js';
 import { WEAPONS } from './weapons.js?v=0.9.0';
-import { settings, refreshShop, showReport, showView } from './ui.js?v=0.9.0';
+import { settings, refreshShop, showReport, showView } from './ui.js?v=0.9.1';
 import { weaponAudio, SOUND_BANK } from './audio.js?v=0.9.0';
 import { MAPS, mapKey, normalizeBotCount } from './maps.js?v=0.9.0';
 import { loadEnvironment, textureBox, placeEnvironment } from './environment.js?v=0.9.0';
