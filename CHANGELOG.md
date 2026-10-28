@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1
+
+- Explicit squad presets now restore custom bot counts, so Solo / 1 vs 5 works after balanced-team fill was enabled.
+- Add a regression check for every preset and run website checks on GitHub.
+
 ## 0.9.0 — Tactical Tools / 6 October 2026
 
 - Added a separate practice range: five reactive targets, two movers, recoil board, headshot/accuracy counters, all eight guns, normal reloads with unlimited reserve, B controls and reset. Training never modifies XP/career/economy.
